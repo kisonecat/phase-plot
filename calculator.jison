@@ -46,7 +46,7 @@
 expressions
     : e EOF
         { typeof console !== 'undefined' ? console.log($1) : print($1);
-          return Function('real','imag',$1.code + 'return [' + $1.real + ',' + $1.imag + '];'); }
+          return Function('z','w',$1.code + 'w.x =' + $1.real + '; w.y = ' + $1.imag + ';'); }
     ;
 
 e
@@ -81,9 +81,9 @@ e
     | I
         {$$ = new StraightLineProgram(0,1);}
     | Z
-        {$$ = new StraightLineProgram('real','imag');}
+        {$$ = new StraightLineProgram('z.x','z.y');}
     | MOUSE
-        {$$ = new StraightLineProgram('mouse[0]','mouse[1]');}
+        {$$ = new StraightLineProgram('mouse.x','mouse.y');}
     ;
 
 

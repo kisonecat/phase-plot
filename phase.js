@@ -1,60 +1,113 @@
 $(function() {
     // the current mouse position, unfortunately as a global
-    mouse = [0,4];
+    mouse = new Point(0,0);
 
     var canvas = document.getElementById("canvas");
 
-    //The following functions convert pixel Xs and Ys to real and imaginary 
-    //parts of a complex    number, and back again
-    var pixToReal = function(n) {
-        return n / 15.0 - 10.0
-    };
-    var pixToImag = function(n) {
-        return -n / 15.0 + 10
-    }
-    var realToPix = function(x) {
-        return Math.round((x + 10.0) * 15)
-    }
-    var imagToPix = function(y) {
-        return Math.round((-y + 10.0) * 15)
-    }
+    var viewport_width = $(canvas).width();
+    var viewport_height = $(canvas).height();
 
-    var colorTable = bestColorTable;
+    var viewport_pixels = new Rectangle(0,0,viewport_width,viewport_height);
+    var viewport_plane = new Rectangle(-10, -10, 10, 10);
+
+    var pixels_to_plane = viewport_pixels.affine_transform( viewport_plane );
+    var pixels_to_plane_inplace = viewport_pixels.affine_transform_inplace( viewport_plane );
+
+    var colorTable = phaseColorTable; //new MultipliedColorTable(phaseColorTable,gridColorTable);
 
     ctx = canvas.getContext("2d");
-    var imageData = ctx.getImageData(0,0,300, 300);
+    var imageData = ctx.getImageData(0,0,viewport_width, viewport_height);
+
+    var f;
 
     makeFrame = function() {
-        var data = imageData.data;
-        var offset = 0;
-        for (var m = 0; m < 300; m++) {
-            for (var n = 0; n < 300; n++) {
-                var x = pixToReal(n + 0.5)
-                var y = pixToImag(m + 0.5)
-                var w = f(x,y)
-		color = colorTable.lookup(w[0], w[1]);
+	var data = imageData.data;
+	var pixel_point = new Point(0.5, 0.5);
+	var plane_point = new Point(0, 0);
+	var value = new Point(0,0);
+	var offset = 0;
+	var index;
 
-                data[offset++] = color[0]
-		data[offset++] = color[1]
-		data[offset++] = color[2]
-                data[offset++] = 255;
+	var fineness = 1000;
+	var redTable = phaseColorTable.redTable;
+	var greenTable = phaseColorTable.greenTable;
+	var blueTable = phaseColorTable.blueTable;
+
+        for (var m = 0; m < viewport_height; m++) {
+            for (var n = 0; n < viewport_width; n++) {
+		pixels_to_plane_inplace( pixel_point, plane_point );
+                f(plane_point, value);
+
+		/*
+		color = colorTable.assign(value, data, offset);
+		offset += 4;
+		*/
+
+		index = Math.floor((Math.atan2(value.y,value.x) + Math.PI) * fineness / 2 / Math.PI);
+		data[offset++] = redTable[index];
+		data[offset++] = greenTable[index];
+		data[offset++] = blueTable[index];
+		data[offset++] = 255;
+
+		pixel_point.x++;
             }
+	    pixel_point.y++;
+	    pixel_point.x = 0.5;
         }
         ctx.putImageData(imageData, 0, 0);
     }
 
+    mouseDown = new Point(0,0);
+    mouseDragging = false;
+    var old_viewport_plane = viewport_plane;
+    
     var canvasOffsetX = $(canvas).offset().left;
     var canvasOffsetY = $(canvas).offset().top;
-    function onMouseMove(evt) {
-        mouse = [pixToReal(evt.pageX - canvasOffsetX), pixToImag(evt.pageY - canvasOffsetY)];
+
+    var mouse_point = new Point(0,0);
+
+    $(canvas).mousemove(function(evt) {
+	mouse_point.x = evt.pageX - canvasOffsetX;
+	mouse_point.y = evt.pageY - canvasOffsetY;
+
+	pixels_to_plane_inplace(mouse_point, mouse);
+
+	if (mouseDragging) {
+	    var old_mouse = viewport_pixels.affine_transform( old_viewport_plane )( mouse_point );
+	    viewport_plane = old_viewport_plane.translate( mouseDown.subtract( old_mouse ) );
+	    pixels_to_plane = viewport_pixels.affine_transform( viewport_plane );
+	    pixels_to_plane_inplace = viewport_pixels.affine_transform_inplace( viewport_plane );
+	}
+	
         window.setTimeout(makeFrame,0);
-    }
+    });
 
-    $(document).mousemove(onMouseMove);
+    $(canvas).mousedown(function(evt) {
+	var x = evt.pageX - canvasOffsetX;
+	var y = evt.pageY - canvasOffsetY;
 
-    $('.function').bind("keyup input paste", function() {
+	mouseDown = pixels_to_plane(new Point(x,y));
+	old_viewport_plane = viewport_plane;
+
+	mouseDragging = true;
+    });
+
+    $(document).mouseup(function(evt) {
+	mouseDragging = false;
+    });
+    
+    $(canvas).mousewheel( function(event, delta, deltaX, deltaY) {
+	viewport_plane = viewport_plane.scale( Math.pow(0.8,delta) );
+	pixels_to_plane = viewport_pixels.affine_transform( viewport_plane );
+	pixels_to_plane_inplace = viewport_pixels.affine_transform_inplace( viewport_plane );
+        window.setTimeout(makeFrame,0);
+	return false;
+    });
+
+    $('.function_form').submit(function() {
 	f = calculator.parse($('.function').val());
         window.setTimeout(makeFrame,0);
+	return false;
     });
 
     f = calculator.parse($('.function').val());
