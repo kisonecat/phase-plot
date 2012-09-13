@@ -20,7 +20,8 @@
 "i"                   return 'I'
 "e"                   return 'E'
 "z"                   return 'Z'
-"mouse"               return 'MOUSE'
+"mouse"               return 'W'
+"w"                   return 'W'
 "conj"                return 'CONJ'
 "exp"                 return 'EXP'
 "sin"                 return 'SIN'
@@ -46,7 +47,7 @@
 expressions
     : e EOF
         { typeof console !== 'undefined' ? console.log($1) : print($1);
-          return Function('z','w',$1.code + 'w.x =' + $1.real + '; w.y = ' + $1.imag + ';'); }
+          return Function('z','w','result',$1.code + 'result.x =' + $1.real + '; result.y = ' + $1.imag + ';'); }
     ;
 
 e
@@ -82,8 +83,8 @@ e
         {$$ = new StraightLineProgram(0,1);}
     | Z
         {$$ = new StraightLineProgram('z.x','z.y');}
-    | MOUSE
-        {$$ = new StraightLineProgram('mouse.x','mouse.y');}
+    | W
+        {$$ = new StraightLineProgram('w.x','w.y');}
     ;
 
 

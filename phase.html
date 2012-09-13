@@ -6,14 +6,54 @@
 <script src="rectangle.js" type="text/javascript"></script>
 <script src="colortable.js" type="text/javascript"></script>
 <script src="phase.js" type="text/javascript"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+});
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script>
+$(function() {
+
+  $('.function_form').submit(function() {
+    plot = $('div#first')[0].plot;
+    plot.f = calculator.parse($('.function').val());
+    window.setTimeout(plot.update,0);
+    return false;
+  });
+
+});
+</script>
 </head>
 <body>
+
+<h1>Your own function</h1>
 
 <form class="function_form">
   <input class="function" type="text" value="z*z*(z+2*2*i)*(z-mouse)" />
   <button type="submit">Submit</button>
 </form>
 
-  <canvas id="canvas" width="300" height="300"></canvas>
+<div class="complex_plot" id="first" style="width:300pt;height:300pt;">
+z*z*(z+2*2*i)*(z-mouse)
+</div>
+
+<h1>Two roots</h1>
+
+<p>This is a graph of $f(z) = (w-z)/z$.  Your mouse position is the $z$.</p>
+
+<div class="complex_plot" style="width:300pt;height:300pt;">
+(mouse-z)/z
+</div>
+
+<h1>Zoom and pan</h1>
+
+<p>This is a graph of $f(z) = z^2 + z + 1$.  You can use the scroll wheel to zoom, and drag to pan.</p>
+
+<div class="complex_plot" style="width:300pt;height:300pt;">
+  z^2 + z + 1
+</div>
 
 </body>

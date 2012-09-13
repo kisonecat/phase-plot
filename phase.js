@@ -1,116 +1,119 @@
 $(function() {
-    // the current mouse position, unfortunately as a global
-    mouse = new Point(0,0);
 
-    var canvas = document.getElementById("canvas");
+    $('div.complex_plot').each(function(i, obj) {
+	var height = $(obj).height();
+	var width =  $(obj).width();
 
-    var viewport_width = $(canvas).width();
-    var viewport_height = $(canvas).height();
+	var canvas = $('<canvas width="' + width + '" height="' + height + '"/>')[0];
 
-    var viewport_pixels = new Rectangle(0,0,viewport_width,viewport_height);
-    var viewport_plane = new Rectangle(-10, -10, 10, 10);
+	var function_text = $(obj).text();
 
-    var pixels_to_plane = viewport_pixels.affine_transform( viewport_plane );
-    var pixels_to_plane_inplace = viewport_pixels.affine_transform_inplace( viewport_plane );
+	$(obj).empty();	
+	$(obj).append(canvas);
 
-    var colorTable = phaseColorTable; //new MultipliedColorTable(phaseColorTable,gridColorTable);
+	console.log(canvas);
 
-    ctx = canvas.getContext("2d");
-    var imageData = ctx.getImageData(0,0,viewport_width, viewport_height);
+	obj.plot = canvas;
 
-    var f;
+	canvas.f = calculator.parse(function_text);
 
-    makeFrame = function() {
-	var data = imageData.data;
-	var pixel_point = new Point(0.5, 0.5);
-	var plane_point = new Point(0, 0);
-	var value = new Point(0,0);
-	var offset = 0;
-	var index;
+	canvas.viewport_pixels = new Rectangle(0,0,
+					       canvas.width, canvas.height);
+	canvas.viewport_plane = new Rectangle(-10, -10, 10, 10);
 
-	var fineness = 1000;
-	var redTable = phaseColorTable.redTable;
-	var greenTable = phaseColorTable.greenTable;
-	var blueTable = phaseColorTable.blueTable;
+	canvas.pixels_to_plane = canvas.viewport_pixels.affine_transform( canvas.viewport_plane );
+	canvas.pixels_to_plane_inplace = canvas.viewport_pixels.affine_transform_inplace( canvas.viewport_plane );
 
-        for (var m = 0; m < viewport_height; m++) {
-            for (var n = 0; n < viewport_width; n++) {
-		pixels_to_plane_inplace( pixel_point, plane_point );
-                f(plane_point, value);
+	canvas.colorTable = phaseColorTable;
 
-		/*
-		color = colorTable.assign(value, data, offset);
-		offset += 4;
-		*/
+	canvas.update_viewport = function() {
+	    canvas.pixels_to_plane = canvas.viewport_pixels.affine_transform( canvas.viewport_plane );
+	    canvas.pixels_to_plane_inplace = canvas.viewport_pixels.affine_transform_inplace( canvas.viewport_plane );
+	};
 
-		index = Math.floor((Math.atan2(value.y,value.x) + Math.PI) * fineness / 2 / Math.PI);
-		data[offset++] = redTable[index];
-		data[offset++] = greenTable[index];
-		data[offset++] = blueTable[index];
-		data[offset++] = 255;
-
-		pixel_point.x++;
-            }
-	    pixel_point.y++;
-	    pixel_point.x = 0.5;
-        }
-        ctx.putImageData(imageData, 0, 0);
-    }
-
-    mouseDown = new Point(0,0);
-    mouseDragging = false;
-    var old_viewport_plane = viewport_plane;
-    
-    var canvasOffsetX = $(canvas).offset().left;
-    var canvasOffsetY = $(canvas).offset().top;
-
-    var mouse_point = new Point(0,0);
-
-    $(canvas).mousemove(function(evt) {
-	mouse_point.x = evt.pageX - canvasOffsetX;
-	mouse_point.y = evt.pageY - canvasOffsetY;
-
-	pixels_to_plane_inplace(mouse_point, mouse);
-
-	if (mouseDragging) {
-	    var old_mouse = viewport_pixels.affine_transform( old_viewport_plane )( mouse_point );
-	    viewport_plane = old_viewport_plane.translate( mouseDown.subtract( old_mouse ) );
-	    pixels_to_plane = viewport_pixels.affine_transform( viewport_plane );
-	    pixels_to_plane_inplace = viewport_pixels.affine_transform_inplace( viewport_plane );
-	}
+	canvas.mouse = new Point(0,0);
 	
-        window.setTimeout(makeFrame,0);
+	var ctx = canvas.getContext("2d");
+	canvas.imageData = ctx.getImageData(0,0,
+					 canvas.width, canvas.height);
+	canvas.update = function() {
+	    var data = canvas.imageData.data;
+
+	    var pixel_point = new Point(0.5, 0.5);
+	    var plane_point = new Point(0, 0);
+	    var value = new Point(0,0);
+	    var offset = 0;
+	    var width = canvas.width;
+
+            for (var m = 0; m < canvas.height; m++) {
+		for (var n = 0; n < width; n++) {
+		    canvas.pixels_to_plane_inplace( pixel_point, plane_point );
+                    canvas.f(plane_point, canvas.mouse, value);
+
+		    color = canvas.colorTable.lookup( value );
+		    data[offset++] = color[0];
+		    data[offset++] = color[1];
+		    data[offset++] = color[2];
+		    data[offset++] = 255;
+
+		    pixel_point.x++;
+		}
+		pixel_point.y++;
+		pixel_point.x = 0.5;
+            }
+            ctx.putImageData(canvas.imageData, 0, 0);
+	};
+
+        canvas.update();
+	
+	canvas.mouse_pixels = new Point(0,0);
+
+	canvas.depends_on_mouse = function() {
+	    return (canvas.f.toString().match( 'w.x' ) || canvas.f.toString().match( 'w.y' ));
+	};
+
+	$(canvas).mousemove(function(event) {
+	    event.preventDefault();
+
+	    canvas.mouse_pixels.x = event.pageX - $(canvas).offset().left;
+	    canvas.mouse_pixels.y = event.pageY - $(canvas).offset().top;
+
+	    canvas.mouse = canvas.pixels_to_plane(canvas.mouse_pixels);
+
+	    if (canvas.is_panning) {
+		var old_mouse = canvas.viewport_pixels.affine_transform( canvas.old_viewport_plane )( canvas.mouse_pixels );
+		canvas.viewport_plane = canvas.old_viewport_plane.translate( canvas.panning_start_position.subtract( old_mouse ) );
+		canvas.update_viewport();
+	    }
+
+	    if (canvas.is_panning || canvas.depends_on_mouse())
+		window.setTimeout(canvas.update,0);
+	});
+	
+	$(canvas).mousedown(function(event) {
+	    event.preventDefault();
+
+	    var x = event.pageX - $(canvas).offset().left;
+	    var y = event.pageY - $(canvas).offset().top;
+	    
+	    canvas.panning_start_position = canvas.pixels_to_plane(new Point(x,y));
+	    canvas.old_viewport_plane = canvas.viewport_plane;
+	    canvas.is_panning = true;
+	});
+	
+	$(document).mouseup(function(event) {
+	    canvas.is_panning = false;
+	});
+	
+	$(canvas).mousewheel( function(event, delta, deltaX, deltaY) {
+	    event.preventDefault();
+
+	    canvas.viewport_plane = canvas.viewport_plane.scale( Math.pow(0.8,delta) );
+	    canvas.update_viewport();
+            window.setTimeout(canvas.update,0);
+	});
+
+
     });
-
-    $(canvas).mousedown(function(evt) {
-	var x = evt.pageX - canvasOffsetX;
-	var y = evt.pageY - canvasOffsetY;
-
-	mouseDown = pixels_to_plane(new Point(x,y));
-	old_viewport_plane = viewport_plane;
-
-	mouseDragging = true;
-    });
-
-    $(document).mouseup(function(evt) {
-	mouseDragging = false;
-    });
-    
-    $(canvas).mousewheel( function(event, delta, deltaX, deltaY) {
-	viewport_plane = viewport_plane.scale( Math.pow(0.8,delta) );
-	pixels_to_plane = viewport_pixels.affine_transform( viewport_plane );
-	pixels_to_plane_inplace = viewport_pixels.affine_transform_inplace( viewport_plane );
-        window.setTimeout(makeFrame,0);
-	return false;
-    });
-
-    $('.function_form').submit(function() {
-	f = calculator.parse($('.function').val());
-        window.setTimeout(makeFrame,0);
-	return false;
-    });
-
-    f = calculator.parse($('.function').val());
-    window.setTimeout(makeFrame,0);
 
 });

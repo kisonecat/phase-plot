@@ -106,7 +106,7 @@ modulusColorTable = new ModulusColorTable(function(z) {
     var modulus = Math.sqrt(  z.x*z.x + z.y*z.y );
     // triangle wave
     var brightness = (2/line_spacing)*Math.abs(((modulus + line_spacing/2.0) % line_spacing) - line_spacing/2.0);
-    brightness = 1.0 - brightness * brightness;
+    brightness = 1.0 - brightness * brightness * brightness * brightness;
 
     brightness = brightness * Math.exp(-modulus/1000.0);
 
@@ -116,7 +116,7 @@ modulusColorTable = new ModulusColorTable(function(z) {
 
 infinityColorTable = new ColorTable(function(z) {
     var modulus = Math.sqrt(  z.x*z.x + z.y*z.y );
-    brightness = 1.0 - Math.exp(-modulus/250.0);
+    brightness = 1.0 - Math.exp(-modulus/1000.0);
     brightness = Math.floor(brightness * 255);
     return [brightness, brightness, brightness];
 });
