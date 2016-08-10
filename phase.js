@@ -8,6 +8,15 @@ $(function() {
 
 	var function_text = $(obj).text();
 
+	canvas.is_pannable = true;
+	canvas.is_drawable = false;
+
+	if ($(obj).attr('drawable') == "yes")
+	    canvas.is_drawable = true;
+
+	if ($(obj).attr('pannable') == "no")
+	    canvas.is_pannable = false;
+
 	$(obj).empty();	
 	$(obj).append(canvas);
 
@@ -21,20 +30,21 @@ $(function() {
 					       canvas.width, canvas.height);
 	canvas.viewport_plane = new Rectangle(-10, -10, 10, 10);
 
-	canvas.pixels_to_plane = canvas.viewport_pixels.affine_transform( canvas.viewport_plane );
-	canvas.pixels_to_plane_inplace = canvas.viewport_pixels.affine_transform_inplace( canvas.viewport_plane );
-
 	canvas.colorTable = phaseColorTable;
 
 	canvas.update_viewport = function() {
 	    canvas.pixels_to_plane = canvas.viewport_pixels.affine_transform( canvas.viewport_plane );
 	    canvas.pixels_to_plane_inplace = canvas.viewport_pixels.affine_transform_inplace( canvas.viewport_plane );
+	    canvas.plane_to_pixels = canvas.viewport_plane.affine_transform( canvas.viewport_pixels );
+	    canvas.plane_to_pixels_inplace = canvas.viewport_plane.affine_transform_inplace( canvas.viewport_pixels );
 	};
+
+	canvas.update_viewport();
 
 	canvas.mouse = new Point(0,0);
 	
-	var ctx = canvas.getContext("2d");
-	canvas.imageData = ctx.getImageData(0,0,
+	canvas.ctx = canvas.getContext("2d");
+	canvas.imageData = canvas.ctx.getImageData(0,0,
 					 canvas.width, canvas.height);
 	canvas.update = function() {
 	    var data = canvas.imageData.data;
@@ -61,7 +71,11 @@ $(function() {
 		pixel_point.y++;
 		pixel_point.x = 0.5;
             }
-            ctx.putImageData(canvas.imageData, 0, 0);
+            canvas.ctx.putImageData(canvas.imageData, 0, 0);
+
+	    if (canvas.input_stroke) {
+		canvas.draw_both_strokes();
+	    }
 	};
 
         canvas.update();
@@ -71,6 +85,29 @@ $(function() {
 	canvas.depends_on_mouse = function() {
 	    return (canvas.f.toString().match( 'w.x' ) || canvas.f.toString().match( 'w.y' ));
 	};
+
+	canvas.draw_stroke = function(stroke) {
+	    canvas.ctx.lineWidth = 3;
+	    canvas.ctx.beginPath();
+	    var pixel = new Point(0,0);
+	    
+	    canvas.plane_to_pixels_inplace( stroke[0], pixel );
+	    canvas.ctx.moveTo( pixel.x, pixel.y );
+
+	    for( var i=1 ; i < stroke.length ; i++ ){
+		canvas.plane_to_pixels_inplace( stroke[i], pixel );
+		canvas.ctx.lineTo( pixel.x, pixel.y );
+	    }
+
+	    canvas.ctx.stroke();
+	}
+
+	canvas.draw_both_strokes = function() {
+	    canvas.ctx.strokeStyle = "gray";
+	    canvas.draw_stroke(canvas.input_stroke);
+	    canvas.ctx.strokeStyle = "black";
+	    canvas.draw_stroke(canvas.output_stroke);
+	}
 
 	$(canvas).mousemove(function(event) {
 	    event.preventDefault();
@@ -86,23 +123,48 @@ $(function() {
 		canvas.update_viewport();
 	    }
 
+	    if (canvas.is_drawing) {
+		var value = new Point(0,0);
+		canvas.f(canvas.mouse, canvas.mouse, value);
+		canvas.input_stroke.push( canvas.mouse );
+		canvas.output_stroke.push( value );
+	    }
+
 	    if (canvas.is_panning || canvas.depends_on_mouse())
 		window.setTimeout(canvas.update,0);
+
+	    if (canvas.input_stroke) {
+		canvas.draw_both_strokes();
+	    }
 	});
 	
 	$(canvas).mousedown(function(event) {
 	    event.preventDefault();
 
-	    var x = event.pageX - $(canvas).offset().left;
-	    var y = event.pageY - $(canvas).offset().top;
+	    canvas.mouse_pixels.x = event.pageX - $(canvas).offset().left;
+	    canvas.mouse_pixels.y = event.pageY - $(canvas).offset().top;
+
+	    canvas.mouse = canvas.pixels_to_plane(canvas.mouse_pixels);
 	    
-	    canvas.panning_start_position = canvas.pixels_to_plane(new Point(x,y));
-	    canvas.old_viewport_plane = canvas.viewport_plane;
-	    canvas.is_panning = true;
+	    if (canvas.is_pannable) {
+		canvas.panning_start_position = canvas.mouse;
+		canvas.old_viewport_plane = canvas.viewport_plane;
+		canvas.is_panning = true;
+	    }
+
+	    if (canvas.is_drawable) {
+		canvas.is_drawing = true;
+		canvas.input_stroke = [];
+		canvas.output_stroke = [];
+	    }
 	});
 	
 	$(document).mouseup(function(event) {
 	    canvas.is_panning = false;
+	    canvas.is_drawing = false;
+	    canvas.input_stroke = null;
+	    canvas.output_stroke = null;
+	    window.setTimeout(canvas.update,0);
 	});
 	
 	$(canvas).mousewheel( function(event, delta, deltaX, deltaY) {

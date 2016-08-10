@@ -27,24 +27,24 @@ $(function() {
 });
 </script>
 </head>
-<body>
+<body style="background: black; color: white;">
 
 <h1>Your own function</h1>
 
 <form class="function_form">
-  <input class="function" type="text" value="z*z*(z+2*2*i)*(z-mouse)" />
+  <input class="function" type="text" value="bar(z)" />
   <button type="submit">Submit</button>
 </form>
 
-<div class="complex_plot" id="first" style="width:300pt;height:300pt;">
-z*z*(z+2*2*i)*(z-mouse)
+<div class="complex_plot" id="first" drawable="yes" pannable="no" style="width:400pt;height:300pt;">
+bar(z)
 </div>
 
 <h1>Two roots</h1>
 
 <p>This is a graph of $f(z) = (w-z)/z$.  Your mouse position is the $z$.</p>
 
-<div class="complex_plot" style="width:300pt;height:300pt;">
+<div class="complex_plot" pannable="yes" drawable="no" style="width:400pt;height:300pt;">
 (mouse-z)/z
 </div>
 
@@ -52,7 +52,7 @@ z*z*(z+2*2*i)*(z-mouse)
 
 <p>This is a graph of $f(z) = z^2 + z + 1$.  You can use the scroll wheel to zoom, and drag to pan.</p>
 
-<div class="complex_plot" style="width:300pt;height:300pt;">
+<div class="complex_plot" drawable="yes" pannable="no" style="width:400pt;height:300pt;">
   z^2 + z + 1
 </div>
 
