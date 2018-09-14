@@ -1,0 +1,24 @@
+{
+  "name": "phase-plotter",
+  "version": "0.0.1",
+  "description": "plot complex-valued functions",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jim Fowler",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "dat.gui": "^0.7.2",
+    "gl-matrix": "^2.8.1",
+    "pan-zoom": "^3.3.0",
+    "rollup": "^0.65.2",
+    "rollup-plugin-commonjs": "^9.1.6",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-replace": "^2.0.0"
+  },
+  "devDependencies": {
+    "rollup-plugin-glsl": "^1.2.0"
+  }
+}
