@@ -279,8 +279,6 @@ document.querySelector("#glCanvas").addEventListener("mousemove", function(e) {
     vec2.transformMat3( point, point, viewportMatrix );
     console.log("viewport",point);
     var inverse = mat3.clone(panzoomMatrix);
-    inverse[6] = -inverse[6];
-    inverse[7] = -inverse[7];
     vec2.transformMat3( point, point, inverse );
     gl.uniform2fv(shaderProgram.variables["w"], point);
     window.requestAnimationFrame(drawScene);
