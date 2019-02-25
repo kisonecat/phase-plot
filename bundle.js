@@ -86583,8 +86583,8 @@
 	    transformMat3$1( point, point, viewportMatrix );
 	    console.log("viewport",point);
 	    var inverse$$1 = clone$2(panzoomMatrix);
-	    inverse$$1[6] = -inverse$$1[6];
-	    inverse$$1[7] = -inverse$$1[7];
+	    //inverse[6] = -inverse[6];
+	    //inverse[7] = -inverse[7];
 	    transformMat3$1( point, point, inverse$$1 );
 	    gl.uniform2fv(shaderProgram.variables["w"], point);
 	    window.requestAnimationFrame(drawScene);
