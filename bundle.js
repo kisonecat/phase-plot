@@ -4374,14 +4374,14 @@
 	    if(m===undefined)
 		m=n;
 
-	    if(m == 0)
+	    if(m === 0)
 		return;
 	    
 	    for(let i=0; i < n; i++) {
 		yield [arr[i]];
 	    }
 
-	    if(m == 1)
+	    if(m === 1)
 		return
 	    
 	    for(let i=0; i < n; i++) {
@@ -4488,7 +4488,7 @@
 	    var operator = tree[0];
 	    var operands = tree.slice(1);
 
-	    if(operator === '-' && operands[0][0] == '-') {
+	    if(operator === '-' && operands[0][0] === '-') {
 		return remove_duplicate_negatives(operands[0][1]);
 	    }
 
@@ -4529,7 +4529,7 @@
 		}
 	    }
 	    var result = [operator].concat(operands_no_negatives);
-	    if(sign == -1)
+	    if(sign === -1)
 		result = ['-', result];
 
 	    return result;
@@ -4686,7 +4686,7 @@
 		    var args = operands[0];
 		    var strict = operands[1];
 		    
-		    if(args[0] != 'tuple' || strict[0] != 'tuple')
+		    if(args[0] !== 'tuple' || strict[0] !== 'tuple')
 			// something wrong if args or strict are not tuples
 			throw new Error("Badly formed ast");
 
@@ -4731,1543 +4731,6 @@
 	function createCommonjsModule$1(fn, module) {
 		return module = { exports: {} }, fn(module, module.exports), module.exports;
 	}
-
-	var underscore = createCommonjsModule$1(function (module, exports) {
-	//     Underscore.js 1.8.3
-	//     http://underscorejs.org
-	//     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
-	//     Underscore may be freely distributed under the MIT license.
-
-	(function() {
-
-	  // Baseline setup
-	  // --------------
-
-	  // Establish the root object, `window` in the browser, or `exports` on the server.
-	  var root = this;
-
-	  // Save the previous value of the `_` variable.
-	  var previousUnderscore = root._;
-
-	  // Save bytes in the minified (but not gzipped) version:
-	  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
-
-	  // Create quick reference variables for speed access to core prototypes.
-	  var
-	    push             = ArrayProto.push,
-	    slice            = ArrayProto.slice,
-	    toString         = ObjProto.toString,
-	    hasOwnProperty   = ObjProto.hasOwnProperty;
-
-	  // All **ECMAScript 5** native function implementations that we hope to use
-	  // are declared here.
-	  var
-	    nativeIsArray      = Array.isArray,
-	    nativeKeys         = Object.keys,
-	    nativeBind         = FuncProto.bind,
-	    nativeCreate       = Object.create;
-
-	  // Naked function reference for surrogate-prototype-swapping.
-	  var Ctor = function(){};
-
-	  // Create a safe reference to the Underscore object for use below.
-	  var _ = function(obj) {
-	    if (obj instanceof _) return obj;
-	    if (!(this instanceof _)) return new _(obj);
-	    this._wrapped = obj;
-	  };
-
-	  // Export the Underscore object for **Node.js**, with
-	  // backwards-compatibility for the old `require()` API. If we're in
-	  // the browser, add `_` as a global object.
-	  {
-	    if (module.exports) {
-	      exports = module.exports = _;
-	    }
-	    exports._ = _;
-	  }
-
-	  // Current version.
-	  _.VERSION = '1.8.3';
-
-	  // Internal function that returns an efficient (for current engines) version
-	  // of the passed-in callback, to be repeatedly applied in other Underscore
-	  // functions.
-	  var optimizeCb = function(func, context, argCount) {
-	    if (context === void 0) return func;
-	    switch (argCount == null ? 3 : argCount) {
-	      case 1: return function(value) {
-	        return func.call(context, value);
-	      };
-	      case 2: return function(value, other) {
-	        return func.call(context, value, other);
-	      };
-	      case 3: return function(value, index, collection) {
-	        return func.call(context, value, index, collection);
-	      };
-	      case 4: return function(accumulator, value, index, collection) {
-	        return func.call(context, accumulator, value, index, collection);
-	      };
-	    }
-	    return function() {
-	      return func.apply(context, arguments);
-	    };
-	  };
-
-	  // A mostly-internal function to generate callbacks that can be applied
-	  // to each element in a collection, returning the desired result — either
-	  // identity, an arbitrary callback, a property matcher, or a property accessor.
-	  var cb = function(value, context, argCount) {
-	    if (value == null) return _.identity;
-	    if (_.isFunction(value)) return optimizeCb(value, context, argCount);
-	    if (_.isObject(value)) return _.matcher(value);
-	    return _.property(value);
-	  };
-	  _.iteratee = function(value, context) {
-	    return cb(value, context, Infinity);
-	  };
-
-	  // An internal function for creating assigner functions.
-	  var createAssigner = function(keysFunc, undefinedOnly) {
-	    return function(obj) {
-	      var length = arguments.length;
-	      if (length < 2 || obj == null) return obj;
-	      for (var index = 1; index < length; index++) {
-	        var source = arguments[index],
-	            keys = keysFunc(source),
-	            l = keys.length;
-	        for (var i = 0; i < l; i++) {
-	          var key = keys[i];
-	          if (!undefinedOnly || obj[key] === void 0) obj[key] = source[key];
-	        }
-	      }
-	      return obj;
-	    };
-	  };
-
-	  // An internal function for creating a new object that inherits from another.
-	  var baseCreate = function(prototype) {
-	    if (!_.isObject(prototype)) return {};
-	    if (nativeCreate) return nativeCreate(prototype);
-	    Ctor.prototype = prototype;
-	    var result = new Ctor;
-	    Ctor.prototype = null;
-	    return result;
-	  };
-
-	  var property = function(key) {
-	    return function(obj) {
-	      return obj == null ? void 0 : obj[key];
-	    };
-	  };
-
-	  // Helper for collection methods to determine whether a collection
-	  // should be iterated as an array or as an object
-	  // Related: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength
-	  // Avoids a very nasty iOS 8 JIT bug on ARM-64. #2094
-	  var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
-	  var getLength = property('length');
-	  var isArrayLike = function(collection) {
-	    var length = getLength(collection);
-	    return typeof length == 'number' && length >= 0 && length <= MAX_ARRAY_INDEX;
-	  };
-
-	  // Collection Functions
-	  // --------------------
-
-	  // The cornerstone, an `each` implementation, aka `forEach`.
-	  // Handles raw objects in addition to array-likes. Treats all
-	  // sparse array-likes as if they were dense.
-	  _.each = _.forEach = function(obj, iteratee, context) {
-	    iteratee = optimizeCb(iteratee, context);
-	    var i, length;
-	    if (isArrayLike(obj)) {
-	      for (i = 0, length = obj.length; i < length; i++) {
-	        iteratee(obj[i], i, obj);
-	      }
-	    } else {
-	      var keys = _.keys(obj);
-	      for (i = 0, length = keys.length; i < length; i++) {
-	        iteratee(obj[keys[i]], keys[i], obj);
-	      }
-	    }
-	    return obj;
-	  };
-
-	  // Return the results of applying the iteratee to each element.
-	  _.map = _.collect = function(obj, iteratee, context) {
-	    iteratee = cb(iteratee, context);
-	    var keys = !isArrayLike(obj) && _.keys(obj),
-	        length = (keys || obj).length,
-	        results = Array(length);
-	    for (var index = 0; index < length; index++) {
-	      var currentKey = keys ? keys[index] : index;
-	      results[index] = iteratee(obj[currentKey], currentKey, obj);
-	    }
-	    return results;
-	  };
-
-	  // Create a reducing function iterating left or right.
-	  function createReduce(dir) {
-	    // Optimized iterator function as using arguments.length
-	    // in the main function will deoptimize the, see #1991.
-	    function iterator(obj, iteratee, memo, keys, index, length) {
-	      for (; index >= 0 && index < length; index += dir) {
-	        var currentKey = keys ? keys[index] : index;
-	        memo = iteratee(memo, obj[currentKey], currentKey, obj);
-	      }
-	      return memo;
-	    }
-
-	    return function(obj, iteratee, memo, context) {
-	      iteratee = optimizeCb(iteratee, context, 4);
-	      var keys = !isArrayLike(obj) && _.keys(obj),
-	          length = (keys || obj).length,
-	          index = dir > 0 ? 0 : length - 1;
-	      // Determine the initial value if none is provided.
-	      if (arguments.length < 3) {
-	        memo = obj[keys ? keys[index] : index];
-	        index += dir;
-	      }
-	      return iterator(obj, iteratee, memo, keys, index, length);
-	    };
-	  }
-
-	  // **Reduce** builds up a single result from a list of values, aka `inject`,
-	  // or `foldl`.
-	  _.reduce = _.foldl = _.inject = createReduce(1);
-
-	  // The right-associative version of reduce, also known as `foldr`.
-	  _.reduceRight = _.foldr = createReduce(-1);
-
-	  // Return the first value which passes a truth test. Aliased as `detect`.
-	  _.find = _.detect = function(obj, predicate, context) {
-	    var key;
-	    if (isArrayLike(obj)) {
-	      key = _.findIndex(obj, predicate, context);
-	    } else {
-	      key = _.findKey(obj, predicate, context);
-	    }
-	    if (key !== void 0 && key !== -1) return obj[key];
-	  };
-
-	  // Return all the elements that pass a truth test.
-	  // Aliased as `select`.
-	  _.filter = _.select = function(obj, predicate, context) {
-	    var results = [];
-	    predicate = cb(predicate, context);
-	    _.each(obj, function(value, index, list) {
-	      if (predicate(value, index, list)) results.push(value);
-	    });
-	    return results;
-	  };
-
-	  // Return all the elements for which a truth test fails.
-	  _.reject = function(obj, predicate, context) {
-	    return _.filter(obj, _.negate(cb(predicate)), context);
-	  };
-
-	  // Determine whether all of the elements match a truth test.
-	  // Aliased as `all`.
-	  _.every = _.all = function(obj, predicate, context) {
-	    predicate = cb(predicate, context);
-	    var keys = !isArrayLike(obj) && _.keys(obj),
-	        length = (keys || obj).length;
-	    for (var index = 0; index < length; index++) {
-	      var currentKey = keys ? keys[index] : index;
-	      if (!predicate(obj[currentKey], currentKey, obj)) return false;
-	    }
-	    return true;
-	  };
-
-	  // Determine if at least one element in the object matches a truth test.
-	  // Aliased as `any`.
-	  _.some = _.any = function(obj, predicate, context) {
-	    predicate = cb(predicate, context);
-	    var keys = !isArrayLike(obj) && _.keys(obj),
-	        length = (keys || obj).length;
-	    for (var index = 0; index < length; index++) {
-	      var currentKey = keys ? keys[index] : index;
-	      if (predicate(obj[currentKey], currentKey, obj)) return true;
-	    }
-	    return false;
-	  };
-
-	  // Determine if the array or object contains a given item (using `===`).
-	  // Aliased as `includes` and `include`.
-	  _.contains = _.includes = _.include = function(obj, item, fromIndex, guard) {
-	    if (!isArrayLike(obj)) obj = _.values(obj);
-	    if (typeof fromIndex != 'number' || guard) fromIndex = 0;
-	    return _.indexOf(obj, item, fromIndex) >= 0;
-	  };
-
-	  // Invoke a method (with arguments) on every item in a collection.
-	  _.invoke = function(obj, method) {
-	    var args = slice.call(arguments, 2);
-	    var isFunc = _.isFunction(method);
-	    return _.map(obj, function(value) {
-	      var func = isFunc ? method : value[method];
-	      return func == null ? func : func.apply(value, args);
-	    });
-	  };
-
-	  // Convenience version of a common use case of `map`: fetching a property.
-	  _.pluck = function(obj, key) {
-	    return _.map(obj, _.property(key));
-	  };
-
-	  // Convenience version of a common use case of `filter`: selecting only objects
-	  // containing specific `key:value` pairs.
-	  _.where = function(obj, attrs) {
-	    return _.filter(obj, _.matcher(attrs));
-	  };
-
-	  // Convenience version of a common use case of `find`: getting the first object
-	  // containing specific `key:value` pairs.
-	  _.findWhere = function(obj, attrs) {
-	    return _.find(obj, _.matcher(attrs));
-	  };
-
-	  // Return the maximum element (or element-based computation).
-	  _.max = function(obj, iteratee, context) {
-	    var result = -Infinity, lastComputed = -Infinity,
-	        value, computed;
-	    if (iteratee == null && obj != null) {
-	      obj = isArrayLike(obj) ? obj : _.values(obj);
-	      for (var i = 0, length = obj.length; i < length; i++) {
-	        value = obj[i];
-	        if (value > result) {
-	          result = value;
-	        }
-	      }
-	    } else {
-	      iteratee = cb(iteratee, context);
-	      _.each(obj, function(value, index, list) {
-	        computed = iteratee(value, index, list);
-	        if (computed > lastComputed || computed === -Infinity && result === -Infinity) {
-	          result = value;
-	          lastComputed = computed;
-	        }
-	      });
-	    }
-	    return result;
-	  };
-
-	  // Return the minimum element (or element-based computation).
-	  _.min = function(obj, iteratee, context) {
-	    var result = Infinity, lastComputed = Infinity,
-	        value, computed;
-	    if (iteratee == null && obj != null) {
-	      obj = isArrayLike(obj) ? obj : _.values(obj);
-	      for (var i = 0, length = obj.length; i < length; i++) {
-	        value = obj[i];
-	        if (value < result) {
-	          result = value;
-	        }
-	      }
-	    } else {
-	      iteratee = cb(iteratee, context);
-	      _.each(obj, function(value, index, list) {
-	        computed = iteratee(value, index, list);
-	        if (computed < lastComputed || computed === Infinity && result === Infinity) {
-	          result = value;
-	          lastComputed = computed;
-	        }
-	      });
-	    }
-	    return result;
-	  };
-
-	  // Shuffle a collection, using the modern version of the
-	  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
-	  _.shuffle = function(obj) {
-	    var set = isArrayLike(obj) ? obj : _.values(obj);
-	    var length = set.length;
-	    var shuffled = Array(length);
-	    for (var index = 0, rand; index < length; index++) {
-	      rand = _.random(0, index);
-	      if (rand !== index) shuffled[index] = shuffled[rand];
-	      shuffled[rand] = set[index];
-	    }
-	    return shuffled;
-	  };
-
-	  // Sample **n** random values from a collection.
-	  // If **n** is not specified, returns a single random element.
-	  // The internal `guard` argument allows it to work with `map`.
-	  _.sample = function(obj, n, guard) {
-	    if (n == null || guard) {
-	      if (!isArrayLike(obj)) obj = _.values(obj);
-	      return obj[_.random(obj.length - 1)];
-	    }
-	    return _.shuffle(obj).slice(0, Math.max(0, n));
-	  };
-
-	  // Sort the object's values by a criterion produced by an iteratee.
-	  _.sortBy = function(obj, iteratee, context) {
-	    iteratee = cb(iteratee, context);
-	    return _.pluck(_.map(obj, function(value, index, list) {
-	      return {
-	        value: value,
-	        index: index,
-	        criteria: iteratee(value, index, list)
-	      };
-	    }).sort(function(left, right) {
-	      var a = left.criteria;
-	      var b = right.criteria;
-	      if (a !== b) {
-	        if (a > b || a === void 0) return 1;
-	        if (a < b || b === void 0) return -1;
-	      }
-	      return left.index - right.index;
-	    }), 'value');
-	  };
-
-	  // An internal function used for aggregate "group by" operations.
-	  var group = function(behavior) {
-	    return function(obj, iteratee, context) {
-	      var result = {};
-	      iteratee = cb(iteratee, context);
-	      _.each(obj, function(value, index) {
-	        var key = iteratee(value, index, obj);
-	        behavior(result, value, key);
-	      });
-	      return result;
-	    };
-	  };
-
-	  // Groups the object's values by a criterion. Pass either a string attribute
-	  // to group by, or a function that returns the criterion.
-	  _.groupBy = group(function(result, value, key) {
-	    if (_.has(result, key)) result[key].push(value); else result[key] = [value];
-	  });
-
-	  // Indexes the object's values by a criterion, similar to `groupBy`, but for
-	  // when you know that your index values will be unique.
-	  _.indexBy = group(function(result, value, key) {
-	    result[key] = value;
-	  });
-
-	  // Counts instances of an object that group by a certain criterion. Pass
-	  // either a string attribute to count by, or a function that returns the
-	  // criterion.
-	  _.countBy = group(function(result, value, key) {
-	    if (_.has(result, key)) result[key]++; else result[key] = 1;
-	  });
-
-	  // Safely create a real, live array from anything iterable.
-	  _.toArray = function(obj) {
-	    if (!obj) return [];
-	    if (_.isArray(obj)) return slice.call(obj);
-	    if (isArrayLike(obj)) return _.map(obj, _.identity);
-	    return _.values(obj);
-	  };
-
-	  // Return the number of elements in an object.
-	  _.size = function(obj) {
-	    if (obj == null) return 0;
-	    return isArrayLike(obj) ? obj.length : _.keys(obj).length;
-	  };
-
-	  // Split a collection into two arrays: one whose elements all satisfy the given
-	  // predicate, and one whose elements all do not satisfy the predicate.
-	  _.partition = function(obj, predicate, context) {
-	    predicate = cb(predicate, context);
-	    var pass = [], fail = [];
-	    _.each(obj, function(value, key, obj) {
-	      (predicate(value, key, obj) ? pass : fail).push(value);
-	    });
-	    return [pass, fail];
-	  };
-
-	  // Array Functions
-	  // ---------------
-
-	  // Get the first element of an array. Passing **n** will return the first N
-	  // values in the array. Aliased as `head` and `take`. The **guard** check
-	  // allows it to work with `_.map`.
-	  _.first = _.head = _.take = function(array, n, guard) {
-	    if (array == null) return void 0;
-	    if (n == null || guard) return array[0];
-	    return _.initial(array, array.length - n);
-	  };
-
-	  // Returns everything but the last entry of the array. Especially useful on
-	  // the arguments object. Passing **n** will return all the values in
-	  // the array, excluding the last N.
-	  _.initial = function(array, n, guard) {
-	    return slice.call(array, 0, Math.max(0, array.length - (n == null || guard ? 1 : n)));
-	  };
-
-	  // Get the last element of an array. Passing **n** will return the last N
-	  // values in the array.
-	  _.last = function(array, n, guard) {
-	    if (array == null) return void 0;
-	    if (n == null || guard) return array[array.length - 1];
-	    return _.rest(array, Math.max(0, array.length - n));
-	  };
-
-	  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
-	  // Especially useful on the arguments object. Passing an **n** will return
-	  // the rest N values in the array.
-	  _.rest = _.tail = _.drop = function(array, n, guard) {
-	    return slice.call(array, n == null || guard ? 1 : n);
-	  };
-
-	  // Trim out all falsy values from an array.
-	  _.compact = function(array) {
-	    return _.filter(array, _.identity);
-	  };
-
-	  // Internal implementation of a recursive `flatten` function.
-	  var flatten = function(input, shallow, strict, startIndex) {
-	    var output = [], idx = 0;
-	    for (var i = startIndex || 0, length = getLength(input); i < length; i++) {
-	      var value = input[i];
-	      if (isArrayLike(value) && (_.isArray(value) || _.isArguments(value))) {
-	        //flatten current level of array or arguments object
-	        if (!shallow) value = flatten(value, shallow, strict);
-	        var j = 0, len = value.length;
-	        output.length += len;
-	        while (j < len) {
-	          output[idx++] = value[j++];
-	        }
-	      } else if (!strict) {
-	        output[idx++] = value;
-	      }
-	    }
-	    return output;
-	  };
-
-	  // Flatten out an array, either recursively (by default), or just one level.
-	  _.flatten = function(array, shallow) {
-	    return flatten(array, shallow, false);
-	  };
-
-	  // Return a version of the array that does not contain the specified value(s).
-	  _.without = function(array) {
-	    return _.difference(array, slice.call(arguments, 1));
-	  };
-
-	  // Produce a duplicate-free version of the array. If the array has already
-	  // been sorted, you have the option of using a faster algorithm.
-	  // Aliased as `unique`.
-	  _.uniq = _.unique = function(array, isSorted, iteratee, context) {
-	    if (!_.isBoolean(isSorted)) {
-	      context = iteratee;
-	      iteratee = isSorted;
-	      isSorted = false;
-	    }
-	    if (iteratee != null) iteratee = cb(iteratee, context);
-	    var result = [];
-	    var seen = [];
-	    for (var i = 0, length = getLength(array); i < length; i++) {
-	      var value = array[i],
-	          computed = iteratee ? iteratee(value, i, array) : value;
-	      if (isSorted) {
-	        if (!i || seen !== computed) result.push(value);
-	        seen = computed;
-	      } else if (iteratee) {
-	        if (!_.contains(seen, computed)) {
-	          seen.push(computed);
-	          result.push(value);
-	        }
-	      } else if (!_.contains(result, value)) {
-	        result.push(value);
-	      }
-	    }
-	    return result;
-	  };
-
-	  // Produce an array that contains the union: each distinct element from all of
-	  // the passed-in arrays.
-	  _.union = function() {
-	    return _.uniq(flatten(arguments, true, true));
-	  };
-
-	  // Produce an array that contains every item shared between all the
-	  // passed-in arrays.
-	  _.intersection = function(array) {
-	    var result = [];
-	    var argsLength = arguments.length;
-	    for (var i = 0, length = getLength(array); i < length; i++) {
-	      var item = array[i];
-	      if (_.contains(result, item)) continue;
-	      for (var j = 1; j < argsLength; j++) {
-	        if (!_.contains(arguments[j], item)) break;
-	      }
-	      if (j === argsLength) result.push(item);
-	    }
-	    return result;
-	  };
-
-	  // Take the difference between one array and a number of other arrays.
-	  // Only the elements present in just the first array will remain.
-	  _.difference = function(array) {
-	    var rest = flatten(arguments, true, true, 1);
-	    return _.filter(array, function(value){
-	      return !_.contains(rest, value);
-	    });
-	  };
-
-	  // Zip together multiple lists into a single array -- elements that share
-	  // an index go together.
-	  _.zip = function() {
-	    return _.unzip(arguments);
-	  };
-
-	  // Complement of _.zip. Unzip accepts an array of arrays and groups
-	  // each array's elements on shared indices
-	  _.unzip = function(array) {
-	    var length = array && _.max(array, getLength).length || 0;
-	    var result = Array(length);
-
-	    for (var index = 0; index < length; index++) {
-	      result[index] = _.pluck(array, index);
-	    }
-	    return result;
-	  };
-
-	  // Converts lists into objects. Pass either a single array of `[key, value]`
-	  // pairs, or two parallel arrays of the same length -- one of keys, and one of
-	  // the corresponding values.
-	  _.object = function(list, values) {
-	    var result = {};
-	    for (var i = 0, length = getLength(list); i < length; i++) {
-	      if (values) {
-	        result[list[i]] = values[i];
-	      } else {
-	        result[list[i][0]] = list[i][1];
-	      }
-	    }
-	    return result;
-	  };
-
-	  // Generator function to create the findIndex and findLastIndex functions
-	  function createPredicateIndexFinder(dir) {
-	    return function(array, predicate, context) {
-	      predicate = cb(predicate, context);
-	      var length = getLength(array);
-	      var index = dir > 0 ? 0 : length - 1;
-	      for (; index >= 0 && index < length; index += dir) {
-	        if (predicate(array[index], index, array)) return index;
-	      }
-	      return -1;
-	    };
-	  }
-
-	  // Returns the first index on an array-like that passes a predicate test
-	  _.findIndex = createPredicateIndexFinder(1);
-	  _.findLastIndex = createPredicateIndexFinder(-1);
-
-	  // Use a comparator function to figure out the smallest index at which
-	  // an object should be inserted so as to maintain order. Uses binary search.
-	  _.sortedIndex = function(array, obj, iteratee, context) {
-	    iteratee = cb(iteratee, context, 1);
-	    var value = iteratee(obj);
-	    var low = 0, high = getLength(array);
-	    while (low < high) {
-	      var mid = Math.floor((low + high) / 2);
-	      if (iteratee(array[mid]) < value) low = mid + 1; else high = mid;
-	    }
-	    return low;
-	  };
-
-	  // Generator function to create the indexOf and lastIndexOf functions
-	  function createIndexFinder(dir, predicateFind, sortedIndex) {
-	    return function(array, item, idx) {
-	      var i = 0, length = getLength(array);
-	      if (typeof idx == 'number') {
-	        if (dir > 0) {
-	            i = idx >= 0 ? idx : Math.max(idx + length, i);
-	        } else {
-	            length = idx >= 0 ? Math.min(idx + 1, length) : idx + length + 1;
-	        }
-	      } else if (sortedIndex && idx && length) {
-	        idx = sortedIndex(array, item);
-	        return array[idx] === item ? idx : -1;
-	      }
-	      if (item !== item) {
-	        idx = predicateFind(slice.call(array, i, length), _.isNaN);
-	        return idx >= 0 ? idx + i : -1;
-	      }
-	      for (idx = dir > 0 ? i : length - 1; idx >= 0 && idx < length; idx += dir) {
-	        if (array[idx] === item) return idx;
-	      }
-	      return -1;
-	    };
-	  }
-
-	  // Return the position of the first occurrence of an item in an array,
-	  // or -1 if the item is not included in the array.
-	  // If the array is large and already in sort order, pass `true`
-	  // for **isSorted** to use binary search.
-	  _.indexOf = createIndexFinder(1, _.findIndex, _.sortedIndex);
-	  _.lastIndexOf = createIndexFinder(-1, _.findLastIndex);
-
-	  // Generate an integer Array containing an arithmetic progression. A port of
-	  // the native Python `range()` function. See
-	  // [the Python documentation](http://docs.python.org/library/functions.html#range).
-	  _.range = function(start, stop, step) {
-	    if (stop == null) {
-	      stop = start || 0;
-	      start = 0;
-	    }
-	    step = step || 1;
-
-	    var length = Math.max(Math.ceil((stop - start) / step), 0);
-	    var range = Array(length);
-
-	    for (var idx = 0; idx < length; idx++, start += step) {
-	      range[idx] = start;
-	    }
-
-	    return range;
-	  };
-
-	  // Function (ahem) Functions
-	  // ------------------
-
-	  // Determines whether to execute a function as a constructor
-	  // or a normal function with the provided arguments
-	  var executeBound = function(sourceFunc, boundFunc, context, callingContext, args) {
-	    if (!(callingContext instanceof boundFunc)) return sourceFunc.apply(context, args);
-	    var self = baseCreate(sourceFunc.prototype);
-	    var result = sourceFunc.apply(self, args);
-	    if (_.isObject(result)) return result;
-	    return self;
-	  };
-
-	  // Create a function bound to a given object (assigning `this`, and arguments,
-	  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
-	  // available.
-	  _.bind = function(func, context) {
-	    if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
-	    if (!_.isFunction(func)) throw new TypeError('Bind must be called on a function');
-	    var args = slice.call(arguments, 2);
-	    var bound = function() {
-	      return executeBound(func, bound, context, this, args.concat(slice.call(arguments)));
-	    };
-	    return bound;
-	  };
-
-	  // Partially apply a function by creating a version that has had some of its
-	  // arguments pre-filled, without changing its dynamic `this` context. _ acts
-	  // as a placeholder, allowing any combination of arguments to be pre-filled.
-	  _.partial = function(func) {
-	    var boundArgs = slice.call(arguments, 1);
-	    var bound = function() {
-	      var position = 0, length = boundArgs.length;
-	      var args = Array(length);
-	      for (var i = 0; i < length; i++) {
-	        args[i] = boundArgs[i] === _ ? arguments[position++] : boundArgs[i];
-	      }
-	      while (position < arguments.length) args.push(arguments[position++]);
-	      return executeBound(func, bound, this, this, args);
-	    };
-	    return bound;
-	  };
-
-	  // Bind a number of an object's methods to that object. Remaining arguments
-	  // are the method names to be bound. Useful for ensuring that all callbacks
-	  // defined on an object belong to it.
-	  _.bindAll = function(obj) {
-	    var i, length = arguments.length, key;
-	    if (length <= 1) throw new Error('bindAll must be passed function names');
-	    for (i = 1; i < length; i++) {
-	      key = arguments[i];
-	      obj[key] = _.bind(obj[key], obj);
-	    }
-	    return obj;
-	  };
-
-	  // Memoize an expensive function by storing its results.
-	  _.memoize = function(func, hasher) {
-	    var memoize = function(key) {
-	      var cache = memoize.cache;
-	      var address = '' + (hasher ? hasher.apply(this, arguments) : key);
-	      if (!_.has(cache, address)) cache[address] = func.apply(this, arguments);
-	      return cache[address];
-	    };
-	    memoize.cache = {};
-	    return memoize;
-	  };
-
-	  // Delays a function for the given number of milliseconds, and then calls
-	  // it with the arguments supplied.
-	  _.delay = function(func, wait) {
-	    var args = slice.call(arguments, 2);
-	    return setTimeout(function(){
-	      return func.apply(null, args);
-	    }, wait);
-	  };
-
-	  // Defers a function, scheduling it to run after the current call stack has
-	  // cleared.
-	  _.defer = _.partial(_.delay, _, 1);
-
-	  // Returns a function, that, when invoked, will only be triggered at most once
-	  // during a given window of time. Normally, the throttled function will run
-	  // as much as it can, without ever going more than once per `wait` duration;
-	  // but if you'd like to disable the execution on the leading edge, pass
-	  // `{leading: false}`. To disable execution on the trailing edge, ditto.
-	  _.throttle = function(func, wait, options) {
-	    var context, args, result;
-	    var timeout = null;
-	    var previous = 0;
-	    if (!options) options = {};
-	    var later = function() {
-	      previous = options.leading === false ? 0 : _.now();
-	      timeout = null;
-	      result = func.apply(context, args);
-	      if (!timeout) context = args = null;
-	    };
-	    return function() {
-	      var now = _.now();
-	      if (!previous && options.leading === false) previous = now;
-	      var remaining = wait - (now - previous);
-	      context = this;
-	      args = arguments;
-	      if (remaining <= 0 || remaining > wait) {
-	        if (timeout) {
-	          clearTimeout(timeout);
-	          timeout = null;
-	        }
-	        previous = now;
-	        result = func.apply(context, args);
-	        if (!timeout) context = args = null;
-	      } else if (!timeout && options.trailing !== false) {
-	        timeout = setTimeout(later, remaining);
-	      }
-	      return result;
-	    };
-	  };
-
-	  // Returns a function, that, as long as it continues to be invoked, will not
-	  // be triggered. The function will be called after it stops being called for
-	  // N milliseconds. If `immediate` is passed, trigger the function on the
-	  // leading edge, instead of the trailing.
-	  _.debounce = function(func, wait, immediate) {
-	    var timeout, args, context, timestamp, result;
-
-	    var later = function() {
-	      var last = _.now() - timestamp;
-
-	      if (last < wait && last >= 0) {
-	        timeout = setTimeout(later, wait - last);
-	      } else {
-	        timeout = null;
-	        if (!immediate) {
-	          result = func.apply(context, args);
-	          if (!timeout) context = args = null;
-	        }
-	      }
-	    };
-
-	    return function() {
-	      context = this;
-	      args = arguments;
-	      timestamp = _.now();
-	      var callNow = immediate && !timeout;
-	      if (!timeout) timeout = setTimeout(later, wait);
-	      if (callNow) {
-	        result = func.apply(context, args);
-	        context = args = null;
-	      }
-
-	      return result;
-	    };
-	  };
-
-	  // Returns the first function passed as an argument to the second,
-	  // allowing you to adjust arguments, run code before and after, and
-	  // conditionally execute the original function.
-	  _.wrap = function(func, wrapper) {
-	    return _.partial(wrapper, func);
-	  };
-
-	  // Returns a negated version of the passed-in predicate.
-	  _.negate = function(predicate) {
-	    return function() {
-	      return !predicate.apply(this, arguments);
-	    };
-	  };
-
-	  // Returns a function that is the composition of a list of functions, each
-	  // consuming the return value of the function that follows.
-	  _.compose = function() {
-	    var args = arguments;
-	    var start = args.length - 1;
-	    return function() {
-	      var i = start;
-	      var result = args[start].apply(this, arguments);
-	      while (i--) result = args[i].call(this, result);
-	      return result;
-	    };
-	  };
-
-	  // Returns a function that will only be executed on and after the Nth call.
-	  _.after = function(times, func) {
-	    return function() {
-	      if (--times < 1) {
-	        return func.apply(this, arguments);
-	      }
-	    };
-	  };
-
-	  // Returns a function that will only be executed up to (but not including) the Nth call.
-	  _.before = function(times, func) {
-	    var memo;
-	    return function() {
-	      if (--times > 0) {
-	        memo = func.apply(this, arguments);
-	      }
-	      if (times <= 1) func = null;
-	      return memo;
-	    };
-	  };
-
-	  // Returns a function that will be executed at most one time, no matter how
-	  // often you call it. Useful for lazy initialization.
-	  _.once = _.partial(_.before, 2);
-
-	  // Object Functions
-	  // ----------------
-
-	  // Keys in IE < 9 that won't be iterated by `for key in ...` and thus missed.
-	  var hasEnumBug = !{toString: null}.propertyIsEnumerable('toString');
-	  var nonEnumerableProps = ['valueOf', 'isPrototypeOf', 'toString',
-	                      'propertyIsEnumerable', 'hasOwnProperty', 'toLocaleString'];
-
-	  function collectNonEnumProps(obj, keys) {
-	    var nonEnumIdx = nonEnumerableProps.length;
-	    var constructor = obj.constructor;
-	    var proto = (_.isFunction(constructor) && constructor.prototype) || ObjProto;
-
-	    // Constructor is a special case.
-	    var prop = 'constructor';
-	    if (_.has(obj, prop) && !_.contains(keys, prop)) keys.push(prop);
-
-	    while (nonEnumIdx--) {
-	      prop = nonEnumerableProps[nonEnumIdx];
-	      if (prop in obj && obj[prop] !== proto[prop] && !_.contains(keys, prop)) {
-	        keys.push(prop);
-	      }
-	    }
-	  }
-
-	  // Retrieve the names of an object's own properties.
-	  // Delegates to **ECMAScript 5**'s native `Object.keys`
-	  _.keys = function(obj) {
-	    if (!_.isObject(obj)) return [];
-	    if (nativeKeys) return nativeKeys(obj);
-	    var keys = [];
-	    for (var key in obj) if (_.has(obj, key)) keys.push(key);
-	    // Ahem, IE < 9.
-	    if (hasEnumBug) collectNonEnumProps(obj, keys);
-	    return keys;
-	  };
-
-	  // Retrieve all the property names of an object.
-	  _.allKeys = function(obj) {
-	    if (!_.isObject(obj)) return [];
-	    var keys = [];
-	    for (var key in obj) keys.push(key);
-	    // Ahem, IE < 9.
-	    if (hasEnumBug) collectNonEnumProps(obj, keys);
-	    return keys;
-	  };
-
-	  // Retrieve the values of an object's properties.
-	  _.values = function(obj) {
-	    var keys = _.keys(obj);
-	    var length = keys.length;
-	    var values = Array(length);
-	    for (var i = 0; i < length; i++) {
-	      values[i] = obj[keys[i]];
-	    }
-	    return values;
-	  };
-
-	  // Returns the results of applying the iteratee to each element of the object
-	  // In contrast to _.map it returns an object
-	  _.mapObject = function(obj, iteratee, context) {
-	    iteratee = cb(iteratee, context);
-	    var keys =  _.keys(obj),
-	          length = keys.length,
-	          results = {},
-	          currentKey;
-	      for (var index = 0; index < length; index++) {
-	        currentKey = keys[index];
-	        results[currentKey] = iteratee(obj[currentKey], currentKey, obj);
-	      }
-	      return results;
-	  };
-
-	  // Convert an object into a list of `[key, value]` pairs.
-	  _.pairs = function(obj) {
-	    var keys = _.keys(obj);
-	    var length = keys.length;
-	    var pairs = Array(length);
-	    for (var i = 0; i < length; i++) {
-	      pairs[i] = [keys[i], obj[keys[i]]];
-	    }
-	    return pairs;
-	  };
-
-	  // Invert the keys and values of an object. The values must be serializable.
-	  _.invert = function(obj) {
-	    var result = {};
-	    var keys = _.keys(obj);
-	    for (var i = 0, length = keys.length; i < length; i++) {
-	      result[obj[keys[i]]] = keys[i];
-	    }
-	    return result;
-	  };
-
-	  // Return a sorted list of the function names available on the object.
-	  // Aliased as `methods`
-	  _.functions = _.methods = function(obj) {
-	    var names = [];
-	    for (var key in obj) {
-	      if (_.isFunction(obj[key])) names.push(key);
-	    }
-	    return names.sort();
-	  };
-
-	  // Extend a given object with all the properties in passed-in object(s).
-	  _.extend = createAssigner(_.allKeys);
-
-	  // Assigns a given object with all the own properties in the passed-in object(s)
-	  // (https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)
-	  _.extendOwn = _.assign = createAssigner(_.keys);
-
-	  // Returns the first key on an object that passes a predicate test
-	  _.findKey = function(obj, predicate, context) {
-	    predicate = cb(predicate, context);
-	    var keys = _.keys(obj), key;
-	    for (var i = 0, length = keys.length; i < length; i++) {
-	      key = keys[i];
-	      if (predicate(obj[key], key, obj)) return key;
-	    }
-	  };
-
-	  // Return a copy of the object only containing the whitelisted properties.
-	  _.pick = function(object, oiteratee, context) {
-	    var result = {}, obj = object, iteratee, keys;
-	    if (obj == null) return result;
-	    if (_.isFunction(oiteratee)) {
-	      keys = _.allKeys(obj);
-	      iteratee = optimizeCb(oiteratee, context);
-	    } else {
-	      keys = flatten(arguments, false, false, 1);
-	      iteratee = function(value, key, obj) { return key in obj; };
-	      obj = Object(obj);
-	    }
-	    for (var i = 0, length = keys.length; i < length; i++) {
-	      var key = keys[i];
-	      var value = obj[key];
-	      if (iteratee(value, key, obj)) result[key] = value;
-	    }
-	    return result;
-	  };
-
-	   // Return a copy of the object without the blacklisted properties.
-	  _.omit = function(obj, iteratee, context) {
-	    if (_.isFunction(iteratee)) {
-	      iteratee = _.negate(iteratee);
-	    } else {
-	      var keys = _.map(flatten(arguments, false, false, 1), String);
-	      iteratee = function(value, key) {
-	        return !_.contains(keys, key);
-	      };
-	    }
-	    return _.pick(obj, iteratee, context);
-	  };
-
-	  // Fill in a given object with default properties.
-	  _.defaults = createAssigner(_.allKeys, true);
-
-	  // Creates an object that inherits from the given prototype object.
-	  // If additional properties are provided then they will be added to the
-	  // created object.
-	  _.create = function(prototype, props) {
-	    var result = baseCreate(prototype);
-	    if (props) _.extendOwn(result, props);
-	    return result;
-	  };
-
-	  // Create a (shallow-cloned) duplicate of an object.
-	  _.clone = function(obj) {
-	    if (!_.isObject(obj)) return obj;
-	    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
-	  };
-
-	  // Invokes interceptor with the obj, and then returns obj.
-	  // The primary purpose of this method is to "tap into" a method chain, in
-	  // order to perform operations on intermediate results within the chain.
-	  _.tap = function(obj, interceptor) {
-	    interceptor(obj);
-	    return obj;
-	  };
-
-	  // Returns whether an object has a given set of `key:value` pairs.
-	  _.isMatch = function(object, attrs) {
-	    var keys = _.keys(attrs), length = keys.length;
-	    if (object == null) return !length;
-	    var obj = Object(object);
-	    for (var i = 0; i < length; i++) {
-	      var key = keys[i];
-	      if (attrs[key] !== obj[key] || !(key in obj)) return false;
-	    }
-	    return true;
-	  };
-
-
-	  // Internal recursive comparison function for `isEqual`.
-	  var eq = function(a, b, aStack, bStack) {
-	    // Identical objects are equal. `0 === -0`, but they aren't identical.
-	    // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
-	    if (a === b) return a !== 0 || 1 / a === 1 / b;
-	    // A strict comparison is necessary because `null == undefined`.
-	    if (a == null || b == null) return a === b;
-	    // Unwrap any wrapped objects.
-	    if (a instanceof _) a = a._wrapped;
-	    if (b instanceof _) b = b._wrapped;
-	    // Compare `[[Class]]` names.
-	    var className = toString.call(a);
-	    if (className !== toString.call(b)) return false;
-	    switch (className) {
-	      // Strings, numbers, regular expressions, dates, and booleans are compared by value.
-	      case '[object RegExp]':
-	      // RegExps are coerced to strings for comparison (Note: '' + /a/i === '/a/i')
-	      case '[object String]':
-	        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
-	        // equivalent to `new String("5")`.
-	        return '' + a === '' + b;
-	      case '[object Number]':
-	        // `NaN`s are equivalent, but non-reflexive.
-	        // Object(NaN) is equivalent to NaN
-	        if (+a !== +a) return +b !== +b;
-	        // An `egal` comparison is performed for other numeric values.
-	        return +a === 0 ? 1 / +a === 1 / b : +a === +b;
-	      case '[object Date]':
-	      case '[object Boolean]':
-	        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
-	        // millisecond representations. Note that invalid dates with millisecond representations
-	        // of `NaN` are not equivalent.
-	        return +a === +b;
-	    }
-
-	    var areArrays = className === '[object Array]';
-	    if (!areArrays) {
-	      if (typeof a != 'object' || typeof b != 'object') return false;
-
-	      // Objects with different constructors are not equivalent, but `Object`s or `Array`s
-	      // from different frames are.
-	      var aCtor = a.constructor, bCtor = b.constructor;
-	      if (aCtor !== bCtor && !(_.isFunction(aCtor) && aCtor instanceof aCtor &&
-	                               _.isFunction(bCtor) && bCtor instanceof bCtor)
-	                          && ('constructor' in a && 'constructor' in b)) {
-	        return false;
-	      }
-	    }
-	    // Assume equality for cyclic structures. The algorithm for detecting cyclic
-	    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
-
-	    // Initializing stack of traversed objects.
-	    // It's done here since we only need them for objects and arrays comparison.
-	    aStack = aStack || [];
-	    bStack = bStack || [];
-	    var length = aStack.length;
-	    while (length--) {
-	      // Linear search. Performance is inversely proportional to the number of
-	      // unique nested structures.
-	      if (aStack[length] === a) return bStack[length] === b;
-	    }
-
-	    // Add the first object to the stack of traversed objects.
-	    aStack.push(a);
-	    bStack.push(b);
-
-	    // Recursively compare objects and arrays.
-	    if (areArrays) {
-	      // Compare array lengths to determine if a deep comparison is necessary.
-	      length = a.length;
-	      if (length !== b.length) return false;
-	      // Deep compare the contents, ignoring non-numeric properties.
-	      while (length--) {
-	        if (!eq(a[length], b[length], aStack, bStack)) return false;
-	      }
-	    } else {
-	      // Deep compare objects.
-	      var keys = _.keys(a), key;
-	      length = keys.length;
-	      // Ensure that both objects contain the same number of properties before comparing deep equality.
-	      if (_.keys(b).length !== length) return false;
-	      while (length--) {
-	        // Deep compare each member
-	        key = keys[length];
-	        if (!(_.has(b, key) && eq(a[key], b[key], aStack, bStack))) return false;
-	      }
-	    }
-	    // Remove the first object from the stack of traversed objects.
-	    aStack.pop();
-	    bStack.pop();
-	    return true;
-	  };
-
-	  // Perform a deep comparison to check if two objects are equal.
-	  _.isEqual = function(a, b) {
-	    return eq(a, b);
-	  };
-
-	  // Is a given array, string, or object empty?
-	  // An "empty" object has no enumerable own-properties.
-	  _.isEmpty = function(obj) {
-	    if (obj == null) return true;
-	    if (isArrayLike(obj) && (_.isArray(obj) || _.isString(obj) || _.isArguments(obj))) return obj.length === 0;
-	    return _.keys(obj).length === 0;
-	  };
-
-	  // Is a given value a DOM element?
-	  _.isElement = function(obj) {
-	    return !!(obj && obj.nodeType === 1);
-	  };
-
-	  // Is a given value an array?
-	  // Delegates to ECMA5's native Array.isArray
-	  _.isArray = nativeIsArray || function(obj) {
-	    return toString.call(obj) === '[object Array]';
-	  };
-
-	  // Is a given variable an object?
-	  _.isObject = function(obj) {
-	    var type = typeof obj;
-	    return type === 'function' || type === 'object' && !!obj;
-	  };
-
-	  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp, isError.
-	  _.each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Error'], function(name) {
-	    _['is' + name] = function(obj) {
-	      return toString.call(obj) === '[object ' + name + ']';
-	    };
-	  });
-
-	  // Define a fallback version of the method in browsers (ahem, IE < 9), where
-	  // there isn't any inspectable "Arguments" type.
-	  if (!_.isArguments(arguments)) {
-	    _.isArguments = function(obj) {
-	      return _.has(obj, 'callee');
-	    };
-	  }
-
-	  // Optimize `isFunction` if appropriate. Work around some typeof bugs in old v8,
-	  // IE 11 (#1621), and in Safari 8 (#1929).
-	  if (typeof Int8Array != 'object') {
-	    _.isFunction = function(obj) {
-	      return typeof obj == 'function' || false;
-	    };
-	  }
-
-	  // Is a given object a finite number?
-	  _.isFinite = function(obj) {
-	    return isFinite(obj) && !isNaN(parseFloat(obj));
-	  };
-
-	  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
-	  _.isNaN = function(obj) {
-	    return _.isNumber(obj) && obj !== +obj;
-	  };
-
-	  // Is a given value a boolean?
-	  _.isBoolean = function(obj) {
-	    return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
-	  };
-
-	  // Is a given value equal to null?
-	  _.isNull = function(obj) {
-	    return obj === null;
-	  };
-
-	  // Is a given variable undefined?
-	  _.isUndefined = function(obj) {
-	    return obj === void 0;
-	  };
-
-	  // Shortcut function for checking if an object has a given property directly
-	  // on itself (in other words, not on a prototype).
-	  _.has = function(obj, key) {
-	    return obj != null && hasOwnProperty.call(obj, key);
-	  };
-
-	  // Utility Functions
-	  // -----------------
-
-	  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
-	  // previous owner. Returns a reference to the Underscore object.
-	  _.noConflict = function() {
-	    root._ = previousUnderscore;
-	    return this;
-	  };
-
-	  // Keep the identity function around for default iteratees.
-	  _.identity = function(value) {
-	    return value;
-	  };
-
-	  // Predicate-generating functions. Often useful outside of Underscore.
-	  _.constant = function(value) {
-	    return function() {
-	      return value;
-	    };
-	  };
-
-	  _.noop = function(){};
-
-	  _.property = property;
-
-	  // Generates a function for a given object that returns a given property.
-	  _.propertyOf = function(obj) {
-	    return obj == null ? function(){} : function(key) {
-	      return obj[key];
-	    };
-	  };
-
-	  // Returns a predicate for checking whether an object has a given set of
-	  // `key:value` pairs.
-	  _.matcher = _.matches = function(attrs) {
-	    attrs = _.extendOwn({}, attrs);
-	    return function(obj) {
-	      return _.isMatch(obj, attrs);
-	    };
-	  };
-
-	  // Run a function **n** times.
-	  _.times = function(n, iteratee, context) {
-	    var accum = Array(Math.max(0, n));
-	    iteratee = optimizeCb(iteratee, context, 1);
-	    for (var i = 0; i < n; i++) accum[i] = iteratee(i);
-	    return accum;
-	  };
-
-	  // Return a random integer between min and max (inclusive).
-	  _.random = function(min, max) {
-	    if (max == null) {
-	      max = min;
-	      min = 0;
-	    }
-	    return min + Math.floor(Math.random() * (max - min + 1));
-	  };
-
-	  // A (possibly faster) way to get the current timestamp as an integer.
-	  _.now = Date.now || function() {
-	    return new Date().getTime();
-	  };
-
-	   // List of HTML entities for escaping.
-	  var escapeMap = {
-	    '&': '&amp;',
-	    '<': '&lt;',
-	    '>': '&gt;',
-	    '"': '&quot;',
-	    "'": '&#x27;',
-	    '`': '&#x60;'
-	  };
-	  var unescapeMap = _.invert(escapeMap);
-
-	  // Functions for escaping and unescaping strings to/from HTML interpolation.
-	  var createEscaper = function(map) {
-	    var escaper = function(match) {
-	      return map[match];
-	    };
-	    // Regexes for identifying a key that needs to be escaped
-	    var source = '(?:' + _.keys(map).join('|') + ')';
-	    var testRegexp = RegExp(source);
-	    var replaceRegexp = RegExp(source, 'g');
-	    return function(string) {
-	      string = string == null ? '' : '' + string;
-	      return testRegexp.test(string) ? string.replace(replaceRegexp, escaper) : string;
-	    };
-	  };
-	  _.escape = createEscaper(escapeMap);
-	  _.unescape = createEscaper(unescapeMap);
-
-	  // If the value of the named `property` is a function then invoke it with the
-	  // `object` as context; otherwise, return it.
-	  _.result = function(object, property, fallback) {
-	    var value = object == null ? void 0 : object[property];
-	    if (value === void 0) {
-	      value = fallback;
-	    }
-	    return _.isFunction(value) ? value.call(object) : value;
-	  };
-
-	  // Generate a unique integer id (unique within the entire client session).
-	  // Useful for temporary DOM ids.
-	  var idCounter = 0;
-	  _.uniqueId = function(prefix) {
-	    var id = ++idCounter + '';
-	    return prefix ? prefix + id : id;
-	  };
-
-	  // By default, Underscore uses ERB-style template delimiters, change the
-	  // following template settings to use alternative delimiters.
-	  _.templateSettings = {
-	    evaluate    : /<%([\s\S]+?)%>/g,
-	    interpolate : /<%=([\s\S]+?)%>/g,
-	    escape      : /<%-([\s\S]+?)%>/g
-	  };
-
-	  // When customizing `templateSettings`, if you don't want to define an
-	  // interpolation, evaluation or escaping regex, we need one that is
-	  // guaranteed not to match.
-	  var noMatch = /(.)^/;
-
-	  // Certain characters need to be escaped so that they can be put into a
-	  // string literal.
-	  var escapes = {
-	    "'":      "'",
-	    '\\':     '\\',
-	    '\r':     'r',
-	    '\n':     'n',
-	    '\u2028': 'u2028',
-	    '\u2029': 'u2029'
-	  };
-
-	  var escaper = /\\|'|\r|\n|\u2028|\u2029/g;
-
-	  var escapeChar = function(match) {
-	    return '\\' + escapes[match];
-	  };
-
-	  // JavaScript micro-templating, similar to John Resig's implementation.
-	  // Underscore templating handles arbitrary delimiters, preserves whitespace,
-	  // and correctly escapes quotes within interpolated code.
-	  // NB: `oldSettings` only exists for backwards compatibility.
-	  _.template = function(text, settings, oldSettings) {
-	    if (!settings && oldSettings) settings = oldSettings;
-	    settings = _.defaults({}, settings, _.templateSettings);
-
-	    // Combine delimiters into one regular expression via alternation.
-	    var matcher = RegExp([
-	      (settings.escape || noMatch).source,
-	      (settings.interpolate || noMatch).source,
-	      (settings.evaluate || noMatch).source
-	    ].join('|') + '|$', 'g');
-
-	    // Compile the template source, escaping string literals appropriately.
-	    var index = 0;
-	    var source = "__p+='";
-	    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
-	      source += text.slice(index, offset).replace(escaper, escapeChar);
-	      index = offset + match.length;
-
-	      if (escape) {
-	        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
-	      } else if (interpolate) {
-	        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
-	      } else if (evaluate) {
-	        source += "';\n" + evaluate + "\n__p+='";
-	      }
-
-	      // Adobe VMs need the match returned to produce the correct offest.
-	      return match;
-	    });
-	    source += "';\n";
-
-	    // If a variable is not specified, place data values in local scope.
-	    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
-
-	    source = "var __t,__p='',__j=Array.prototype.join," +
-	      "print=function(){__p+=__j.call(arguments,'');};\n" +
-	      source + 'return __p;\n';
-
-	    try {
-	      var render = new Function(settings.variable || 'obj', '_', source);
-	    } catch (e) {
-	      e.source = source;
-	      throw e;
-	    }
-
-	    var template = function(data) {
-	      return render.call(this, data, _);
-	    };
-
-	    // Provide the compiled source as a convenience for precompilation.
-	    var argument = settings.variable || 'obj';
-	    template.source = 'function(' + argument + '){\n' + source + '}';
-
-	    return template;
-	  };
-
-	  // Add a "chain" function. Start chaining a wrapped Underscore object.
-	  _.chain = function(obj) {
-	    var instance = _(obj);
-	    instance._chain = true;
-	    return instance;
-	  };
-
-	  // OOP
-	  // ---------------
-	  // If Underscore is called as a function, it returns a wrapped object that
-	  // can be used OO-style. This wrapper holds altered versions of all the
-	  // underscore functions. Wrapped objects may be chained.
-
-	  // Helper function to continue chaining intermediate results.
-	  var result = function(instance, obj) {
-	    return instance._chain ? _(obj).chain() : obj;
-	  };
-
-	  // Add your own custom functions to the Underscore object.
-	  _.mixin = function(obj) {
-	    _.each(_.functions(obj), function(name) {
-	      var func = _[name] = obj[name];
-	      _.prototype[name] = function() {
-	        var args = [this._wrapped];
-	        push.apply(args, arguments);
-	        return result(this, func.apply(_, args));
-	      };
-	    });
-	  };
-
-	  // Add all of the Underscore functions to the wrapper object.
-	  _.mixin(_);
-
-	  // Add all mutator Array functions to the wrapper.
-	  _.each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
-	    var method = ArrayProto[name];
-	    _.prototype[name] = function() {
-	      var obj = this._wrapped;
-	      method.apply(obj, arguments);
-	      if ((name === 'shift' || name === 'splice') && obj.length === 0) delete obj[0];
-	      return result(this, obj);
-	    };
-	  });
-
-	  // Add all accessor Array functions to the wrapper.
-	  _.each(['concat', 'join', 'slice'], function(name) {
-	    var method = ArrayProto[name];
-	    _.prototype[name] = function() {
-	      return result(this, method.apply(this._wrapped, arguments));
-	    };
-	  });
-
-	  // Extracts the result from a wrapped and chained object.
-	  _.prototype.value = function() {
-	    return this._wrapped;
-	  };
-
-	  // Provide unwrapping proxy for some methods used in engine operations
-	  // such as arithmetic and JSON stringification.
-	  _.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
-
-	  _.prototype.toString = function() {
-	    return '' + this._wrapped;
-	  };
-	}.call(commonjsGlobal$1));
-	});
-	var underscore_1 = underscore._;
 
 	/**
 	 * Test whether a value is a BigNumber
@@ -65612,6 +64075,2353 @@
 	};
 	});
 
+	// import math.js, only with customized constants
+
+	function create$2$1 (config$$1) {
+	  // create a new math.js instance
+	  var math = core$1.create(config$$1);
+	  math.create = create$2$1;
+	  
+	  // import data types, functions, constants, expression parser, etc.
+	  math['import'](lib);
+
+	  // import numeric
+	  math['import'](numeric1_2_6, {wrap: true, silent: true});  
+
+	  // strict power function that returns NaN for 0^0, NaN^0, and Infinty^0
+	  var pow_original = math.pow;
+	  function pow_strict_f(base, pow) {
+	    if(pow === 0 && (typeof base === 'number') &&
+	      (base === 0 || !Number.isFinite(base))) {
+	        return NaN;
+	    }
+	    else
+	       return pow_original(base,pow);
+	  }
+
+	  function set_pow_strict(bool) {
+	    if(bool)
+	      math['import']({pow: pow_strict_f}, {override: true});
+	    else
+	      math['import']({pow: pow_original}, {override: true});
+	  }
+
+	  var is_pow_strict = () => math.pow === pow_strict_f;
+
+	  Object.defineProperty(math, 'pow_strict', {
+	    get: is_pow_strict,
+	    set: set_pow_strict,
+	  });
+
+	  math.pow_strict = true;
+
+
+	  function set_define_e(bool) {
+	    if(bool)
+	      math.config({define_e: true});
+	    else
+	      math.config({define_e: false});
+	  }
+	  var get_define_e = () => math.config().define_e!==false;
+	  function set_define_i(bool) {
+	    if(bool)
+	      math.config({define_i: true});
+	    else
+	      math.config({define_i: false});
+	  }
+	  var get_define_i = () => math.config().define_i!==false;
+	  function set_define_pi(bool) {
+	    if(bool)
+	      math.config({define_pi: true});
+	    else
+	      math.config({define_pi: false});
+	  }
+	  var get_define_pi = () => math.config().define_pi!==false;
+
+	  Object.defineProperty(math, 'define_e', {
+	    get: get_define_e,
+	    set: set_define_e,
+	  });
+	  Object.defineProperty(math, 'define_i', {
+	    get: get_define_i,
+	    set: set_define_i,
+	  });
+	  Object.defineProperty(math, 'define_pi', {
+	    get: get_define_pi,
+	    set: set_define_pi,
+	  });
+
+	  return math;
+	}
+
+	// return a new instance of math.js
+	var math$19 = create$2$1();
+
+	function leaves( tree, include_subscripts ) {
+	    if(!Array.isArray(tree))
+		return [tree];
+
+	    var operator = tree[0];
+	    var operands = tree.slice(1);
+
+	    if(include_subscripts && operator === '_') {
+	      if(typeof operands[0] === "string" &&
+	      ((typeof operands[1] === "string") || (typeof operands[1] === "number")))
+	      return [operands[0] + "_"+ operands[1]];
+	    }
+
+	    if(operator === "apply") {
+		operands = tree.slice(2);
+	    }
+	    if(operands.length === 0)
+	      return [];
+
+	    return operands.map( function(v,i) { return leaves(v, include_subscripts); } )
+		.reduce( function(a,b) { return a.concat(b); } );
+
+	}
+
+	function variables( expr_or_tree, include_subscripts = false ) {
+
+	    var tree = get_tree(expr_or_tree);
+
+	    var result = leaves( tree, include_subscripts );
+
+	    result = result.filter( function(v,i) {
+		return (typeof v === 'string') &&
+		    (math$19.define_e || (v !== "e")) &&
+		    (math$19.define_pi || (v !== "pi")) &&
+		    (math$19.define_i || (v !== "i"));
+	    });
+
+	    result = result.filter(function(itm,i,a){
+		return i === result.indexOf(itm);
+	    });
+
+	    return result;
+	}
+
+	function operators_list( tree ) {
+	    if (!Array.isArray(tree))
+		return [];
+
+	    var operator = tree[0];
+	    var operands = tree.slice(1);
+
+	    if(operator === "apply") {
+		operands = tree.slice(2);
+	    }
+	    if(operands.length === 0)
+	      return [operator];
+
+	    return [operator].concat(
+		operands.map( function(v,i) { return operators_list(v); } )
+		    .reduce( function(a,b) { return a.concat(b); } ));
+
+	}
+
+	function operators$1( expr_or_tree ) {
+
+	    var tree = get_tree(expr_or_tree);
+
+	    var result = operators_list( tree );
+
+	    result = result.filter( function(v,i) {
+		return (v !== 'apply');
+	    });
+
+	    result = result.filter(function(itm,i,a){
+		return i === result.indexOf(itm);
+	    });
+
+	    return result;
+	}
+
+	function functions_list( tree ) {
+	    if (typeof tree === 'number') {
+		return [];
+	    }
+
+	    if (typeof tree === 'string') {
+		return [];
+	    }
+
+	    if (typeof tree === 'boolean') {
+		return [];
+	    }
+
+	    var operator = tree[0];
+	    var operands = tree.slice(1);
+
+	    var functions = [];
+	    if(operator === "apply") {
+		functions = [operands[0]];
+		operands = tree.slice(2);
+	    }
+
+	    return functions.concat(
+		operands.map( function(v,i) { return functions_list(v); } )
+		    .reduce( function(a,b) { return a.concat(b); } ));
+
+	}
+
+	function functions( expr_or_tree ) {
+
+	    var tree = get_tree(expr_or_tree);
+
+	    var result = functions_list( tree );
+
+	    result = result.filter(function(itm,i,a){
+		return i === result.indexOf(itm);
+	    });
+
+	    return result;
+	}
+
+	var variables$1 = /*#__PURE__*/Object.freeze({
+	    variables: variables,
+	    operators: operators$1,
+	    functions: functions
+	});
+
+	var underscore = createCommonjsModule$1(function (module, exports) {
+	//     Underscore.js 1.8.3
+	//     http://underscorejs.org
+	//     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+	//     Underscore may be freely distributed under the MIT license.
+
+	(function() {
+
+	  // Baseline setup
+	  // --------------
+
+	  // Establish the root object, `window` in the browser, or `exports` on the server.
+	  var root = this;
+
+	  // Save the previous value of the `_` variable.
+	  var previousUnderscore = root._;
+
+	  // Save bytes in the minified (but not gzipped) version:
+	  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+	  // Create quick reference variables for speed access to core prototypes.
+	  var
+	    push             = ArrayProto.push,
+	    slice            = ArrayProto.slice,
+	    toString         = ObjProto.toString,
+	    hasOwnProperty   = ObjProto.hasOwnProperty;
+
+	  // All **ECMAScript 5** native function implementations that we hope to use
+	  // are declared here.
+	  var
+	    nativeIsArray      = Array.isArray,
+	    nativeKeys         = Object.keys,
+	    nativeBind         = FuncProto.bind,
+	    nativeCreate       = Object.create;
+
+	  // Naked function reference for surrogate-prototype-swapping.
+	  var Ctor = function(){};
+
+	  // Create a safe reference to the Underscore object for use below.
+	  var _ = function(obj) {
+	    if (obj instanceof _) return obj;
+	    if (!(this instanceof _)) return new _(obj);
+	    this._wrapped = obj;
+	  };
+
+	  // Export the Underscore object for **Node.js**, with
+	  // backwards-compatibility for the old `require()` API. If we're in
+	  // the browser, add `_` as a global object.
+	  {
+	    if (module.exports) {
+	      exports = module.exports = _;
+	    }
+	    exports._ = _;
+	  }
+
+	  // Current version.
+	  _.VERSION = '1.8.3';
+
+	  // Internal function that returns an efficient (for current engines) version
+	  // of the passed-in callback, to be repeatedly applied in other Underscore
+	  // functions.
+	  var optimizeCb = function(func, context, argCount) {
+	    if (context === void 0) return func;
+	    switch (argCount == null ? 3 : argCount) {
+	      case 1: return function(value) {
+	        return func.call(context, value);
+	      };
+	      case 2: return function(value, other) {
+	        return func.call(context, value, other);
+	      };
+	      case 3: return function(value, index, collection) {
+	        return func.call(context, value, index, collection);
+	      };
+	      case 4: return function(accumulator, value, index, collection) {
+	        return func.call(context, accumulator, value, index, collection);
+	      };
+	    }
+	    return function() {
+	      return func.apply(context, arguments);
+	    };
+	  };
+
+	  // A mostly-internal function to generate callbacks that can be applied
+	  // to each element in a collection, returning the desired result — either
+	  // identity, an arbitrary callback, a property matcher, or a property accessor.
+	  var cb = function(value, context, argCount) {
+	    if (value == null) return _.identity;
+	    if (_.isFunction(value)) return optimizeCb(value, context, argCount);
+	    if (_.isObject(value)) return _.matcher(value);
+	    return _.property(value);
+	  };
+	  _.iteratee = function(value, context) {
+	    return cb(value, context, Infinity);
+	  };
+
+	  // An internal function for creating assigner functions.
+	  var createAssigner = function(keysFunc, undefinedOnly) {
+	    return function(obj) {
+	      var length = arguments.length;
+	      if (length < 2 || obj == null) return obj;
+	      for (var index = 1; index < length; index++) {
+	        var source = arguments[index],
+	            keys = keysFunc(source),
+	            l = keys.length;
+	        for (var i = 0; i < l; i++) {
+	          var key = keys[i];
+	          if (!undefinedOnly || obj[key] === void 0) obj[key] = source[key];
+	        }
+	      }
+	      return obj;
+	    };
+	  };
+
+	  // An internal function for creating a new object that inherits from another.
+	  var baseCreate = function(prototype) {
+	    if (!_.isObject(prototype)) return {};
+	    if (nativeCreate) return nativeCreate(prototype);
+	    Ctor.prototype = prototype;
+	    var result = new Ctor;
+	    Ctor.prototype = null;
+	    return result;
+	  };
+
+	  var property = function(key) {
+	    return function(obj) {
+	      return obj == null ? void 0 : obj[key];
+	    };
+	  };
+
+	  // Helper for collection methods to determine whether a collection
+	  // should be iterated as an array or as an object
+	  // Related: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength
+	  // Avoids a very nasty iOS 8 JIT bug on ARM-64. #2094
+	  var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
+	  var getLength = property('length');
+	  var isArrayLike = function(collection) {
+	    var length = getLength(collection);
+	    return typeof length == 'number' && length >= 0 && length <= MAX_ARRAY_INDEX;
+	  };
+
+	  // Collection Functions
+	  // --------------------
+
+	  // The cornerstone, an `each` implementation, aka `forEach`.
+	  // Handles raw objects in addition to array-likes. Treats all
+	  // sparse array-likes as if they were dense.
+	  _.each = _.forEach = function(obj, iteratee, context) {
+	    iteratee = optimizeCb(iteratee, context);
+	    var i, length;
+	    if (isArrayLike(obj)) {
+	      for (i = 0, length = obj.length; i < length; i++) {
+	        iteratee(obj[i], i, obj);
+	      }
+	    } else {
+	      var keys = _.keys(obj);
+	      for (i = 0, length = keys.length; i < length; i++) {
+	        iteratee(obj[keys[i]], keys[i], obj);
+	      }
+	    }
+	    return obj;
+	  };
+
+	  // Return the results of applying the iteratee to each element.
+	  _.map = _.collect = function(obj, iteratee, context) {
+	    iteratee = cb(iteratee, context);
+	    var keys = !isArrayLike(obj) && _.keys(obj),
+	        length = (keys || obj).length,
+	        results = Array(length);
+	    for (var index = 0; index < length; index++) {
+	      var currentKey = keys ? keys[index] : index;
+	      results[index] = iteratee(obj[currentKey], currentKey, obj);
+	    }
+	    return results;
+	  };
+
+	  // Create a reducing function iterating left or right.
+	  function createReduce(dir) {
+	    // Optimized iterator function as using arguments.length
+	    // in the main function will deoptimize the, see #1991.
+	    function iterator(obj, iteratee, memo, keys, index, length) {
+	      for (; index >= 0 && index < length; index += dir) {
+	        var currentKey = keys ? keys[index] : index;
+	        memo = iteratee(memo, obj[currentKey], currentKey, obj);
+	      }
+	      return memo;
+	    }
+
+	    return function(obj, iteratee, memo, context) {
+	      iteratee = optimizeCb(iteratee, context, 4);
+	      var keys = !isArrayLike(obj) && _.keys(obj),
+	          length = (keys || obj).length,
+	          index = dir > 0 ? 0 : length - 1;
+	      // Determine the initial value if none is provided.
+	      if (arguments.length < 3) {
+	        memo = obj[keys ? keys[index] : index];
+	        index += dir;
+	      }
+	      return iterator(obj, iteratee, memo, keys, index, length);
+	    };
+	  }
+
+	  // **Reduce** builds up a single result from a list of values, aka `inject`,
+	  // or `foldl`.
+	  _.reduce = _.foldl = _.inject = createReduce(1);
+
+	  // The right-associative version of reduce, also known as `foldr`.
+	  _.reduceRight = _.foldr = createReduce(-1);
+
+	  // Return the first value which passes a truth test. Aliased as `detect`.
+	  _.find = _.detect = function(obj, predicate, context) {
+	    var key;
+	    if (isArrayLike(obj)) {
+	      key = _.findIndex(obj, predicate, context);
+	    } else {
+	      key = _.findKey(obj, predicate, context);
+	    }
+	    if (key !== void 0 && key !== -1) return obj[key];
+	  };
+
+	  // Return all the elements that pass a truth test.
+	  // Aliased as `select`.
+	  _.filter = _.select = function(obj, predicate, context) {
+	    var results = [];
+	    predicate = cb(predicate, context);
+	    _.each(obj, function(value, index, list) {
+	      if (predicate(value, index, list)) results.push(value);
+	    });
+	    return results;
+	  };
+
+	  // Return all the elements for which a truth test fails.
+	  _.reject = function(obj, predicate, context) {
+	    return _.filter(obj, _.negate(cb(predicate)), context);
+	  };
+
+	  // Determine whether all of the elements match a truth test.
+	  // Aliased as `all`.
+	  _.every = _.all = function(obj, predicate, context) {
+	    predicate = cb(predicate, context);
+	    var keys = !isArrayLike(obj) && _.keys(obj),
+	        length = (keys || obj).length;
+	    for (var index = 0; index < length; index++) {
+	      var currentKey = keys ? keys[index] : index;
+	      if (!predicate(obj[currentKey], currentKey, obj)) return false;
+	    }
+	    return true;
+	  };
+
+	  // Determine if at least one element in the object matches a truth test.
+	  // Aliased as `any`.
+	  _.some = _.any = function(obj, predicate, context) {
+	    predicate = cb(predicate, context);
+	    var keys = !isArrayLike(obj) && _.keys(obj),
+	        length = (keys || obj).length;
+	    for (var index = 0; index < length; index++) {
+	      var currentKey = keys ? keys[index] : index;
+	      if (predicate(obj[currentKey], currentKey, obj)) return true;
+	    }
+	    return false;
+	  };
+
+	  // Determine if the array or object contains a given item (using `===`).
+	  // Aliased as `includes` and `include`.
+	  _.contains = _.includes = _.include = function(obj, item, fromIndex, guard) {
+	    if (!isArrayLike(obj)) obj = _.values(obj);
+	    if (typeof fromIndex != 'number' || guard) fromIndex = 0;
+	    return _.indexOf(obj, item, fromIndex) >= 0;
+	  };
+
+	  // Invoke a method (with arguments) on every item in a collection.
+	  _.invoke = function(obj, method) {
+	    var args = slice.call(arguments, 2);
+	    var isFunc = _.isFunction(method);
+	    return _.map(obj, function(value) {
+	      var func = isFunc ? method : value[method];
+	      return func == null ? func : func.apply(value, args);
+	    });
+	  };
+
+	  // Convenience version of a common use case of `map`: fetching a property.
+	  _.pluck = function(obj, key) {
+	    return _.map(obj, _.property(key));
+	  };
+
+	  // Convenience version of a common use case of `filter`: selecting only objects
+	  // containing specific `key:value` pairs.
+	  _.where = function(obj, attrs) {
+	    return _.filter(obj, _.matcher(attrs));
+	  };
+
+	  // Convenience version of a common use case of `find`: getting the first object
+	  // containing specific `key:value` pairs.
+	  _.findWhere = function(obj, attrs) {
+	    return _.find(obj, _.matcher(attrs));
+	  };
+
+	  // Return the maximum element (or element-based computation).
+	  _.max = function(obj, iteratee, context) {
+	    var result = -Infinity, lastComputed = -Infinity,
+	        value, computed;
+	    if (iteratee == null && obj != null) {
+	      obj = isArrayLike(obj) ? obj : _.values(obj);
+	      for (var i = 0, length = obj.length; i < length; i++) {
+	        value = obj[i];
+	        if (value > result) {
+	          result = value;
+	        }
+	      }
+	    } else {
+	      iteratee = cb(iteratee, context);
+	      _.each(obj, function(value, index, list) {
+	        computed = iteratee(value, index, list);
+	        if (computed > lastComputed || computed === -Infinity && result === -Infinity) {
+	          result = value;
+	          lastComputed = computed;
+	        }
+	      });
+	    }
+	    return result;
+	  };
+
+	  // Return the minimum element (or element-based computation).
+	  _.min = function(obj, iteratee, context) {
+	    var result = Infinity, lastComputed = Infinity,
+	        value, computed;
+	    if (iteratee == null && obj != null) {
+	      obj = isArrayLike(obj) ? obj : _.values(obj);
+	      for (var i = 0, length = obj.length; i < length; i++) {
+	        value = obj[i];
+	        if (value < result) {
+	          result = value;
+	        }
+	      }
+	    } else {
+	      iteratee = cb(iteratee, context);
+	      _.each(obj, function(value, index, list) {
+	        computed = iteratee(value, index, list);
+	        if (computed < lastComputed || computed === Infinity && result === Infinity) {
+	          result = value;
+	          lastComputed = computed;
+	        }
+	      });
+	    }
+	    return result;
+	  };
+
+	  // Shuffle a collection, using the modern version of the
+	  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
+	  _.shuffle = function(obj) {
+	    var set = isArrayLike(obj) ? obj : _.values(obj);
+	    var length = set.length;
+	    var shuffled = Array(length);
+	    for (var index = 0, rand; index < length; index++) {
+	      rand = _.random(0, index);
+	      if (rand !== index) shuffled[index] = shuffled[rand];
+	      shuffled[rand] = set[index];
+	    }
+	    return shuffled;
+	  };
+
+	  // Sample **n** random values from a collection.
+	  // If **n** is not specified, returns a single random element.
+	  // The internal `guard` argument allows it to work with `map`.
+	  _.sample = function(obj, n, guard) {
+	    if (n == null || guard) {
+	      if (!isArrayLike(obj)) obj = _.values(obj);
+	      return obj[_.random(obj.length - 1)];
+	    }
+	    return _.shuffle(obj).slice(0, Math.max(0, n));
+	  };
+
+	  // Sort the object's values by a criterion produced by an iteratee.
+	  _.sortBy = function(obj, iteratee, context) {
+	    iteratee = cb(iteratee, context);
+	    return _.pluck(_.map(obj, function(value, index, list) {
+	      return {
+	        value: value,
+	        index: index,
+	        criteria: iteratee(value, index, list)
+	      };
+	    }).sort(function(left, right) {
+	      var a = left.criteria;
+	      var b = right.criteria;
+	      if (a !== b) {
+	        if (a > b || a === void 0) return 1;
+	        if (a < b || b === void 0) return -1;
+	      }
+	      return left.index - right.index;
+	    }), 'value');
+	  };
+
+	  // An internal function used for aggregate "group by" operations.
+	  var group = function(behavior) {
+	    return function(obj, iteratee, context) {
+	      var result = {};
+	      iteratee = cb(iteratee, context);
+	      _.each(obj, function(value, index) {
+	        var key = iteratee(value, index, obj);
+	        behavior(result, value, key);
+	      });
+	      return result;
+	    };
+	  };
+
+	  // Groups the object's values by a criterion. Pass either a string attribute
+	  // to group by, or a function that returns the criterion.
+	  _.groupBy = group(function(result, value, key) {
+	    if (_.has(result, key)) result[key].push(value); else result[key] = [value];
+	  });
+
+	  // Indexes the object's values by a criterion, similar to `groupBy`, but for
+	  // when you know that your index values will be unique.
+	  _.indexBy = group(function(result, value, key) {
+	    result[key] = value;
+	  });
+
+	  // Counts instances of an object that group by a certain criterion. Pass
+	  // either a string attribute to count by, or a function that returns the
+	  // criterion.
+	  _.countBy = group(function(result, value, key) {
+	    if (_.has(result, key)) result[key]++; else result[key] = 1;
+	  });
+
+	  // Safely create a real, live array from anything iterable.
+	  _.toArray = function(obj) {
+	    if (!obj) return [];
+	    if (_.isArray(obj)) return slice.call(obj);
+	    if (isArrayLike(obj)) return _.map(obj, _.identity);
+	    return _.values(obj);
+	  };
+
+	  // Return the number of elements in an object.
+	  _.size = function(obj) {
+	    if (obj == null) return 0;
+	    return isArrayLike(obj) ? obj.length : _.keys(obj).length;
+	  };
+
+	  // Split a collection into two arrays: one whose elements all satisfy the given
+	  // predicate, and one whose elements all do not satisfy the predicate.
+	  _.partition = function(obj, predicate, context) {
+	    predicate = cb(predicate, context);
+	    var pass = [], fail = [];
+	    _.each(obj, function(value, key, obj) {
+	      (predicate(value, key, obj) ? pass : fail).push(value);
+	    });
+	    return [pass, fail];
+	  };
+
+	  // Array Functions
+	  // ---------------
+
+	  // Get the first element of an array. Passing **n** will return the first N
+	  // values in the array. Aliased as `head` and `take`. The **guard** check
+	  // allows it to work with `_.map`.
+	  _.first = _.head = _.take = function(array, n, guard) {
+	    if (array == null) return void 0;
+	    if (n == null || guard) return array[0];
+	    return _.initial(array, array.length - n);
+	  };
+
+	  // Returns everything but the last entry of the array. Especially useful on
+	  // the arguments object. Passing **n** will return all the values in
+	  // the array, excluding the last N.
+	  _.initial = function(array, n, guard) {
+	    return slice.call(array, 0, Math.max(0, array.length - (n == null || guard ? 1 : n)));
+	  };
+
+	  // Get the last element of an array. Passing **n** will return the last N
+	  // values in the array.
+	  _.last = function(array, n, guard) {
+	    if (array == null) return void 0;
+	    if (n == null || guard) return array[array.length - 1];
+	    return _.rest(array, Math.max(0, array.length - n));
+	  };
+
+	  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
+	  // Especially useful on the arguments object. Passing an **n** will return
+	  // the rest N values in the array.
+	  _.rest = _.tail = _.drop = function(array, n, guard) {
+	    return slice.call(array, n == null || guard ? 1 : n);
+	  };
+
+	  // Trim out all falsy values from an array.
+	  _.compact = function(array) {
+	    return _.filter(array, _.identity);
+	  };
+
+	  // Internal implementation of a recursive `flatten` function.
+	  var flatten = function(input, shallow, strict, startIndex) {
+	    var output = [], idx = 0;
+	    for (var i = startIndex || 0, length = getLength(input); i < length; i++) {
+	      var value = input[i];
+	      if (isArrayLike(value) && (_.isArray(value) || _.isArguments(value))) {
+	        //flatten current level of array or arguments object
+	        if (!shallow) value = flatten(value, shallow, strict);
+	        var j = 0, len = value.length;
+	        output.length += len;
+	        while (j < len) {
+	          output[idx++] = value[j++];
+	        }
+	      } else if (!strict) {
+	        output[idx++] = value;
+	      }
+	    }
+	    return output;
+	  };
+
+	  // Flatten out an array, either recursively (by default), or just one level.
+	  _.flatten = function(array, shallow) {
+	    return flatten(array, shallow, false);
+	  };
+
+	  // Return a version of the array that does not contain the specified value(s).
+	  _.without = function(array) {
+	    return _.difference(array, slice.call(arguments, 1));
+	  };
+
+	  // Produce a duplicate-free version of the array. If the array has already
+	  // been sorted, you have the option of using a faster algorithm.
+	  // Aliased as `unique`.
+	  _.uniq = _.unique = function(array, isSorted, iteratee, context) {
+	    if (!_.isBoolean(isSorted)) {
+	      context = iteratee;
+	      iteratee = isSorted;
+	      isSorted = false;
+	    }
+	    if (iteratee != null) iteratee = cb(iteratee, context);
+	    var result = [];
+	    var seen = [];
+	    for (var i = 0, length = getLength(array); i < length; i++) {
+	      var value = array[i],
+	          computed = iteratee ? iteratee(value, i, array) : value;
+	      if (isSorted) {
+	        if (!i || seen !== computed) result.push(value);
+	        seen = computed;
+	      } else if (iteratee) {
+	        if (!_.contains(seen, computed)) {
+	          seen.push(computed);
+	          result.push(value);
+	        }
+	      } else if (!_.contains(result, value)) {
+	        result.push(value);
+	      }
+	    }
+	    return result;
+	  };
+
+	  // Produce an array that contains the union: each distinct element from all of
+	  // the passed-in arrays.
+	  _.union = function() {
+	    return _.uniq(flatten(arguments, true, true));
+	  };
+
+	  // Produce an array that contains every item shared between all the
+	  // passed-in arrays.
+	  _.intersection = function(array) {
+	    var result = [];
+	    var argsLength = arguments.length;
+	    for (var i = 0, length = getLength(array); i < length; i++) {
+	      var item = array[i];
+	      if (_.contains(result, item)) continue;
+	      for (var j = 1; j < argsLength; j++) {
+	        if (!_.contains(arguments[j], item)) break;
+	      }
+	      if (j === argsLength) result.push(item);
+	    }
+	    return result;
+	  };
+
+	  // Take the difference between one array and a number of other arrays.
+	  // Only the elements present in just the first array will remain.
+	  _.difference = function(array) {
+	    var rest = flatten(arguments, true, true, 1);
+	    return _.filter(array, function(value){
+	      return !_.contains(rest, value);
+	    });
+	  };
+
+	  // Zip together multiple lists into a single array -- elements that share
+	  // an index go together.
+	  _.zip = function() {
+	    return _.unzip(arguments);
+	  };
+
+	  // Complement of _.zip. Unzip accepts an array of arrays and groups
+	  // each array's elements on shared indices
+	  _.unzip = function(array) {
+	    var length = array && _.max(array, getLength).length || 0;
+	    var result = Array(length);
+
+	    for (var index = 0; index < length; index++) {
+	      result[index] = _.pluck(array, index);
+	    }
+	    return result;
+	  };
+
+	  // Converts lists into objects. Pass either a single array of `[key, value]`
+	  // pairs, or two parallel arrays of the same length -- one of keys, and one of
+	  // the corresponding values.
+	  _.object = function(list, values) {
+	    var result = {};
+	    for (var i = 0, length = getLength(list); i < length; i++) {
+	      if (values) {
+	        result[list[i]] = values[i];
+	      } else {
+	        result[list[i][0]] = list[i][1];
+	      }
+	    }
+	    return result;
+	  };
+
+	  // Generator function to create the findIndex and findLastIndex functions
+	  function createPredicateIndexFinder(dir) {
+	    return function(array, predicate, context) {
+	      predicate = cb(predicate, context);
+	      var length = getLength(array);
+	      var index = dir > 0 ? 0 : length - 1;
+	      for (; index >= 0 && index < length; index += dir) {
+	        if (predicate(array[index], index, array)) return index;
+	      }
+	      return -1;
+	    };
+	  }
+
+	  // Returns the first index on an array-like that passes a predicate test
+	  _.findIndex = createPredicateIndexFinder(1);
+	  _.findLastIndex = createPredicateIndexFinder(-1);
+
+	  // Use a comparator function to figure out the smallest index at which
+	  // an object should be inserted so as to maintain order. Uses binary search.
+	  _.sortedIndex = function(array, obj, iteratee, context) {
+	    iteratee = cb(iteratee, context, 1);
+	    var value = iteratee(obj);
+	    var low = 0, high = getLength(array);
+	    while (low < high) {
+	      var mid = Math.floor((low + high) / 2);
+	      if (iteratee(array[mid]) < value) low = mid + 1; else high = mid;
+	    }
+	    return low;
+	  };
+
+	  // Generator function to create the indexOf and lastIndexOf functions
+	  function createIndexFinder(dir, predicateFind, sortedIndex) {
+	    return function(array, item, idx) {
+	      var i = 0, length = getLength(array);
+	      if (typeof idx == 'number') {
+	        if (dir > 0) {
+	            i = idx >= 0 ? idx : Math.max(idx + length, i);
+	        } else {
+	            length = idx >= 0 ? Math.min(idx + 1, length) : idx + length + 1;
+	        }
+	      } else if (sortedIndex && idx && length) {
+	        idx = sortedIndex(array, item);
+	        return array[idx] === item ? idx : -1;
+	      }
+	      if (item !== item) {
+	        idx = predicateFind(slice.call(array, i, length), _.isNaN);
+	        return idx >= 0 ? idx + i : -1;
+	      }
+	      for (idx = dir > 0 ? i : length - 1; idx >= 0 && idx < length; idx += dir) {
+	        if (array[idx] === item) return idx;
+	      }
+	      return -1;
+	    };
+	  }
+
+	  // Return the position of the first occurrence of an item in an array,
+	  // or -1 if the item is not included in the array.
+	  // If the array is large and already in sort order, pass `true`
+	  // for **isSorted** to use binary search.
+	  _.indexOf = createIndexFinder(1, _.findIndex, _.sortedIndex);
+	  _.lastIndexOf = createIndexFinder(-1, _.findLastIndex);
+
+	  // Generate an integer Array containing an arithmetic progression. A port of
+	  // the native Python `range()` function. See
+	  // [the Python documentation](http://docs.python.org/library/functions.html#range).
+	  _.range = function(start, stop, step) {
+	    if (stop == null) {
+	      stop = start || 0;
+	      start = 0;
+	    }
+	    step = step || 1;
+
+	    var length = Math.max(Math.ceil((stop - start) / step), 0);
+	    var range = Array(length);
+
+	    for (var idx = 0; idx < length; idx++, start += step) {
+	      range[idx] = start;
+	    }
+
+	    return range;
+	  };
+
+	  // Function (ahem) Functions
+	  // ------------------
+
+	  // Determines whether to execute a function as a constructor
+	  // or a normal function with the provided arguments
+	  var executeBound = function(sourceFunc, boundFunc, context, callingContext, args) {
+	    if (!(callingContext instanceof boundFunc)) return sourceFunc.apply(context, args);
+	    var self = baseCreate(sourceFunc.prototype);
+	    var result = sourceFunc.apply(self, args);
+	    if (_.isObject(result)) return result;
+	    return self;
+	  };
+
+	  // Create a function bound to a given object (assigning `this`, and arguments,
+	  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
+	  // available.
+	  _.bind = function(func, context) {
+	    if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+	    if (!_.isFunction(func)) throw new TypeError('Bind must be called on a function');
+	    var args = slice.call(arguments, 2);
+	    var bound = function() {
+	      return executeBound(func, bound, context, this, args.concat(slice.call(arguments)));
+	    };
+	    return bound;
+	  };
+
+	  // Partially apply a function by creating a version that has had some of its
+	  // arguments pre-filled, without changing its dynamic `this` context. _ acts
+	  // as a placeholder, allowing any combination of arguments to be pre-filled.
+	  _.partial = function(func) {
+	    var boundArgs = slice.call(arguments, 1);
+	    var bound = function() {
+	      var position = 0, length = boundArgs.length;
+	      var args = Array(length);
+	      for (var i = 0; i < length; i++) {
+	        args[i] = boundArgs[i] === _ ? arguments[position++] : boundArgs[i];
+	      }
+	      while (position < arguments.length) args.push(arguments[position++]);
+	      return executeBound(func, bound, this, this, args);
+	    };
+	    return bound;
+	  };
+
+	  // Bind a number of an object's methods to that object. Remaining arguments
+	  // are the method names to be bound. Useful for ensuring that all callbacks
+	  // defined on an object belong to it.
+	  _.bindAll = function(obj) {
+	    var i, length = arguments.length, key;
+	    if (length <= 1) throw new Error('bindAll must be passed function names');
+	    for (i = 1; i < length; i++) {
+	      key = arguments[i];
+	      obj[key] = _.bind(obj[key], obj);
+	    }
+	    return obj;
+	  };
+
+	  // Memoize an expensive function by storing its results.
+	  _.memoize = function(func, hasher) {
+	    var memoize = function(key) {
+	      var cache = memoize.cache;
+	      var address = '' + (hasher ? hasher.apply(this, arguments) : key);
+	      if (!_.has(cache, address)) cache[address] = func.apply(this, arguments);
+	      return cache[address];
+	    };
+	    memoize.cache = {};
+	    return memoize;
+	  };
+
+	  // Delays a function for the given number of milliseconds, and then calls
+	  // it with the arguments supplied.
+	  _.delay = function(func, wait) {
+	    var args = slice.call(arguments, 2);
+	    return setTimeout(function(){
+	      return func.apply(null, args);
+	    }, wait);
+	  };
+
+	  // Defers a function, scheduling it to run after the current call stack has
+	  // cleared.
+	  _.defer = _.partial(_.delay, _, 1);
+
+	  // Returns a function, that, when invoked, will only be triggered at most once
+	  // during a given window of time. Normally, the throttled function will run
+	  // as much as it can, without ever going more than once per `wait` duration;
+	  // but if you'd like to disable the execution on the leading edge, pass
+	  // `{leading: false}`. To disable execution on the trailing edge, ditto.
+	  _.throttle = function(func, wait, options) {
+	    var context, args, result;
+	    var timeout = null;
+	    var previous = 0;
+	    if (!options) options = {};
+	    var later = function() {
+	      previous = options.leading === false ? 0 : _.now();
+	      timeout = null;
+	      result = func.apply(context, args);
+	      if (!timeout) context = args = null;
+	    };
+	    return function() {
+	      var now = _.now();
+	      if (!previous && options.leading === false) previous = now;
+	      var remaining = wait - (now - previous);
+	      context = this;
+	      args = arguments;
+	      if (remaining <= 0 || remaining > wait) {
+	        if (timeout) {
+	          clearTimeout(timeout);
+	          timeout = null;
+	        }
+	        previous = now;
+	        result = func.apply(context, args);
+	        if (!timeout) context = args = null;
+	      } else if (!timeout && options.trailing !== false) {
+	        timeout = setTimeout(later, remaining);
+	      }
+	      return result;
+	    };
+	  };
+
+	  // Returns a function, that, as long as it continues to be invoked, will not
+	  // be triggered. The function will be called after it stops being called for
+	  // N milliseconds. If `immediate` is passed, trigger the function on the
+	  // leading edge, instead of the trailing.
+	  _.debounce = function(func, wait, immediate) {
+	    var timeout, args, context, timestamp, result;
+
+	    var later = function() {
+	      var last = _.now() - timestamp;
+
+	      if (last < wait && last >= 0) {
+	        timeout = setTimeout(later, wait - last);
+	      } else {
+	        timeout = null;
+	        if (!immediate) {
+	          result = func.apply(context, args);
+	          if (!timeout) context = args = null;
+	        }
+	      }
+	    };
+
+	    return function() {
+	      context = this;
+	      args = arguments;
+	      timestamp = _.now();
+	      var callNow = immediate && !timeout;
+	      if (!timeout) timeout = setTimeout(later, wait);
+	      if (callNow) {
+	        result = func.apply(context, args);
+	        context = args = null;
+	      }
+
+	      return result;
+	    };
+	  };
+
+	  // Returns the first function passed as an argument to the second,
+	  // allowing you to adjust arguments, run code before and after, and
+	  // conditionally execute the original function.
+	  _.wrap = function(func, wrapper) {
+	    return _.partial(wrapper, func);
+	  };
+
+	  // Returns a negated version of the passed-in predicate.
+	  _.negate = function(predicate) {
+	    return function() {
+	      return !predicate.apply(this, arguments);
+	    };
+	  };
+
+	  // Returns a function that is the composition of a list of functions, each
+	  // consuming the return value of the function that follows.
+	  _.compose = function() {
+	    var args = arguments;
+	    var start = args.length - 1;
+	    return function() {
+	      var i = start;
+	      var result = args[start].apply(this, arguments);
+	      while (i--) result = args[i].call(this, result);
+	      return result;
+	    };
+	  };
+
+	  // Returns a function that will only be executed on and after the Nth call.
+	  _.after = function(times, func) {
+	    return function() {
+	      if (--times < 1) {
+	        return func.apply(this, arguments);
+	      }
+	    };
+	  };
+
+	  // Returns a function that will only be executed up to (but not including) the Nth call.
+	  _.before = function(times, func) {
+	    var memo;
+	    return function() {
+	      if (--times > 0) {
+	        memo = func.apply(this, arguments);
+	      }
+	      if (times <= 1) func = null;
+	      return memo;
+	    };
+	  };
+
+	  // Returns a function that will be executed at most one time, no matter how
+	  // often you call it. Useful for lazy initialization.
+	  _.once = _.partial(_.before, 2);
+
+	  // Object Functions
+	  // ----------------
+
+	  // Keys in IE < 9 that won't be iterated by `for key in ...` and thus missed.
+	  var hasEnumBug = !{toString: null}.propertyIsEnumerable('toString');
+	  var nonEnumerableProps = ['valueOf', 'isPrototypeOf', 'toString',
+	                      'propertyIsEnumerable', 'hasOwnProperty', 'toLocaleString'];
+
+	  function collectNonEnumProps(obj, keys) {
+	    var nonEnumIdx = nonEnumerableProps.length;
+	    var constructor = obj.constructor;
+	    var proto = (_.isFunction(constructor) && constructor.prototype) || ObjProto;
+
+	    // Constructor is a special case.
+	    var prop = 'constructor';
+	    if (_.has(obj, prop) && !_.contains(keys, prop)) keys.push(prop);
+
+	    while (nonEnumIdx--) {
+	      prop = nonEnumerableProps[nonEnumIdx];
+	      if (prop in obj && obj[prop] !== proto[prop] && !_.contains(keys, prop)) {
+	        keys.push(prop);
+	      }
+	    }
+	  }
+
+	  // Retrieve the names of an object's own properties.
+	  // Delegates to **ECMAScript 5**'s native `Object.keys`
+	  _.keys = function(obj) {
+	    if (!_.isObject(obj)) return [];
+	    if (nativeKeys) return nativeKeys(obj);
+	    var keys = [];
+	    for (var key in obj) if (_.has(obj, key)) keys.push(key);
+	    // Ahem, IE < 9.
+	    if (hasEnumBug) collectNonEnumProps(obj, keys);
+	    return keys;
+	  };
+
+	  // Retrieve all the property names of an object.
+	  _.allKeys = function(obj) {
+	    if (!_.isObject(obj)) return [];
+	    var keys = [];
+	    for (var key in obj) keys.push(key);
+	    // Ahem, IE < 9.
+	    if (hasEnumBug) collectNonEnumProps(obj, keys);
+	    return keys;
+	  };
+
+	  // Retrieve the values of an object's properties.
+	  _.values = function(obj) {
+	    var keys = _.keys(obj);
+	    var length = keys.length;
+	    var values = Array(length);
+	    for (var i = 0; i < length; i++) {
+	      values[i] = obj[keys[i]];
+	    }
+	    return values;
+	  };
+
+	  // Returns the results of applying the iteratee to each element of the object
+	  // In contrast to _.map it returns an object
+	  _.mapObject = function(obj, iteratee, context) {
+	    iteratee = cb(iteratee, context);
+	    var keys =  _.keys(obj),
+	          length = keys.length,
+	          results = {},
+	          currentKey;
+	      for (var index = 0; index < length; index++) {
+	        currentKey = keys[index];
+	        results[currentKey] = iteratee(obj[currentKey], currentKey, obj);
+	      }
+	      return results;
+	  };
+
+	  // Convert an object into a list of `[key, value]` pairs.
+	  _.pairs = function(obj) {
+	    var keys = _.keys(obj);
+	    var length = keys.length;
+	    var pairs = Array(length);
+	    for (var i = 0; i < length; i++) {
+	      pairs[i] = [keys[i], obj[keys[i]]];
+	    }
+	    return pairs;
+	  };
+
+	  // Invert the keys and values of an object. The values must be serializable.
+	  _.invert = function(obj) {
+	    var result = {};
+	    var keys = _.keys(obj);
+	    for (var i = 0, length = keys.length; i < length; i++) {
+	      result[obj[keys[i]]] = keys[i];
+	    }
+	    return result;
+	  };
+
+	  // Return a sorted list of the function names available on the object.
+	  // Aliased as `methods`
+	  _.functions = _.methods = function(obj) {
+	    var names = [];
+	    for (var key in obj) {
+	      if (_.isFunction(obj[key])) names.push(key);
+	    }
+	    return names.sort();
+	  };
+
+	  // Extend a given object with all the properties in passed-in object(s).
+	  _.extend = createAssigner(_.allKeys);
+
+	  // Assigns a given object with all the own properties in the passed-in object(s)
+	  // (https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)
+	  _.extendOwn = _.assign = createAssigner(_.keys);
+
+	  // Returns the first key on an object that passes a predicate test
+	  _.findKey = function(obj, predicate, context) {
+	    predicate = cb(predicate, context);
+	    var keys = _.keys(obj), key;
+	    for (var i = 0, length = keys.length; i < length; i++) {
+	      key = keys[i];
+	      if (predicate(obj[key], key, obj)) return key;
+	    }
+	  };
+
+	  // Return a copy of the object only containing the whitelisted properties.
+	  _.pick = function(object, oiteratee, context) {
+	    var result = {}, obj = object, iteratee, keys;
+	    if (obj == null) return result;
+	    if (_.isFunction(oiteratee)) {
+	      keys = _.allKeys(obj);
+	      iteratee = optimizeCb(oiteratee, context);
+	    } else {
+	      keys = flatten(arguments, false, false, 1);
+	      iteratee = function(value, key, obj) { return key in obj; };
+	      obj = Object(obj);
+	    }
+	    for (var i = 0, length = keys.length; i < length; i++) {
+	      var key = keys[i];
+	      var value = obj[key];
+	      if (iteratee(value, key, obj)) result[key] = value;
+	    }
+	    return result;
+	  };
+
+	   // Return a copy of the object without the blacklisted properties.
+	  _.omit = function(obj, iteratee, context) {
+	    if (_.isFunction(iteratee)) {
+	      iteratee = _.negate(iteratee);
+	    } else {
+	      var keys = _.map(flatten(arguments, false, false, 1), String);
+	      iteratee = function(value, key) {
+	        return !_.contains(keys, key);
+	      };
+	    }
+	    return _.pick(obj, iteratee, context);
+	  };
+
+	  // Fill in a given object with default properties.
+	  _.defaults = createAssigner(_.allKeys, true);
+
+	  // Creates an object that inherits from the given prototype object.
+	  // If additional properties are provided then they will be added to the
+	  // created object.
+	  _.create = function(prototype, props) {
+	    var result = baseCreate(prototype);
+	    if (props) _.extendOwn(result, props);
+	    return result;
+	  };
+
+	  // Create a (shallow-cloned) duplicate of an object.
+	  _.clone = function(obj) {
+	    if (!_.isObject(obj)) return obj;
+	    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+	  };
+
+	  // Invokes interceptor with the obj, and then returns obj.
+	  // The primary purpose of this method is to "tap into" a method chain, in
+	  // order to perform operations on intermediate results within the chain.
+	  _.tap = function(obj, interceptor) {
+	    interceptor(obj);
+	    return obj;
+	  };
+
+	  // Returns whether an object has a given set of `key:value` pairs.
+	  _.isMatch = function(object, attrs) {
+	    var keys = _.keys(attrs), length = keys.length;
+	    if (object == null) return !length;
+	    var obj = Object(object);
+	    for (var i = 0; i < length; i++) {
+	      var key = keys[i];
+	      if (attrs[key] !== obj[key] || !(key in obj)) return false;
+	    }
+	    return true;
+	  };
+
+
+	  // Internal recursive comparison function for `isEqual`.
+	  var eq = function(a, b, aStack, bStack) {
+	    // Identical objects are equal. `0 === -0`, but they aren't identical.
+	    // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
+	    if (a === b) return a !== 0 || 1 / a === 1 / b;
+	    // A strict comparison is necessary because `null == undefined`.
+	    if (a == null || b == null) return a === b;
+	    // Unwrap any wrapped objects.
+	    if (a instanceof _) a = a._wrapped;
+	    if (b instanceof _) b = b._wrapped;
+	    // Compare `[[Class]]` names.
+	    var className = toString.call(a);
+	    if (className !== toString.call(b)) return false;
+	    switch (className) {
+	      // Strings, numbers, regular expressions, dates, and booleans are compared by value.
+	      case '[object RegExp]':
+	      // RegExps are coerced to strings for comparison (Note: '' + /a/i === '/a/i')
+	      case '[object String]':
+	        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+	        // equivalent to `new String("5")`.
+	        return '' + a === '' + b;
+	      case '[object Number]':
+	        // `NaN`s are equivalent, but non-reflexive.
+	        // Object(NaN) is equivalent to NaN
+	        if (+a !== +a) return +b !== +b;
+	        // An `egal` comparison is performed for other numeric values.
+	        return +a === 0 ? 1 / +a === 1 / b : +a === +b;
+	      case '[object Date]':
+	      case '[object Boolean]':
+	        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+	        // millisecond representations. Note that invalid dates with millisecond representations
+	        // of `NaN` are not equivalent.
+	        return +a === +b;
+	    }
+
+	    var areArrays = className === '[object Array]';
+	    if (!areArrays) {
+	      if (typeof a != 'object' || typeof b != 'object') return false;
+
+	      // Objects with different constructors are not equivalent, but `Object`s or `Array`s
+	      // from different frames are.
+	      var aCtor = a.constructor, bCtor = b.constructor;
+	      if (aCtor !== bCtor && !(_.isFunction(aCtor) && aCtor instanceof aCtor &&
+	                               _.isFunction(bCtor) && bCtor instanceof bCtor)
+	                          && ('constructor' in a && 'constructor' in b)) {
+	        return false;
+	      }
+	    }
+	    // Assume equality for cyclic structures. The algorithm for detecting cyclic
+	    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+
+	    // Initializing stack of traversed objects.
+	    // It's done here since we only need them for objects and arrays comparison.
+	    aStack = aStack || [];
+	    bStack = bStack || [];
+	    var length = aStack.length;
+	    while (length--) {
+	      // Linear search. Performance is inversely proportional to the number of
+	      // unique nested structures.
+	      if (aStack[length] === a) return bStack[length] === b;
+	    }
+
+	    // Add the first object to the stack of traversed objects.
+	    aStack.push(a);
+	    bStack.push(b);
+
+	    // Recursively compare objects and arrays.
+	    if (areArrays) {
+	      // Compare array lengths to determine if a deep comparison is necessary.
+	      length = a.length;
+	      if (length !== b.length) return false;
+	      // Deep compare the contents, ignoring non-numeric properties.
+	      while (length--) {
+	        if (!eq(a[length], b[length], aStack, bStack)) return false;
+	      }
+	    } else {
+	      // Deep compare objects.
+	      var keys = _.keys(a), key;
+	      length = keys.length;
+	      // Ensure that both objects contain the same number of properties before comparing deep equality.
+	      if (_.keys(b).length !== length) return false;
+	      while (length--) {
+	        // Deep compare each member
+	        key = keys[length];
+	        if (!(_.has(b, key) && eq(a[key], b[key], aStack, bStack))) return false;
+	      }
+	    }
+	    // Remove the first object from the stack of traversed objects.
+	    aStack.pop();
+	    bStack.pop();
+	    return true;
+	  };
+
+	  // Perform a deep comparison to check if two objects are equal.
+	  _.isEqual = function(a, b) {
+	    return eq(a, b);
+	  };
+
+	  // Is a given array, string, or object empty?
+	  // An "empty" object has no enumerable own-properties.
+	  _.isEmpty = function(obj) {
+	    if (obj == null) return true;
+	    if (isArrayLike(obj) && (_.isArray(obj) || _.isString(obj) || _.isArguments(obj))) return obj.length === 0;
+	    return _.keys(obj).length === 0;
+	  };
+
+	  // Is a given value a DOM element?
+	  _.isElement = function(obj) {
+	    return !!(obj && obj.nodeType === 1);
+	  };
+
+	  // Is a given value an array?
+	  // Delegates to ECMA5's native Array.isArray
+	  _.isArray = nativeIsArray || function(obj) {
+	    return toString.call(obj) === '[object Array]';
+	  };
+
+	  // Is a given variable an object?
+	  _.isObject = function(obj) {
+	    var type = typeof obj;
+	    return type === 'function' || type === 'object' && !!obj;
+	  };
+
+	  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp, isError.
+	  _.each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Error'], function(name) {
+	    _['is' + name] = function(obj) {
+	      return toString.call(obj) === '[object ' + name + ']';
+	    };
+	  });
+
+	  // Define a fallback version of the method in browsers (ahem, IE < 9), where
+	  // there isn't any inspectable "Arguments" type.
+	  if (!_.isArguments(arguments)) {
+	    _.isArguments = function(obj) {
+	      return _.has(obj, 'callee');
+	    };
+	  }
+
+	  // Optimize `isFunction` if appropriate. Work around some typeof bugs in old v8,
+	  // IE 11 (#1621), and in Safari 8 (#1929).
+	  if (typeof Int8Array != 'object') {
+	    _.isFunction = function(obj) {
+	      return typeof obj == 'function' || false;
+	    };
+	  }
+
+	  // Is a given object a finite number?
+	  _.isFinite = function(obj) {
+	    return isFinite(obj) && !isNaN(parseFloat(obj));
+	  };
+
+	  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
+	  _.isNaN = function(obj) {
+	    return _.isNumber(obj) && obj !== +obj;
+	  };
+
+	  // Is a given value a boolean?
+	  _.isBoolean = function(obj) {
+	    return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+	  };
+
+	  // Is a given value equal to null?
+	  _.isNull = function(obj) {
+	    return obj === null;
+	  };
+
+	  // Is a given variable undefined?
+	  _.isUndefined = function(obj) {
+	    return obj === void 0;
+	  };
+
+	  // Shortcut function for checking if an object has a given property directly
+	  // on itself (in other words, not on a prototype).
+	  _.has = function(obj, key) {
+	    return obj != null && hasOwnProperty.call(obj, key);
+	  };
+
+	  // Utility Functions
+	  // -----------------
+
+	  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+	  // previous owner. Returns a reference to the Underscore object.
+	  _.noConflict = function() {
+	    root._ = previousUnderscore;
+	    return this;
+	  };
+
+	  // Keep the identity function around for default iteratees.
+	  _.identity = function(value) {
+	    return value;
+	  };
+
+	  // Predicate-generating functions. Often useful outside of Underscore.
+	  _.constant = function(value) {
+	    return function() {
+	      return value;
+	    };
+	  };
+
+	  _.noop = function(){};
+
+	  _.property = property;
+
+	  // Generates a function for a given object that returns a given property.
+	  _.propertyOf = function(obj) {
+	    return obj == null ? function(){} : function(key) {
+	      return obj[key];
+	    };
+	  };
+
+	  // Returns a predicate for checking whether an object has a given set of
+	  // `key:value` pairs.
+	  _.matcher = _.matches = function(attrs) {
+	    attrs = _.extendOwn({}, attrs);
+	    return function(obj) {
+	      return _.isMatch(obj, attrs);
+	    };
+	  };
+
+	  // Run a function **n** times.
+	  _.times = function(n, iteratee, context) {
+	    var accum = Array(Math.max(0, n));
+	    iteratee = optimizeCb(iteratee, context, 1);
+	    for (var i = 0; i < n; i++) accum[i] = iteratee(i);
+	    return accum;
+	  };
+
+	  // Return a random integer between min and max (inclusive).
+	  _.random = function(min, max) {
+	    if (max == null) {
+	      max = min;
+	      min = 0;
+	    }
+	    return min + Math.floor(Math.random() * (max - min + 1));
+	  };
+
+	  // A (possibly faster) way to get the current timestamp as an integer.
+	  _.now = Date.now || function() {
+	    return new Date().getTime();
+	  };
+
+	   // List of HTML entities for escaping.
+	  var escapeMap = {
+	    '&': '&amp;',
+	    '<': '&lt;',
+	    '>': '&gt;',
+	    '"': '&quot;',
+	    "'": '&#x27;',
+	    '`': '&#x60;'
+	  };
+	  var unescapeMap = _.invert(escapeMap);
+
+	  // Functions for escaping and unescaping strings to/from HTML interpolation.
+	  var createEscaper = function(map) {
+	    var escaper = function(match) {
+	      return map[match];
+	    };
+	    // Regexes for identifying a key that needs to be escaped
+	    var source = '(?:' + _.keys(map).join('|') + ')';
+	    var testRegexp = RegExp(source);
+	    var replaceRegexp = RegExp(source, 'g');
+	    return function(string) {
+	      string = string == null ? '' : '' + string;
+	      return testRegexp.test(string) ? string.replace(replaceRegexp, escaper) : string;
+	    };
+	  };
+	  _.escape = createEscaper(escapeMap);
+	  _.unescape = createEscaper(unescapeMap);
+
+	  // If the value of the named `property` is a function then invoke it with the
+	  // `object` as context; otherwise, return it.
+	  _.result = function(object, property, fallback) {
+	    var value = object == null ? void 0 : object[property];
+	    if (value === void 0) {
+	      value = fallback;
+	    }
+	    return _.isFunction(value) ? value.call(object) : value;
+	  };
+
+	  // Generate a unique integer id (unique within the entire client session).
+	  // Useful for temporary DOM ids.
+	  var idCounter = 0;
+	  _.uniqueId = function(prefix) {
+	    var id = ++idCounter + '';
+	    return prefix ? prefix + id : id;
+	  };
+
+	  // By default, Underscore uses ERB-style template delimiters, change the
+	  // following template settings to use alternative delimiters.
+	  _.templateSettings = {
+	    evaluate    : /<%([\s\S]+?)%>/g,
+	    interpolate : /<%=([\s\S]+?)%>/g,
+	    escape      : /<%-([\s\S]+?)%>/g
+	  };
+
+	  // When customizing `templateSettings`, if you don't want to define an
+	  // interpolation, evaluation or escaping regex, we need one that is
+	  // guaranteed not to match.
+	  var noMatch = /(.)^/;
+
+	  // Certain characters need to be escaped so that they can be put into a
+	  // string literal.
+	  var escapes = {
+	    "'":      "'",
+	    '\\':     '\\',
+	    '\r':     'r',
+	    '\n':     'n',
+	    '\u2028': 'u2028',
+	    '\u2029': 'u2029'
+	  };
+
+	  var escaper = /\\|'|\r|\n|\u2028|\u2029/g;
+
+	  var escapeChar = function(match) {
+	    return '\\' + escapes[match];
+	  };
+
+	  // JavaScript micro-templating, similar to John Resig's implementation.
+	  // Underscore templating handles arbitrary delimiters, preserves whitespace,
+	  // and correctly escapes quotes within interpolated code.
+	  // NB: `oldSettings` only exists for backwards compatibility.
+	  _.template = function(text, settings, oldSettings) {
+	    if (!settings && oldSettings) settings = oldSettings;
+	    settings = _.defaults({}, settings, _.templateSettings);
+
+	    // Combine delimiters into one regular expression via alternation.
+	    var matcher = RegExp([
+	      (settings.escape || noMatch).source,
+	      (settings.interpolate || noMatch).source,
+	      (settings.evaluate || noMatch).source
+	    ].join('|') + '|$', 'g');
+
+	    // Compile the template source, escaping string literals appropriately.
+	    var index = 0;
+	    var source = "__p+='";
+	    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+	      source += text.slice(index, offset).replace(escaper, escapeChar);
+	      index = offset + match.length;
+
+	      if (escape) {
+	        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+	      } else if (interpolate) {
+	        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+	      } else if (evaluate) {
+	        source += "';\n" + evaluate + "\n__p+='";
+	      }
+
+	      // Adobe VMs need the match returned to produce the correct offest.
+	      return match;
+	    });
+	    source += "';\n";
+
+	    // If a variable is not specified, place data values in local scope.
+	    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+	    source = "var __t,__p='',__j=Array.prototype.join," +
+	      "print=function(){__p+=__j.call(arguments,'');};\n" +
+	      source + 'return __p;\n';
+
+	    try {
+	      var render = new Function(settings.variable || 'obj', '_', source);
+	    } catch (e) {
+	      e.source = source;
+	      throw e;
+	    }
+
+	    var template = function(data) {
+	      return render.call(this, data, _);
+	    };
+
+	    // Provide the compiled source as a convenience for precompilation.
+	    var argument = settings.variable || 'obj';
+	    template.source = 'function(' + argument + '){\n' + source + '}';
+
+	    return template;
+	  };
+
+	  // Add a "chain" function. Start chaining a wrapped Underscore object.
+	  _.chain = function(obj) {
+	    var instance = _(obj);
+	    instance._chain = true;
+	    return instance;
+	  };
+
+	  // OOP
+	  // ---------------
+	  // If Underscore is called as a function, it returns a wrapped object that
+	  // can be used OO-style. This wrapper holds altered versions of all the
+	  // underscore functions. Wrapped objects may be chained.
+
+	  // Helper function to continue chaining intermediate results.
+	  var result = function(instance, obj) {
+	    return instance._chain ? _(obj).chain() : obj;
+	  };
+
+	  // Add your own custom functions to the Underscore object.
+	  _.mixin = function(obj) {
+	    _.each(_.functions(obj), function(name) {
+	      var func = _[name] = obj[name];
+	      _.prototype[name] = function() {
+	        var args = [this._wrapped];
+	        push.apply(args, arguments);
+	        return result(this, func.apply(_, args));
+	      };
+	    });
+	  };
+
+	  // Add all of the Underscore functions to the wrapper object.
+	  _.mixin(_);
+
+	  // Add all mutator Array functions to the wrapper.
+	  _.each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
+	    var method = ArrayProto[name];
+	    _.prototype[name] = function() {
+	      var obj = this._wrapped;
+	      method.apply(obj, arguments);
+	      if ((name === 'shift' || name === 'splice') && obj.length === 0) delete obj[0];
+	      return result(this, obj);
+	    };
+	  });
+
+	  // Add all accessor Array functions to the wrapper.
+	  _.each(['concat', 'join', 'slice'], function(name) {
+	    var method = ArrayProto[name];
+	    _.prototype[name] = function() {
+	      return result(this, method.apply(this._wrapped, arguments));
+	    };
+	  });
+
+	  // Extracts the result from a wrapped and chained object.
+	  _.prototype.value = function() {
+	    return this._wrapped;
+	  };
+
+	  // Provide unwrapping proxy for some methods used in engine operations
+	  // such as arithmetic and JSON stringification.
+	  _.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
+
+	  _.prototype.toString = function() {
+	    return '' + this._wrapped;
+	  };
+	}.call(commonjsGlobal$1));
+	});
+	var underscore_1 = underscore._;
+
+	function handleNaNInfinityStringify(key, value) {
+	  if (value !== value) {
+	    return '0/0';
+	  }
+
+	  if (value === 1/0) {
+	    return '1/0';
+	  }
+
+	  if (value === -1/0) {
+	    return '-1/0';
+	  }
+
+	  return value;
+	}
+
+	function handleNaNInfinityParse(key, value) {
+	  if (value === '0/0') {
+	    return 0/0;
+	  }
+
+	  if (value === '1/0') {
+	    return Infinity;
+	  }
+
+	  if (value === '-1/0') {
+	    return -1/0;
+	  }
+
+	  return value;
+	}
+
+	function deepClone(s) {
+	  return JSON.parse(
+	    JSON.stringify(s, handleNaNInfinityStringify),
+	    handleNaNInfinityParse);
+	}
+
+	const equal$2 = function(left, right) {
+	  /*
+	   * Return true if left and right are syntactically equal.
+	   *
+	   * Sorts operands of many operators to a default order before comparing.
+	   */
+
+	  // sort to default order
+	  left = default_order(left);
+	  right = default_order(right);
+
+	  if(!(Array.isArray(left) && Array.isArray(right))) {
+	    if((typeof left) !== (typeof right))
+	      return false;
+
+	    return (left===right);
+	  }
+
+	  var leftOperator = left[0];
+	  var leftOperands = left.slice(1);
+
+	  var rightOperator = right[0];
+	  var rightOperands = right.slice(1);
+
+	  if (leftOperator !== rightOperator)
+	    return false;
+
+	  if (leftOperands.length !== rightOperands.length)
+	    return false;
+
+	  return underscore.every( underscore.zip( leftOperands, rightOperands ),
+	        function(pair) {
+	          return equal$2(pair[0], pair[1]);
+	        });
+	};
+
+	const match = function( tree, pattern, params) {
+
+	  /*
+	   * Attempt to match the entire tree to given pattern
+	   *
+	   * Returns
+	   * - object describing the bindings of pattern if the entire tree
+	   *   was matched with those bindings
+	   * - false if a match was not found
+	   *
+	   *
+	   * In a pattern:
+	   * - operators much match exactly
+	   * - strings that are designed as variables
+	   *   must be bound to a subtree
+	   * - numbers and other strings much exactly match
+	   *
+	   * variables, if defined, specifies which strings in pattern are
+	   * wildcards that can be matched to any subtree
+	   * If defined, variables must be an object with
+	   *   key: string from pattern which is a wildcard
+	   *   values: must be one of the following
+	   *      - true: any subtree matches the wildcard
+	   *      - a regular expression: subtree must match regular expression
+	   *           (a non-string subtree is first passed to JSON.stringify)
+	   *      - a function: takes a tree as an argument and
+	   *           returns whether or not that tree is a valid match
+	   *
+	   * If variables is not defined, then all variables from pattern
+	   * will be wildcards that match any subtree
+	   *
+	   * If defined, params is an object with keys
+	   *   - allow_permutations: if true, check all permutations of operators
+	   *   - allow_implicit_identities: an array of variables from pattern
+	   *       that can implicitly match the identity of their enclosing
+	   *       operator
+	   *   - allow_extended_match: if true, then some tree operands can be skipped
+	   *       otherwise, all tree operands must be matched
+
+	   */
+
+	  var allow_extended_match=false;
+
+	  if(params === undefined)
+	    params = {};
+	  else {
+	    // don't let extended match parameter propagate
+	    if(params.allow_extended_match) {
+	      allow_extended_match=true;
+	      // copy params to new object
+	      params = Object.assign({}, params);
+	      delete params["allow_extended_match"];
+	    }
+
+	  }
+
+	  var variables$$1 = params["variables"];
+	  if(variables$$1 === undefined) {
+	    variables$$1 = {};
+	    let vip = variables(pattern);
+	    for(let i=0; i < vip.length;i++ ) {
+	      variables$$1[vip[i]] = true;
+	    }
+
+	    // add to params, after copying to new object
+	    params = Object.assign({}, params);
+	    params["variables"] = variables$$1;
+	  }
+
+	  if(pattern in variables$$1) {
+	    // check if tree satisfies any conditions for pattern
+	    let condition = variables$$1[pattern];
+	    if(condition !== true) {
+	      if(condition instanceof RegExp) {
+	    		if(typeof tree === 'string') {
+	  		    if(!tree.match(condition))
+	      			return false;
+	    		}
+	    		else {
+	  		    if(!JSON.stringify(tree).match(condition))
+	    			return false;
+	    		}
+		    }
+		    else if(typeof variables$$1[pattern] === 'function') {
+	    		if(!variables$$1[pattern](tree))
+	  		    return false;
+		    }
+		    else {
+	    		return false;
+		    }
+	  	}
+
+	  	// record the whole tree as the match to pattern
+	  	let result = {};
+	  	result[pattern] = tree;
+	  	return result;
+	  }
+
+	  if(params.allow_permutations) {
+	  	// even though order doesn't matter with permutations
+	  	// normalize to default order as it orients operators
+	  	// such as inequalities and containments to a direction
+	  	// that won't be affected by permutations
+	  	tree = default_order(tree);
+	  	pattern = default_order(pattern);
+	  }
+
+	  // if pattern isn't an array, the tree must be the pattern to match
+	  // (As there are no variables, there is no binding)
+	  if(!Array.isArray(pattern)) {
+	    if (tree === pattern)
+		    return {};
+	  	else
+		    return false;
+	  }
+
+	  var treeOperands = allChildren(tree);
+	  var operator=pattern[0];
+	  var patternOperands = pattern.slice(1);
+
+	  // Since pattern is an array, there is no match if tree isn't an array
+	  // of the same or larger length with the same operator
+	  // (unless some pattern variables can be implicitly set to identities)
+	  if (!Array.isArray(tree) || (tree[0] !== operator)
+	    || (treeOperands.length < patternOperands.length)) {
+
+	    if(Array.isArray(params.allow_implicit_identities)) {
+
+		    let result = matchImplicitIdentity(tree, pattern, params);
+		    if(result)
+	    		return result;
+	  	}
+
+	  	// if pattern is a multiplication and
+	  	// tree is a unary minus of a multiplication
+	  	// convert tree to a muliplication with unary minus on first factor
+	  	if(operator === '*' && Array.isArray(tree) && tree[0] === '-'
+	  	   && Array.isArray(tree[1]) && tree[1][0] === '*') {
+		    treeOperands = allChildren(tree[1]);
+		    treeOperands[0] = ['-', treeOperands[0]];
+	  	}
+	  	else
+		    return false;
+	  }
+
+	  let result = matchOperands(operator, treeOperands, patternOperands,
+			       params, allow_extended_match);
+
+	  if(result)
+	  	return result;
+
+
+	  if(Array.isArray(params.allow_implicit_identities))
+	  	return matchImplicitIdentity([operator].concat(treeOperands),
+				     pattern, params);
+	  else
+	  	return false;
+	};
+
+
+
+	function matchOperands(operator, treeOperands, patternOperands, params,
+			       allow_extended_match) {
+
+	  // treeOperands will match patternOperands only if
+	  // - each pattern operand can be matched by a tree operand
+	  //   (or a group of tree operands)
+	  // - if allow_extended_match, then some tree operands can be skipped
+	  //   otherwise, all tree operands must be matched
+	  // - if permutations are allowed (calculated from params and operator)
+	  //   patterns can be matched in any order
+	  //   otherwise, patterns must be matched in order, possibly skipping
+	  //   beginning or ending tree operands (if allow_extended_match)
+	  // - all the resulting bindings are consistent,
+	  //   meaning they assigned the same match to any
+	  //   repeated placeholder in pattern
+
+	  var previous_matches = patternOperands.map(v => Object());
+	  var nPars = patternOperands.length;
+
+	  // TODO: check if commutative
+	  var allow_permutations = false;
+	  if(params.allow_permutations &&
+	       (operator === "*" || operator === "+" || operator === "="
+	    	|| operator === "and" || operator === "or" || operator === "ne"
+	    	|| operator === "union" || operator === "intersect"))
+	  	allow_permutations=true;
+
+
+	  function matchOps(treeOpIndicesLeft, patternInd, matches) {
+
+	    // max group is the maximum number of tree operands that can be matched by a variable
+	  	let max_group = 1;
+	    let max_last_group = 1;
+
+	    // only allow multiple matches by variables for associative operators
+	    if(is_associative[operator]) {
+	      max_group = treeOpIndicesLeft.length - (nPars-patternInd-1);
+	      max_last_group = treeOpIndicesLeft.length;    }
+
+	  	if(params.max_group !== undefined)
+		    max_group = (params.max_group < max_group) ? params.max_group
+	  	    : max_group;
+	    if(params.max_last_group !== undefined)
+		    max_last_group = (params.max_last_group < max_last_group) ? params.max_last_group
+	  	    : max_last_group;
+
+
+	  	let inds_set;
+
+	  	if(!allow_extended_match && patternInd === nPars-1) {
+		    // if no extended match, then the last pattern operand
+		    // must match the remaining tree operands
+	      if(treeOpIndicesLeft.length <= max_last_group) {
+	        inds_set = [treeOpIndicesLeft];
+	      }
+	      else {
+	        return false;
+	      }
+	  	}
+	  	else if(allow_permutations) {
+		    inds_set = subsets(treeOpIndicesLeft, max_group);
+	  	}
+	  	else {
+		    inds_set = [];
+		    for(let i=1; i <= max_group; i++)
+		    	inds_set.push(treeOpIndicesLeft.slice(0, i));
+
+	  	}
+
+	  	for(let inds of inds_set) {
+
+		    let m = previous_matches[patternInd][inds];
+
+		    if(m === undefined) {
+
+	    		let treeChunk = inds.reduce(function(a,b) {
+	  		    return a.concat([treeOperands[b]]);}, []);
+
+	    		if(treeChunk.length > 1)
+	  		    treeChunk= [operator].concat(treeChunk);
+	    		else
+	  		    treeChunk = treeChunk[0];
+
+	    		m = match(treeChunk, patternOperands[patternInd], params);
+
+	    		previous_matches[patternInd][inds] = m;
+
+		    }
+
+		    if(!m)
+	    		continue;
+
+		    // Check consistency of bindings
+		    if (!underscore.every( underscore.intersection(
+	        		Object.keys( matches ),
+	        		Object.keys( m ) ),
+	    			 function(k) {
+	  			     return equal$2(matches[k], m[k]);
+	    			 })) {
+	    		continue;
+		    }
+
+		    // combine matches
+		    let combined_matches = Object.assign({}, m);
+		    Object.assign( combined_matches, matches );
+
+		    let treeOpIndices = treeOpIndicesLeft.filter(
+	      		v => !inds.includes(v));
+
+		    // if last pattern operand, we're done
+		    if(patternInd === nPars-1) {
+	    		let skipped = treeOpIndices.reduce(function(a,b) {
+	    		    return a.concat([treeOperands[b]]);}, []);
+
+	    		return {matches: combined_matches, skipped: skipped};
+		    }
+
+		    // attempt to match remaining treeOps
+		    // with remaining pattern operands
+		    let results = matchOps(treeOpIndices, patternInd+1,
+				   combined_matches);
+
+		    if(results) {
+	    		return results;
+		    }
+	  	}
+
+	  	return false;
+	  }
+
+	  var matches = {};
+
+	  // create array of 0, 1, ...., treeOperands.length-1
+	  var treeIndices = [...Array(treeOperands.length).keys()];
+
+	  if(allow_permutations) {
+
+	  	let m = matchOps(treeIndices, 0, {});
+
+	  	if(!m)
+		    return false;
+
+	  	matches = m.matches;
+	  	if(m.skipped.length > 0)
+		    matches['_skipped'] = m.skipped;
+
+	  	return matches;
+	  }
+	  else {
+	  	let maxSkip = allow_extended_match ? treeOperands.length - nPars : 0;
+	  	let skipped_before = [];
+	  	let m;
+
+	  	// without permutations, operands can only be skipped
+	  	// at beggining or end
+	  	// (matchOps will skip at end but not at beginning
+	  	// when permutations are not allowed)
+	  	for(let initialSkip=0; initialSkip <= maxSkip; initialSkip++ ) {
+
+		    m = matchOps(treeIndices, 0, {});
+
+		    if(m)
+	    		break;
+
+		    treeIndices = treeIndices.slice(1);
+		    skipped_before.push(treeOperands[initialSkip]);
+	  	}
+
+	  	if(!m)
+		    return false;
+
+	  	matches = m.matches;
+	  	if(m.skipped.length > 0)
+		    matches['_skipped'] = m.skipped;
+	  	if(skipped_before.length > 0)
+		    matches['_skipped_before'] = skipped_before;
+	  	return matches;
+
+	  }
+	}
+
+	function matchImplicitIdentity(tree, pattern, params) {
+
+	  var operator = pattern[0];
+	  var patternOperands = pattern.slice(1);
+
+	  // for now, implement implicit identities just
+	  // for addition, multiplication, and exponents
+	  if(!(operator === '+' || operator === '*' || operator === '^'))
+	  	return false;
+
+	  // find any pattern operand that is allowed to be an implicit identity
+	  var implicit_identity = null;
+	  for(let i=0; i < patternOperands.length; i++) {
+	  	let po = patternOperands[i];
+	  	if(typeof po === 'string' &&
+	    	   params.allow_implicit_identities.includes(po)) {
+		    implicit_identity = po;
+		    break;
+	  	}
+	  }
+
+	  if(implicit_identity === null)
+	  	return false;
+
+	  var matches = {};
+
+	  // match implicit_identity to the identity of the operator
+	  if(operator === '+')
+	  	matches[implicit_identity] = 0;
+	  else
+	  	matches[implicit_identity] = 1;
+
+	  // special case where tree beings with unary -
+	  // and pattern is a multiplication where implicit identity is a factor
+	  if(operator === '*' && patternOperands.includes(implicit_identity)
+	       && Array.isArray(tree) && tree[0] === '-') {
+	  	matches[implicit_identity] = -1;
+	  	tree = tree[1];
+	  }
+
+	  // remove matched variable from pattern
+	  var matched_ind = patternOperands.indexOf(implicit_identity);
+	  patternOperands.splice(matched_ind,1);
+
+	  // for exponentiation, only allow for identity in exponent
+	  if(operator === '^' && matched_ind === 0)
+	  	return false;
+
+	  if(patternOperands.length === 1) {
+	  	pattern = patternOperands[0];
+	  }
+	  else {
+	  	pattern = [operator].concat(patternOperands);
+	  }
+
+	  var m = match(tree, pattern, params);
+
+	  if (m) {
+	  	// Check consistency of bindings
+	  	if(implicit_identity in m) {
+		    if(!equal$2(m[implicit_identity], matches[implicit_identity]))
+			return false;
+	  	}
+	  	Object.assign( matches, m);
+	  } else
+	  	return false;
+
+	  return matches;
+	}
+
+
+	const substitute = function( pattern, bindings ) {
+	  if (typeof pattern === 'number') {
+	  	return pattern;
+	  }
+
+	  if (typeof pattern === 'string') {
+	  	if (bindings[pattern] !== undefined)
+		    return deepClone(bindings[pattern]);
+
+	  	return pattern;
+	  }
+
+	  if (Array.isArray(pattern)) {
+	  	return [pattern[0]].concat( pattern.slice(1).map( function(p) {
+		    return substitute(p, bindings);
+	  	}) );
+	  }
+
+	  return [];
+	};
+
+	const transform$2 = function( tree, F ) {
+	  /*
+	   * Transform the tree function F in a bottom-up fashion
+	   * (calling F at children before parents)
+	   *
+	   * F must be be a function that returns a tree
+	   */
+
+	  if (Array.isArray(tree)) {
+	  	let new_tree = [tree[0]];
+	  	for( let i=1; i<tree.length; i++ ) {
+		    new_tree.push(transform$2(tree[i], F));
+	  	}
+	  	return F(new_tree);
+	  }
+
+	  return F(tree);
+	};
+
+	const applyAllTransformations = function( tree, transformations, depth ) {
+	  /*
+	   * Repeatedly apply all transformations from transformations
+	   * to tree and return the resulting tree.
+	   *
+	   * transformations must be an array of arrays of the form
+	   * [pattern, replacement, params]
+	   * where the last two components are optional
+	   */
+
+	  if (depth === undefined)
+	    depth = 5;
+
+	  var new_tree = tree;
+	  var old_tree;
+	  for( ; depth > 0; depth-- ) {
+	  	old_tree = new_tree;
+	  	for(let i=0; i<transformations.length; i++) {
+		    let pattern = transformations[i][0];
+		    let replacement = transformations[i][1];
+		    let params = transformations[i][2];
+		    if(params === undefined)
+	    		params = {};
+		    new_tree = transform$2(new_tree, function(subtree) {
+			    let m = match(subtree, pattern, params);
+			    if (m) {
+	    			let result= substitute(replacement, m);
+
+	    			if(params.evaluate_numbers)
+	  			    result = evaluate_numbers(
+	      				result, undefined, params.max_digits);
+
+	    			let add_right=[], add_left=[];
+	    			if(m._skipped) {
+	  			    add_right = m._skipped;
+	    			}
+	    			if(m._skipped_before) {
+	  			    add_left = m._skipped_before;
+	    			}
+
+	    			if(add_left.length > 0 || add_right.length > 0) {
+	  			    if(Array.isArray(result)) {
+	      				if(result[0]===pattern[0]) {
+	    				    result = result.slice(1);
+	      				}
+	      				else {
+	    				    result = [result];
+	      				}
+	  			    }
+	  			    result=[pattern[0]].concat(
+	        				add_left, result, add_right);
+	    			}
+
+	    			if(params.evaluate_numbers)
+	  			    result = evaluate_numbers(
+	        				result, undefined, params.max_digits);
+
+	    			return result;
+			    }
+			    else {
+	    			return subtree;
+			    }
+	  		});
+
+	  	}
+
+	  	if(equal$2(old_tree, new_tree)) {
+		    return new_tree;
+	  	}
+	  }
+
+	  return new_tree;
+	};
+
 	var endsWith = string.endsWith;
 	var clone$11 = object.clone;
 
@@ -68922,13 +69732,13 @@
 	var name$258 = 'Unit';
 	var path$65 = 'type';
 	var factory_1$270 = factory$271;
-	var math$19 = true; // request access to the math namespace
+	var math$20 = true; // request access to the math namespace
 
 	var Unit = {
 		name: name$258,
 		path: path$65,
 		factory: factory_1$270,
-		math: math$19
+		math: math$20
 	};
 
 	function factory$272 (type, config$$1, load, typed) {
@@ -69209,12 +70019,12 @@
 
 	var factory_1$274 = factory$275;
 	var lazy_1$2 = false;  // no lazy loading of constants, the constants themselves are lazy when needed
-	var math$20 = true;   // request access to the math namespace
+	var math$21 = true;   // request access to the math namespace
 
 	var physicalConstants = {
 		factory: factory_1$274,
 		lazy: lazy_1$2,
-		math: math$20
+		math: math$21
 	};
 
 	var unit$3 = [
@@ -69246,768 +70056,6 @@
 	  string$6,
 	  unit$3
 	];
-
-	// import math.js, only with customized constants
-
-	function create$2$1 (config$$1) {
-	  // create a new math.js instance
-	  var math = core$1.create(config$$1);
-	  math.create = create$2$1;
-	  
-	  // import data types, functions, constants, expression parser, etc.
-	  math['import'](lib);
-
-	  // import numeric
-	  math['import'](numeric1_2_6, {wrap: true, silent: true});  
-
-	  // strict power function that returns NaN for 0^0, NaN^0, and Infinty^0
-	  var pow_original = math.pow;
-	  function pow_strict_f(base, pow) {
-	    if(pow==0 && (typeof base === 'number') &&
-	      (base==0 || !Number.isFinite(base))) {
-	        return NaN;
-	    }
-	    else
-	       return pow_original(base,pow);
-	  }
-
-	  function set_pow_strict(bool) {
-	    if(bool)
-	      math['import']({pow: pow_strict_f}, {override: true});
-	    else
-	      math['import']({pow: pow_original}, {override: true});
-	  }
-
-	  var is_pow_strict = () => math.pow === pow_strict_f;
-
-	  Object.defineProperty(math, 'pow_strict', {
-	    get: is_pow_strict,
-	    set: set_pow_strict,
-	  });
-
-	  math.pow_strict = true;
-
-
-	  function set_define_e(bool) {
-	    if(bool)
-	      math.config({define_e: true});
-	    else
-	      math.config({define_e: false});
-	  }
-	  var get_define_e = () => math.config().define_e!==false;
-	  function set_define_i(bool) {
-	    if(bool)
-	      math.config({define_i: true});
-	    else
-	      math.config({define_i: false});
-	  }
-	  var get_define_i = () => math.config().define_i!==false;
-	  function set_define_pi(bool) {
-	    if(bool)
-	      math.config({define_pi: true});
-	    else
-	      math.config({define_pi: false});
-	  }
-	  var get_define_pi = () => math.config().define_pi!==false;
-
-	  Object.defineProperty(math, 'define_e', {
-	    get: get_define_e,
-	    set: set_define_e,
-	  });
-	  Object.defineProperty(math, 'define_i', {
-	    get: get_define_i,
-	    set: set_define_i,
-	  });
-	  Object.defineProperty(math, 'define_pi', {
-	    get: get_define_pi,
-	    set: set_define_pi,
-	  });
-
-	  return math;
-	}
-
-	// return a new instance of math.js
-	var math$21 = create$2$1();
-
-	function leaves( tree ) {
-	    if(!Array.isArray(tree))
-		return [tree];
-
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
-
-	    if(operator === "apply") {
-		operands = tree.slice(2);
-	    }
-	    if(operands.length == 0)
-	      return [];
-
-	    return operands.map( function(v,i) { return leaves(v); } )
-		.reduce( function(a,b) { return a.concat(b); } );
-
-	}
-
-	function variables( expr_or_tree ) {
-
-	    var tree = get_tree(expr_or_tree);
-
-	    var result = leaves( tree );
-
-	    result = result.filter( function(v,i) {
-		return (typeof v === 'string') &&
-		    (math$21.define_e || (v != "e")) &&
-		    (math$21.define_pi || (v != "pi")) &&
-		    (math$21.define_i || (v != "i"));
-	    });
-
-	    result = result.filter(function(itm,i,a){
-		return i==result.indexOf(itm);
-	    });
-
-	    return result;
-	}
-
-	function operators_list( tree ) {
-	    if (!Array.isArray(tree))
-		return [];
-
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
-
-	    if(operator === "apply") {
-		operands = tree.slice(2);
-	    }
-	    if(operands.length == 0)
-	      return [operator];
-	  
-	    return [operator].concat(
-		operands.map( function(v,i) { return operators_list(v); } )
-		    .reduce( function(a,b) { return a.concat(b); } ));
-
-	}
-
-	function operators$1( expr_or_tree ) {
-
-	    var tree = get_tree(expr_or_tree);
-
-	    var result = operators_list( tree );
-
-	    result = result.filter( function(v,i) {
-		return (v !== 'apply');
-	    });
-
-	    result = result.filter(function(itm,i,a){
-		return i==result.indexOf(itm);
-	    });
-
-	    return result;
-	}
-
-	function functions_list( tree ) {
-	    if (typeof tree === 'number') {
-		return [];
-	    }
-
-	    if (typeof tree === 'string') {
-		return [];
-	    }
-
-	    if (typeof tree === 'boolean') {
-		return [];
-	    }
-
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
-
-	    var functions = [];
-	    if(operator === "apply") {
-		functions = [operands[0]];
-		operands = tree.slice(2);
-	    }
-
-	    return functions.concat(
-		operands.map( function(v,i) { return functions_list(v); } )
-		    .reduce( function(a,b) { return a.concat(b); } ));
-
-	}
-
-	function functions( expr_or_tree ) {
-
-	    var tree = get_tree(expr_or_tree);
-
-	    var result = functions_list( tree );
-
-	    result = result.filter(function(itm,i,a){
-		return i==result.indexOf(itm);
-	    });
-
-	    return result;
-	}
-
-	var variables$1 = /*#__PURE__*/Object.freeze({
-	    variables: variables,
-	    operators: operators$1,
-	    functions: functions
-	});
-
-	// MIT license'd code
-
-	function deepClone(s) {
-	    return JSON.parse(JSON.stringify(s));
-	}
-
-	const equal$2 = function(left, right) {
-	    /*
-	     * Return true if left and right are syntactically equal.
-	     *
-	     * Sorts operands of many operators to a default order before comparing.
-	     */
-
-	    // sort to default order
-	    left = default_order(left);
-	    right = default_order(right);
-
-	    if(!(Array.isArray(left) && Array.isArray(right))) {
-		if((typeof left) !== (typeof right))
-		    return false;
-
-		return (left===right);
-	    }
-
-	    var leftOperator = left[0];
-	    var leftOperands = left.slice(1);
-
-	    var rightOperator = right[0];
-	    var rightOperands = right.slice(1);
-
-	    if (leftOperator != rightOperator)
-		return false;
-
-	    if (leftOperands.length != rightOperands.length)
-		return false;
-
-	    // We do permit permutations
-	    // if ((operator === '+') || (operator === '*')) {
-	    // 	return anyPermutation( leftOperands, function(permutedOperands) {
-	    // 	    return (_.every( _.zip( permutedOperands, rightOperands ),
-	    // 			     function(pair) {
-	    // 				 return exports.equal( pair[0], pair[1] );
-	    // 			     }));
-	    // 	});
-	    // }
-
-	    return underscore.every( underscore.zip( leftOperands, rightOperands ),
-			     function(pair) {
-				 return equal$2(pair[0], pair[1]);
-			     });
-	};
-
-	const match = function( tree, pattern, params) {
-
-	    /*
-	     * Attempt to match the entire tree to given pattern
-	     *
-	     * Returns
-	     * - object describing the bindings of pattern if the entire tree
-	     *   was matched with those bindings
-	     * - false if a match was not found
-	     *
-	     *
-	     * In a pattern:
-	     * - operators much match exactly
-	     * - strings that are designed as variables
-	     *   must be bound to a subtree
-	     * - numbers and other strings much exactly match
-	     *
-	     * variables, if defined, specifies which strings in pattern are
-	     * wildcards that can be matched to any subtree
-	     * If defined, variables must be an object with
-	     *   key: string from pattern which is a wildcard
-	     *   values: must be one of the following
-	     *      - true: any subtree matches the wildcard
-	     *      - a regular expression: subtree must match regular expression
-	     *           (a non-string subtree is first passed to JSON.stringify)
-	     *      - a function: takes a tree as an argument and
-	     *           returns whether or not that tree is a valid match
-	     *
-	     * If variables is not defined, then all variables from pattern
-	     * will be wildcards that match any subtree
-	     *
-	     * If defined, params is an object with keys
-	     *   - allow_permutations: if true, check all permutations of operators
-	     *   - allow_implicit_identities: an array of variables from pattern
-	     *       that can implicitly match the identity of their enclosing
-	     *       operator
-	     */
-
-	    var allow_extended_match=false;
-
-	    if(params === undefined)
-		params = {};
-	    else {
-		// don't let extended match parameter propagate
-		if(params.allow_extended_match) {
-		    allow_extended_match=true;
-		    // copy params to new object
-		    params = Object.assign({}, params);
-		    delete params["allow_extended_match"];
-		}
-
-	    }
-
-	    var variables$$1 = params["variables"];
-	    if(variables$$1 === undefined) {
-		variables$$1 = {};
-		var vip = variables(pattern);
-		for(var i=0; i < vip.length;i++ ) {
-		    variables$$1[vip[i]] = true;
-		}
-
-		// add to params, after copying to new object
-		params = Object.assign({}, params);
-		params["variables"] = variables$$1;
-	    }
-
-	    if(pattern in variables$$1) {
-		// check if tree satisfies any conditions for pattern
-		var condition = variables$$1[pattern];
-		if(condition !== true) {
-		    if(condition instanceof RegExp) {
-			if(typeof tree === 'string') {
-			    if(!tree.match(condition))
-				return false;
-			}
-			else {
-			    if(!JSON.stringify(tree).match(condition))
-				return false;
-			}
-		    }
-		    else if(typeof variables$$1[pattern] === 'function') {
-			if(!variables$$1[pattern](tree))
-			    return false;
-		    }
-		    else {
-			return false;
-		    }
-		}
-
-		// record the whole tree as the match to pattern
-		var result = {};
-		result[pattern] = tree;
-		return result;
-	    }
-
-	    if(params.allow_permutations) {
-		// even though order doesn't matter with permutations
-		// normalize to default order as it orients operators
-		// such as inequalities and containments to a direction
-		// that won't be affected by permutations
-		tree = default_order(tree);
-		pattern = default_order(pattern);
-	    }
-
-	    // if pattern isn't an array, the tree must be the pattern to match
-	    // (As there are no variables, there is no binding)
-	    if(!Array.isArray(pattern)) {
-		if (tree === pattern)
-		    return {};
-		else
-		    return false;
-	    }
-
-	    var treeOperands = allChildren(tree);
-	    var operator=pattern[0];
-	    var patternOperands = pattern.slice(1);
-
-	    // Since pattern is an array, there is no match if tree isn't an array
-	    // of the same or larger length with the same operator
-	    // (unless some pattern variables can be implicitly set to identities)
-	    if (!Array.isArray(tree) || (tree[0] !== operator)
-		|| (treeOperands.length < patternOperands.length)) {
-
-		if(Array.isArray(params.allow_implicit_identities)) {
-
-		    var result = matchImplicitIdentity(tree, pattern, params);
-		    if(result)
-			return result;
-		}
-
-		// if pattern is a multiplication and
-		// tree is a unary minus of a multiplication
-		// convert tree to a muliplication with unary minus on first factor
-		if(operator === '*' && Array.isArray(tree) && tree[0] === '-'
-		   && Array.isArray(tree[1]) && tree[1][0] === '*') {
-		    treeOperands = allChildren(tree[1]);
-		    treeOperands[0] = ['-', treeOperands[0]];
-		}
-		else
-		    return false;
-	    }
-
-	    var result = matchOperands(operator, treeOperands, patternOperands,
-				       params, allow_extended_match);
-
-	    if(result)
-		return result;
-
-
-	    if(Array.isArray(params.allow_implicit_identities))
-		return matchImplicitIdentity([operator].concat(treeOperands),
-					     pattern, params);
-	    else
-		return false;
-	};
-
-
-
-	function matchOperands(operator, treeOperands, patternOperands, params,
-			       allow_extended_match) {
-
-	    // treeOperands will match patternOperands only if
-	    // - each pattern operand can be matched by a tree operand
-	    //   (or a group of tree operands)
-	    // - if allow_extended_match, then some tree operands can be skipped
-	    //   otherwise, all tree operands must be matched
-	    // - if permutations are allowed (calculated from params and operator)
-	    //   patterns can be matched in any order
-	    //   otherwise, patterns must be matched in order, possibly skipping
-	    //   beginning or ending tree operands (if allow_extended_match)
-	    // - all the resulting bindings are consistent,
-	    //   meaning they assigned the same match to any
-	    //   repeated placeholder in pattern
-
-	    var previous_matches = patternOperands.map(v => Object());
-	    var nPars = patternOperands.length;
-
-	    // TODO: check if commutative
-	    var allow_permutations = false;
-	    if(params.allow_permutations &&
-	       (operator === "*" || operator === "+" || operator === "="
-		|| operator === "and" || operator === "or" || operator === "ne"
-		|| operator === "union" || operator === "intersect"))
-		allow_permutations=true;
-
-
-	    function matchOps(treeOpIndicesLeft, patternInd, matches) {
-
-		var max_group = treeOpIndicesLeft.length - (nPars-patternInd-1);
-		if(params.max_group !== undefined)
-		    max_group = (params.max_group < max_group) ? params.max_group
-		    : max_group;
-
-		var inds_set;
-
-		if(!allow_extended_match && patternInd == nPars-1) {
-		    // if no extended match, then the last pattern operand
-		    // must match the remaining tree operands
-		    inds_set = [treeOpIndicesLeft];
-		}
-		else if(allow_permutations) {
-		    inds_set = subsets(treeOpIndicesLeft, max_group);
-		}
-		else {
-		    inds_set = [];
-		    for(let i=1; i <= max_group; i++)
-		    	inds_set.push(treeOpIndicesLeft.slice(0, i));
-
-		}
-
-		for(let inds of inds_set) {
-
-		    var m = previous_matches[patternInd][inds];
-
-		    if(m === undefined) {
-
-			var treeChunk = inds.reduce(function(a,b) {
-			    return a.concat([treeOperands[b]]);}, []);
-
-			if(treeChunk.length > 1)
-			    treeChunk= [operator].concat(treeChunk);
-			else
-			    treeChunk = treeChunk[0];
-
-			m = match(treeChunk, patternOperands[patternInd], params);
-
-			previous_matches[patternInd][inds] = m;
-
-		    }
-
-		    if(!m)
-			continue;
-
-		    // Check consistency of bindings
-		    if (!underscore.every( underscore.intersection(
-			Object.keys( matches ),
-			Object.keys( m ) ),
-				 function(k) {
-				     return equal$2(matches[k], m[k]);
-				 })) {
-			continue;
-		    }
-
-		    // combine matches
-		    var combined_matches = Object.assign({}, m);
-		    Object.assign( combined_matches, matches );
-
-		    var treeOpIndices = treeOpIndicesLeft.filter(
-			v => !inds.includes(v));
-
-		    // if last pattern operand, we're done
-		    if(patternInd == nPars-1) {
-			var skipped = treeOpIndices.reduce(function(a,b) {
-			    return a.concat([treeOperands[b]]);}, []);
-
-			return {matches: combined_matches, skipped: skipped};
-		    }
-
-		    // attempt to match remaining treeOps
-		    // with remaining pattern operands
-		    var results = matchOps(treeOpIndices, patternInd+1,
-					   combined_matches);
-
-		    if(results) {
-			return results;
-		    }
-		}
-
-		return false;
-	    }
-
-	    var matches = {};
-
-	    // create array of 0, 1, ...., treeOperands.length-1
-	    var treeIndices = [...Array(treeOperands.length).keys()];
-
-	    if(allow_permutations) {
-
-		var m = matchOps(treeIndices, 0, {});
-
-		if(!m)
-		    return false;
-
-		matches = m.matches;
-		if(m.skipped.length > 0)
-		    matches['_skipped'] = m.skipped;
-
-		return matches;
-	    }
-	    else {
-		var maxSkip = allow_extended_match ? treeOperands.length - nPars : 0;
-		var skipped_before = [];
-		var m;
-
-		// without permutations, operands can only be skipped
-		// at beggining or end
-		// (matchOps will skip at end but not at beginning
-		// when permutations are not allowed)
-		for(var initialSkip=0; initialSkip <= maxSkip; initialSkip++ ) {
-
-		    m = matchOps(treeIndices, 0, {});
-
-		    if(m)
-			break;
-
-		    treeIndices = treeIndices.slice(1);
-		    skipped_before.push(treeOperands[initialSkip]);
-		}
-
-		if(!m)
-		    return false;
-
-		matches = m.matches;
-		if(m.skipped.length > 0)
-		    matches['_skipped'] = m.skipped;
-		if(skipped_before.length > 0)
-		    matches['_skipped_before'] = skipped_before;
-		return matches;
-
-	    }
-	}
-
-	function matchImplicitIdentity(tree, pattern, params) {
-
-	    var operator = pattern[0];
-	    var patternOperands = pattern.slice(1);
-
-	    // for now, implement implicit identities just
-	    // for addition, multiplication, and exponents
-	    if(!(operator === '+' || operator === '*' || operator === '^'))
-		return false;
-
-	    // find any pattern operand that is allowed to be an implicit identity
-	    var implicit_identity = null;
-	    for(var i=0; i < patternOperands.length; i++) {
-		var po = patternOperands[i];
-		if(typeof po === 'string' &&
-		   params.allow_implicit_identities.includes(po)) {
-		    implicit_identity = po;
-		    break;
-		}
-	    }
-
-	    if(implicit_identity === null)
-		return false;
-
-	    var matches = {};
-
-	    // match implicit_identity to the identity of the operator
-	    if(operator === '+')
-		matches[implicit_identity] = 0;
-	    else
-		matches[implicit_identity] = 1;
-
-	    // special case where tree beings with unary -
-	    // and pattern is a multiplication where implicit identity is a factor
-	    if(operator === '*' && patternOperands.includes(implicit_identity)
-	       && Array.isArray(tree) && tree[0] === '-') {
-		matches[implicit_identity] = -1;
-		tree = tree[1];
-	    }
-
-	    // remove matched variable from pattern
-	    var matched_ind = patternOperands.indexOf(implicit_identity);
-	    patternOperands.splice(matched_ind,1);
-
-	    // for exponentiation, only allow for identity in exponent
-	    if(operator === '^' && matched_ind == 0)
-		return false;
-
-	    if(patternOperands.length == 1) {
-		pattern = patternOperands[0];
-	    }
-	    else {
-		pattern = [operator].concat(patternOperands);
-	    }
-
-	    var m = match(tree, pattern, params);
-
-	    if (m) {
-		// Check consistency of bindings
-		if(implicit_identity in m) {
-		    if(!equal$2(m[implicit_identity], matches[implicit_identity]))
-			return false;
-		}
-		Object.assign( matches, m);
-	    } else
-		return false;
-
-	    return matches;
-	}
-
-
-	const substitute = function( pattern, bindings ) {
-	    if (typeof pattern === 'number') {
-		return pattern;
-	    }
-
-	    if (typeof pattern === 'string') {
-		if (bindings[pattern] !== undefined)
-		    return deepClone(bindings[pattern]);
-
-		return pattern;
-	    }
-
-	    if (Array.isArray(pattern)) {
-		return [pattern[0]].concat( pattern.slice(1).map( function(p) {
-		    return substitute(p, bindings);
-		}) );
-	    }
-
-	    return [];
-	};
-
-	const transform$2 = function( tree, F ) {
-	    /*
-	     * Transform the tree function F in a bottom-up fashion
-	     * (calling F at children before parents)
-	     *
-	     * F must be be a function that returns a tree
-	     */
-
-	    if (Array.isArray(tree)) {
-		var new_tree = [tree[0]];
-		for( var i=1; i<tree.length; i++ ) {
-		    new_tree.push(transform$2(tree[i], F));
-		}
-		return F(new_tree);
-	    }
-
-	    return F(tree);
-	};
-
-	const applyAllTransformations = function( tree, transformations, depth ) {
-	    /*
-	     * Repeatedly apply all transformations from transformations
-	     * to tree and return the resulting tree.
-	     *
-	     * transformations must be an array of arrays of the form
-	     * [pattern, replacement, params]
-	     * where the last two components are optional
-	     */
-
-	    if (depth === undefined)
-		depth = 5;
-
-	    var new_tree = tree;
-	    var old_tree;
-	    for( ; depth > 0; depth-- ) {
-		old_tree = new_tree;
-		for(var i=0; i<transformations.length; i++) {
-		    var pattern = transformations[i][0];
-		    var replacement = transformations[i][1];
-		    var params = transformations[i][2];
-		    if(params === undefined)
-			params = {};
-		    new_tree = transform$2(new_tree, function(subtree) {
-			    var m = match(subtree, pattern, params);
-			    if (m) {
-				var result= substitute(replacement, m);
-
-				if(params.evaluate_numbers)
-				    result = evaluate_numbers(
-					result, undefined, params.max_digits);
-
-				var add_right=[], add_left=[];
-				if(m._skipped) {
-				    add_right = m._skipped;
-				}
-				if(m._skipped_before) {
-				    add_left = m._skipped_before;
-				}
-
-				if(add_left.length > 0 || add_right.length > 0) {
-				    if(Array.isArray(result)) {
-					if(result[0]===pattern[0]) {
-					    result = result.slice(1);
-					}
-					else {
-					    result = [result];
-					}
-				    }
-				    result=[pattern[0]].concat(
-					add_left, result, add_right);
-				}
-
-				if(params.evaluate_numbers)
-				    result = evaluate_numbers(
-					result, undefined, params.max_digits);
-
-				return result;
-			    }
-			    else {
-				return subtree;
-			    }
-			});
-
-		}
-
-		if(equal$2(old_tree, new_tree)) {
-		    return new_tree;
-		}
-	    }
-
-	    return new_tree;
-	};
 
 	var version$1$1 = '4.1.1';
 
@@ -70170,7 +70218,7 @@
 	    if(mathjs$$1)
 	      node$1 = mathjs$$1.expression.node;
 	  }
-	  
+
 	  convert(tree) {
 	    if (typeof tree === 'number' ) {
 	      if(Number.isFinite(tree))
@@ -70183,8 +70231,6 @@
 	    }
 
 	    if (typeof tree === 'string') {
-	      if(tree === 'infinity')
-	        return new node$1.SymbolNode('Infinity');
 	      return new node$1.SymbolNode(tree);
 	    }
 
@@ -70220,46 +70266,46 @@
 	      const args = operands[0];
 	      const strict = operands[1];
 
-	      if(args[0] != 'tuple' || strict[0] != 'tuple')
+	      if(args[0] !== 'tuple' || strict[0] !== 'tuple')
 		// something wrong if args or strict are not tuples
 		throw new Error("Badly formed ast");
 
 	      const arg_nodes = args.slice(1).map(function(v,i) { return this.convert(v); }.bind(this));
 
-	      var comparisons = [];
+	      let comparisons = [];
 	      for(let i=1; i< args.length-1; i++) {
 	        if(strict[i]) {
-	          if(operator == 'lts')
+	          if(operator === 'lts')
 	            comparisons.push(new node$1.OperatorNode('<', 'smaller', arg_nodes.slice(i-1, i+1)));
 	          else
 	            comparisons.push(new node$1.OperatorNode('>', 'larger', arg_nodes.slice(i-1, i+1)));
 	        }else{
-	          if(operator == 'lts')
+	          if(operator === 'lts')
 	            comparisons.push(new node$1.OperatorNode('<=', 'smallerEq', arg_nodes.slice(i-1, i+1)));
 	          else
 	            comparisons.push(new node$1.OperatorNode('>=', 'largerEq', arg_nodes.slice(i-1, i+1)));
 	        }
 	      }
-	      var result = new node$1.OperatorNode('and', 'and', comparisons.slice(0,2));
-	      for(var i=2; i<comparisons.length; i++)
+	      let result = new node$1.OperatorNode('and', 'and', comparisons.slice(0,2));
+	      for(let i=2; i<comparisons.length; i++)
 	        result = new node$1.OperatorNode('and', 'and', [result, comparisons[i]]);
 	      return result;
 	    }
 
 	    if(operator === '=') {
 
-	      var arg_nodes = operands.map(function(v,i) { return this.convert(v); }.bind(this) );
+	      let arg_nodes = operands.map(function(v,i) { return this.convert(v); }.bind(this) );
 
-	      var comparisons = [];
-	      for(var i=1; i< arg_nodes.length; i++) {
+	      let comparisons = [];
+	      for(let i=1; i< arg_nodes.length; i++) {
 	        comparisons.push(new node$1.OperatorNode('==', 'equal', arg_nodes.slice(i-1, i+1)));
 	      }
 
-	      if(comparisons.length==1)
+	      if(comparisons.length === 1)
 	        return comparisons[0];
 
-	      var result = new node$1.OperatorNode('and', 'and', comparisons.slice(0,2));
-	      for(var i=2; i<comparisons.length; i++)
+	      let result = new node$1.OperatorNode('and', 'and', comparisons.slice(0,2));
+	      for(let i=2; i<comparisons.length; i++)
 	        result = new node$1.OperatorNode('and', 'and', [result, comparisons[i]]);
 	      return result;
 	    }
@@ -70267,29 +70313,30 @@
 	    if(operator === 'in' || operator === 'notin' ||
 	       operator === 'ni' || operator === 'notni') {
 
+	      let x, interval;
 	      if(operator === 'in' || operator === 'notin') {
-		var x = operands[0];
-		var interval = operands[1];
+		x = operands[0];
+		interval = operands[1];
 	      }else{
-		var x = operands[1];
-		var interval = operands[0];
+		x = operands[1];
+		interval = operands[0];
 	      }
-	      if((typeof x !== 'number') && (typeof x != 'string')) 
+	      if((typeof x !== 'number') && (typeof x !== 'string'))
 		throw Error("Set membership non-string variables not implemented for conversion to mathjs");
-	      var x = this.convert(x);
+	      x = this.convert(x);
 
 	      if(interval[0] !== 'interval')
 	        throw Error("Set membership in non-intervals not implemented for conversion to mathjs");
 
-	      var args = interval[1];
-	      var closed = interval[2];
+	      let args = interval[1];
+	      let closed = interval[2];
 	      if(args[0] !== 'tuple' || closed[0] !== 'tuple')
 	        throw new Error("Badly formed ast");
 
-	      var a = this.convert(args[1]);
-	      var b = this.convert(args[2]);
+	      let a = this.convert(args[1]);
+	      let b = this.convert(args[2]);
 
-	      var comparisons = [];
+	      let comparisons = [];
 	      if(closed[1])
 	        comparisons.push(new node$1.OperatorNode('>=', 'largerEq', [x,a]));
 	      else
@@ -70299,7 +70346,7 @@
 	      else
 	        comparisons.push(new node$1.OperatorNode('<', 'smaller', [x,b]));
 
-	      var result =  new node$1.OperatorNode('and', 'and', comparisons);
+	      let result =  new node$1.OperatorNode('and', 'and', comparisons);
 
 	      if(operator === 'notin' || operator === 'notni')
 	        result = new node$1.OperatorNode('not', 'not', [result]);
@@ -70310,30 +70357,31 @@
 	    if(operator === 'subset' || operator === 'notsubset' ||
 	       operator === 'superset' || operator === 'notsuperset') {
 
+	      let big, small;
 	      if(operator === 'subset' || operator === 'notsubset') {
-		var small = operands[0];
-		var big = operands[1];
+		small = operands[0];
+		big = operands[1];
 	      }else{
-		var small = operands[1];
-		var big = operands[0];
+		small = operands[1];
+		big = operands[0];
 	      }
 	      if(small[0] !== 'interval' || big[0] !== 'interval')
 	        throw Error("Set containment of non-intervals not implemented for conversion to mathjs");
 
-	      var small_args = small[1];
-	      var small_closed = small[2];
-	      var big_args = big[1];
-	      var big_closed = big[2];
+	      let small_args = small[1];
+	      let small_closed = small[2];
+	      let big_args = big[1];
+	      let big_closed = big[2];
 	      if(small_args[0] !== 'tuple' || small_closed[0] !== 'tuple' ||
 		 big_args[0] !== 'tuple' || big_closed[0] !== 'tuple')
 		throw Error("Badly formed ast");
 
-	      var small_a = this.convert(small_args[1]);
-	      var small_b = this.convert(small_args[2]);
-	      var big_a = this.convert(big_args[1]);
-	      var big_b = this.convert(big_args[2]);
+	      let small_a = this.convert(small_args[1]);
+	      let small_b = this.convert(small_args[2]);
+	      let big_a = this.convert(big_args[1]);
+	      let big_b = this.convert(big_args[2]);
 
-	      var comparisons = [];
+	      let comparisons = [];
 	      if(small_closed[1] && !big_closed[1])
 		comparisons.push(new node$1.OperatorNode('>', 'larger',[small_a,big_a]));
 	      else
@@ -70344,7 +70392,7 @@
 	      else
 		comparisons.push(new node$1.OperatorNode('<=', 'smallerEq',[small_b,big_b]));
 
-	      var result =  new node$1.OperatorNode('and', 'and', comparisons);
+	      let result =  new node$1.OperatorNode('and', 'and', comparisons);
 
 	      if(operator === 'notsubset' || operator === 'notsuperset')
 		result = new node$1.OperatorNode('not', 'not', [result]);
@@ -70366,7 +70414,7 @@
 		throw Error('Matrix must have integer dimensions');
 
 	      let result = [];
-	      
+
 	      for(let i=1; i <= nrows; i++) {
 		let row = [];
 		for(let j=1; j <= ncols; j++) {
@@ -70378,7 +70426,7 @@
 	      return new node$1.ArrayNode(result);
 
 	    }
-	    
+
 	    if (operator in operators$2) {
 	      return operators$2[operator](
 	        operands.map( function(v,i) { return this.convert(v); }.bind(this) ) );
@@ -70443,7 +70491,7 @@
 		return result;
 	    }
 
-	    if (operator === '^' && operands[0] === 'e' && math$21.define_e)
+	    if (operator === '^' && operands[0] === 'e' && math$19.define_e)
 		return ['apply', 'exp', normalize_function_names(operands[1])];
 
 	    return [operator].concat(operands.map(function (v) {
@@ -70486,9 +70534,9 @@
 	    var operands = tree.slice(1);
 
 	    if (operator === 'apply') {
-		var result = strip_function_names(operands[0]);
-		var f_applied = ['apply', result.tree, operands[1]];
-		for(var i=0; i<result.n_primes; i++)
+		let result = strip_function_names(operands[0]);
+		let f_applied = ['apply', result.tree, operands[1]];
+		for(let i=0; i<result.n_primes; i++)
 		    f_applied = ['prime', f_applied];
 
 		if (result.exponent !== undefined)
@@ -70513,15 +70561,15 @@
 
 
 	    if (operator === '^') {
-		var result = strip_function_names(operands[0]);
-		var exponent = normalize_applied_functions(operands[1]);
+		let result = strip_function_names(operands[0]);
+		let exponent = normalize_applied_functions(operands[1]);
 
 		result.exponent=exponent;
 		return result;
 	    }
 
 	    if (operator ==="prime") {
-		var result = strip_function_names(operands[0]);
+		let result = strip_function_names(operands[0]);
 		result.n_primes += 1;
 		return result;
 	    }
@@ -70548,7 +70596,7 @@
 		return substitute_abs(v); } ) );
 	}
 
-	var astToMathjs$1 = new astToMathjs({mathjs: math$21 });
+	var astToMathjs$1 = new astToMathjs({mathjs: math$19 });
 
 	const f = function(expr_or_tree) {
 	    var tree = get_tree(expr_or_tree);
@@ -70575,33 +70623,45 @@
 	// };
 
 	const evaluate_to_constant = function(expr_or_tree) {
-	    // evaluate to number by converting tree to number
-	    // and calling without arguments
+	  // evaluate to number by converting tree to number
+	  // and calling without arguments
 
-	    // return null if couldn't evaluate to constant (e.g., contains a variable)
-	    // otherwise returns constant
-	    // NOTE: constant could be a math.js complex number object
+	  // return null if couldn't evaluate to constant (e.g., contains a variable)
+	  // otherwise returns constant
+	  // NOTE: constant could be a math.js complex number object
 
+	  var tree = get_tree(expr_or_tree);
 
-	    var num=null;
-	    try {
-	      var the_f = f(expr_or_tree);
-	      num = the_f();
+	  if(typeof tree === "number") {
+	    return tree;
+	  }else if(typeof tree === "string") {
+	    if(tree === "pi" && math$19.define_pi) {
+	      return Math.PI;
+	    }else if(tree === "e" && math$19.define_e) {
+	      return Math.E;
 	    }
-	    catch (e) {}
-	    return num;
+	    return null;
+	  }
+
+	  var num=null;
+	  try {
+	    var the_f = f(expr_or_tree);
+	    num = the_f();
+	  }
+	  catch (e) {}
+	  return num;
 	};
 
 	function factorial_to_gamma_function(math_tree) {
 	    // convert factorial to gamma function
 	    // so that can evaluate at complex numbers
 	    var transformed = math_tree.transform(function (node, path, parent) {
-	    	if(node.isOperatorNode && node.op === "!" && node.fn == "factorial") {
-	    	    var args = [new math$21.expression.node.OperatorNode(
+	    	if(node.isOperatorNode && node.op === "!" && node.fn === "factorial") {
+	    	    var args = [new math$19.expression.node.OperatorNode(
 	    		'+', 'add', [node.args[0],
-	    			     new math$21.expression.node.ConstantNode(1)])];
-	    	    return new math$21.expression.node.FunctionNode(
-	    		new math$21.expression.node.SymbolNode("gamma"),args);
+	    			     new math$19.expression.node.ConstantNode(1)])];
+	    	    return new math$19.expression.node.FunctionNode(
+	    		new math$19.expression.node.SymbolNode("gamma"),args);
 	    	}
 	    	else {
 	    	    return node;
@@ -70638,7 +70698,7 @@
 	functions$1.nonzeroC.pos = ["abs"];
 	functions$1.nonneg.nonneg = ["abs", "exp", "arg", "sqrt", "erf"];
 	functions$1.nonzeroC.nonzero = ["abs"];
-	functions$1.nonneg.R = [... new Set(functions$1.R.R.concat(
+	functions$1.nonneg.R = [...new Set(functions$1.R.R.concat(
 	    functions$1.nonneg.nonneg))];
 	functions$1.pos.pos = ["abs", "exp", "sqrt", "erf"];
 	functions$1.pos.nonneg = functions$1.pos.pos;
@@ -70662,7 +70722,7 @@
 
 	    var operator = original_assumptions[0];
 	    var operands = original_assumptions.slice(1);
-	    if(operator != 'and')
+	    if(operator !== 'and')
 		return [];
 
 	    var remaining_assumptions = [];
@@ -70671,9 +70731,9 @@
 		if(!equal$2(operands[i], assumptions))
 		    remaining_assumptions.push(operands[i]);
 	    }
-	    if(remaining_assumptions.length == 0)
+	    if(remaining_assumptions.length === 0)
 		return [];
-	    if(remaining_assumptions.legnth == 1)
+	    if(remaining_assumptions.legnth === 1)
 		return remaining_assumptions[0];
 	    return [operator].concat(remaining_assumptions);
 
@@ -70713,7 +70773,7 @@
 		    return undefined;
 
 		// if tests disagree, result is ambiguous
-		if(left != right)
+		if(left !== right)
 		    return undefined;
 
 		return left;
@@ -70740,7 +70800,7 @@
 
 	    if(typeof tree === 'string') {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
@@ -70748,12 +70808,12 @@
 		if(!Array.isArray(assume))
 		    return undefined;
 
-		var assume_with_negations = assume;
+		let assume_with_negations = assume;
 
-		var assume_operator = assume[0];
-		var assume_operands = assume.slice(1);
+		let assume_operator = assume[0];
+		let assume_operands = assume.slice(1);
 
-		var negate_assumptions = false;
+		let negate_assumptions = false;
 		while(assume_operator === 'not') {
 		    negate_assumptions = !negate_assumptions;
 		    assume = assume_operands[0];
@@ -70798,7 +70858,7 @@
 		    // check if something is integer
 		    // (but without the assumption to avoid infinite loop)
 
-		    var new_assumptions = narrow_assumptions(assume_with_negations,
+		    let new_assumptions = narrow_assumptions(assume_with_negations,
 							     original_assumptions);
 		    if(assume_operands[0]===tree)
 			return is_integer_ast(assume_operands[1], new_assumptions);
@@ -70822,9 +70882,9 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var result_left = is_integer_ast(tree, assume_operands[0],
+		let result_left = is_integer_ast(tree, assume_operands[0],
 						 original_assumptions);
-		var result_right = is_integer_ast(tree, assume_operands[1],
+		let result_right = is_integer_ast(tree, assume_operands[1],
 						  original_assumptions);
 		return simple_assumption_combination(assume_operator, result_left,
 						     result_right)
@@ -70832,21 +70892,21 @@
 
 	    if(Array.isArray(tree)) {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
 		    assume = assumptions.get_assumptions([variables(tree)]);
 
-		var operator = tree[0];
-		var operands = tree.slice(1);
+		let operator = tree[0];
+		let operands = tree.slice(1);
 
 		if(operator === '-')
 		    return is_integer_ast(operands[0], assume, original_assumptions);
 
 		if(operator === '*') {
 
-		    var all_integers = operands.every(
+		    let all_integers = operands.every(
 			function (v) {
 			    return is_integer_ast(v, assume, original_assumptions);
 			});
@@ -70861,7 +70921,7 @@
 
 		if(operator === '^') {
 
-		    var base_nonzero = is_nonzero_ast(operands[0], assume,
+		    let base_nonzero = is_nonzero_ast(operands[0], assume,
 						      original_assumptions);
 
 		    if(!base_nonzero) {
@@ -70869,7 +70929,7 @@
 			if(Number.isNaN(operands[0]))
 			    return false;
 
-			var pow_positive = is_positive_ast(operands[1], assume, true,
+			let pow_positive = is_positive_ast(operands[1], assume, true,
 							   original_assumptions);
 
 			if(pow_positive) {
@@ -70882,7 +70942,7 @@
 
 		    }
 		    else { // nonzero base
-			var pow_nonzero = is_nonzero_ast(operands[1], assume,
+			let pow_nonzero = is_nonzero_ast(operands[1], assume,
 							 original_assumptions);
 			if(pow_nonzero === false) {
 			    // infinity^0 is undefined
@@ -70894,9 +70954,9 @@
 
 		    }
 
-		    var base_integer = is_integer_ast(operands[0], assume,
+		    let base_integer = is_integer_ast(operands[0], assume,
 						      original_assumptions);
-		    var pow_integer =  is_integer_ast(operands[1], assume,
+		    let pow_integer =  is_integer_ast(operands[1], assume,
 						      original_assumptions);
 
 		    if(!base_integer)
@@ -70905,7 +70965,7 @@
 		    if(!pow_integer)
 			return undefined;  // don't check for cases like 9^(1/2)
 
-		    var pow_nonneg= is_positive_ast(operands[1], assume, false,
+		    let pow_nonneg= is_positive_ast(operands[1], assume, false,
 						    original_assumptions);
 
 		    if(pow_nonneg)
@@ -70917,10 +70977,10 @@
 		}
 		if(operator === '+') {
 
-		    var n_non_integers=0;
+		    let n_non_integers=0;
 
-		    for(var i=0; i < operands.length; i++) {
-			var result = is_integer_ast(operands[i], assume,
+		    for(let i=0; i < operands.length; i++) {
+			let result = is_integer_ast(operands[i], assume,
 						    original_assumptions);
 
 			if(result === false) {
@@ -70932,7 +70992,7 @@
 			    return undefined;
 		    }
 
-		    if(n_non_integers == 0)
+		    if(n_non_integers === 0)
 			return true;
 		    else // only one non-integer
 			return false;
@@ -70982,7 +71042,7 @@
 
 	    if(typeof tree === 'string') {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
@@ -70991,12 +71051,12 @@
 		if(!Array.isArray(assume))
 		    return undefined;
 
-		var assume_with_negations = assume;
+		let assume_with_negations = assume;
 
-		var assume_operator = assume[0];
-		var assume_operands = assume.slice(1);
+		let assume_operator = assume[0];
+		let assume_operands = assume.slice(1);
 
-		var negate_assumptions = false;
+		let negate_assumptions = false;
 		while(assume_operator === 'not') {
 		    negate_assumptions = !negate_assumptions;
 		    assume = assume_operands[0];
@@ -71030,8 +71090,8 @@
 		// then return true
 		if(assume_operator === '<' || assume_operator === 'le') {
 
-		    var variables_in_inequality = variables(assume);
-		    var functions_in_inequality = functions(assume);
+		    let variables_in_inequality = variables(assume);
+		    let functions_in_inequality = functions(assume);
 
 		    if(variables_in_inequality.indexOf(tree) !== -1
 		      && functions_in_inequality.length === 0)
@@ -71045,7 +71105,7 @@
 		    // check if something is real
 		    // (but without the assumption to avoid infinite loop)
 
-		    var new_assumptions = narrow_assumptions(assume_with_negations,
+		    let new_assumptions = narrow_assumptions(assume_with_negations,
 							     original_assumptions);
 		    if(assume_operands[0]===tree)
 			return is_real_ast(assume_operands[1], new_assumptions);
@@ -71070,9 +71130,9 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var result_left = is_real_ast(tree, assume_operands[0],
+		let result_left = is_real_ast(tree, assume_operands[0],
 					      original_assumptions);
-		var result_right = is_real_ast(tree, assume_operands[1],
+		let result_right = is_real_ast(tree, assume_operands[1],
 					       original_assumptions);
 
 		return simple_assumption_combination(assume_operator, result_left,
@@ -71081,15 +71141,15 @@
 
 	    if(Array.isArray(tree)) {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
 		    assume = assumptions.get_assumptions([variables(tree)]);
 
 
-		var operator = tree[0];
-		var operands = tree.slice(1);
+		let operator = tree[0];
+		let operands = tree.slice(1);
 
 		if(operator === '-') {
 		    return is_real_ast(operands[0], assume, original_assumptions);
@@ -71111,9 +71171,9 @@
 			    return true;
 		    }
 
-		    var left_real = is_real_ast(operands[0], assume,
+		    let left_real = is_real_ast(operands[0], assume,
 						original_assumptions);
-		    var right_real = is_real_ast(operands[1], assume,
+		    let right_real = is_real_ast(operands[1], assume,
 						 original_assumptions);
 
 		    if(left_real && right_real)
@@ -71131,9 +71191,9 @@
 
 		if(operator === '^') {
 
-		    var base_nonzero = is_nonzero_ast(operands[0], assume,
+		    let base_nonzero = is_nonzero_ast(operands[0], assume,
 						      original_assumptions);
-		    var pow_positive = is_positive_ast(operands[1], assume, true,
+		    let pow_positive = is_positive_ast(operands[1], assume, true,
 						       original_assumptions);
 
 		    if(!base_nonzero) {
@@ -71151,7 +71211,7 @@
 
 		    }
 		    else { // nonzero base
-			var pow_nonzero = is_nonzero_ast(operands[1], assume,
+			let pow_nonzero = is_nonzero_ast(operands[1], assume,
 							 original_assumptions);
 			if(pow_nonzero === false) {
 			    // infinity^0 is undefined
@@ -71163,15 +71223,15 @@
 
 		    }
 
-		    var base_real = is_real_ast(operands[0], assume,
+		    let base_real = is_real_ast(operands[0], assume,
 						original_assumptions);
-		    var pow_real = is_real_ast(operands[1], assume,
+		    let pow_real = is_real_ast(operands[1], assume,
 					       original_assumptions);
 
 		    if(!(base_real && pow_real))
 			return undefined;
 
-		    var base_nonnegative = is_positive_ast(operands[0], assume, false,
+		    let base_nonnegative = is_positive_ast(operands[0], assume, false,
 							   original_assumptions);
 
 		    if(!base_nonnegative) {
@@ -71179,7 +71239,7 @@
 			// then power must be an integer
 			// (already excluded 0^0)
 
-			var pow_integer = is_integer_ast(operands[1], assume,
+			let pow_integer = is_integer_ast(operands[1], assume,
 							 original_assumptions);
 			if(pow_integer)
 			    return true;
@@ -71187,7 +71247,7 @@
 			    return undefined
 		    }
 
-		    var base_positive = is_positive_ast(operands[0], assume, true,
+		    let base_positive = is_positive_ast(operands[0], assume, true,
 							original_assumptions);
 
 		    if(!base_positive) {
@@ -71276,7 +71336,7 @@
 
 	    if(typeof tree === 'string') {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
@@ -71285,12 +71345,12 @@
 		if(!Array.isArray(assume))
 		    return undefined;
 
-		var assume_with_negations = assume;
+		let assume_with_negations = assume;
 
-		var assume_operator = assume[0];
-		var assume_operands = assume.slice(1);
+		let assume_operator = assume[0];
+		let assume_operands = assume.slice(1);
 
-		var negate_assumptions = false;
+		let negate_assumptions = false;
 		while(assume_operator === 'not') {
 		    negate_assumptions = !negate_assumptions;
 		    assume = assume_operands[0];
@@ -71331,8 +71391,8 @@
 		// then must be real, hence complex, so return true
 		if(assume_operator === '<' || assume_operator === 'le') {
 
-		    var variables_in_inequality = variables(assume);
-		    var functions_in_inequality = functions(assume);
+		    let variables_in_inequality = variables(assume);
+		    let functions_in_inequality = functions(assume);
 
 		    if(variables_in_inequality.indexOf(tree) !== -1
 		      && functions_in_inequality.length === 0)
@@ -71346,7 +71406,7 @@
 		    // check if something is complex
 		    // (but without the assumption to avoid infinite loop)
 
-		    var new_assumptions = narrow_assumptions(assume_with_negations,
+		    let new_assumptions = narrow_assumptions(assume_with_negations,
 							     original_assumptions);
 		    if(assume_operands[0]===tree)
 			return is_complex_ast(assume_operands[1], new_assumptions);
@@ -71370,9 +71430,9 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var result_left = is_complex_ast(tree, assume_operands[0],
+		let result_left = is_complex_ast(tree, assume_operands[0],
 						 original_assumptions);
-		var result_right = is_complex_ast(tree, assume_operands[1],
+		let result_right = is_complex_ast(tree, assume_operands[1],
 						  original_assumptions);
 		return simple_assumption_combination(assume_operator, result_left,
 						     result_right)
@@ -71380,15 +71440,15 @@
 
 	    if(Array.isArray(tree)) {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
 		    assume = assumptions.get_assumptions([variables(tree)]);
 
 
-		var operator = tree[0];
-		var operands = tree.slice(1);
+		let operator = tree[0];
+		let operands = tree.slice(1);
 
 		if(operator === '-')
 		    return is_complex_ast(operands[0], assume, original_assumptions);
@@ -71401,7 +71461,7 @@
 			    return true;
 		    }
 
-		    var all_complex = operands.every(v => is_complex_ast(v, assume, original_assumptions));
+		    let all_complex = operands.every(v => is_complex_ast(v, assume, original_assumptions));
 
 		    if(all_complex)
 			return true;
@@ -71413,9 +71473,9 @@
 
 		if(operator === '^') {
 
-		    var base_nonzero = is_nonzero_ast(operands[0], assume,
+		    let base_nonzero = is_nonzero_ast(operands[0], assume,
 						      original_assumptions);
-		    var pow_positive = is_positive_ast(operands[1], assume, true,
+		    let pow_positive = is_positive_ast(operands[1], assume, true,
 						       original_assumptions);
 
 		    if(!base_nonzero) {
@@ -71434,7 +71494,7 @@
 
 		    }
 		    else { // nonzero base
-			var pow_nonzero = is_nonzero_ast(operands[1], assume,
+			let pow_nonzero = is_nonzero_ast(operands[1], assume,
 							 original_assumptions);
 			if(pow_nonzero === false) {
 			    // infinity^0 is undefined
@@ -71446,9 +71506,9 @@
 
 		    }
 
-		    var base_complex = is_complex_ast(operands[0], assume,
+		    let base_complex = is_complex_ast(operands[0], assume,
 						      original_assumptions);
-		    var pow_complex = is_complex_ast(operands[1], assume,
+		    let pow_complex = is_complex_ast(operands[1], assume,
 						     original_assumptions);
 
 		    if(base_complex && pow_complex)
@@ -71505,7 +71565,7 @@
 
 	    if(typeof tree === 'number') {
 		if(Number.isFinite(tree))
-		    return tree != 0;
+		    return tree !== 0;
 		if(Number.isNaN(tree))
 		    return undefined;
 		return true;    // consider infinity to be nonzero
@@ -71516,20 +71576,20 @@
 	    if(c !== null) {
 		if(typeof c === 'number') {
 		    if(Number.isFinite(c))
-			return c != 0;
+			return c !== 0;
 		    if(Number.isNaN(c))
 			return undefined;
 		    return true;  // consider infinity to be nonzero
 		}
 		if(c.re !== undefined && c.im !== undefined &&
-		   (c.re != 0 || c.im !=0) )
+		   (c.re !== 0 || c.im !== 0) )
 		    return true;
 		return undefined;
 	    }
 
 	    if(typeof tree === 'string') {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
@@ -71538,12 +71598,12 @@
 		if(!Array.isArray(assume))
 		    return undefined;
 
-		var assume_with_negations = assume;
+		let assume_with_negations = assume;
 
-		var assume_operator = assume[0];
-		var assume_operands = assume.slice(1);
+		let assume_operator = assume[0];
+		let assume_operands = assume.slice(1);
 
-		var negate_assumptions = false;
+		let negate_assumptions = false;
 		while(assume_operator === 'not') {
 		    negate_assumptions = !negate_assumptions;
 		    assume = assume_operands[0];
@@ -71553,7 +71613,7 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var new_assumptions = narrow_assumptions(assume_with_negations,
+		let new_assumptions = narrow_assumptions(assume_with_negations,
 							 original_assumptions);
 
 		// assume equality has been expanded so that has two arguments
@@ -71658,9 +71718,9 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var result_left = is_nonzero_ast(tree, assume_operands[0],
+		let result_left = is_nonzero_ast(tree, assume_operands[0],
 						 original_assumptions);
-		var result_right = is_nonzero_ast(tree, assume_operands[1],
+		let result_right = is_nonzero_ast(tree, assume_operands[1],
 						  original_assumptions);
 		return simple_assumption_combination(assume_operator, result_left,
 						     result_right)
@@ -71668,14 +71728,14 @@
 
 	    if(Array.isArray(tree)) {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
 		    assume = assumptions.get_assumptions([variables(tree)]);
 
-		var operator = tree[0];
-		var operands = tree.slice(1);
+		let operator = tree[0];
+		let operands = tree.slice(1);
 
 		if(operator === '-')
 		    return is_nonzero_ast(operands[0], assume, original_assumptions);
@@ -71699,9 +71759,9 @@
 		    // can definitely determine nonzero if one term is zero
 		    // or if both have the same sign
 
-		    var nonzero_left = is_nonzero_ast(operands[0], assume,
+		    let nonzero_left = is_nonzero_ast(operands[0], assume,
 						      original_assumptions);
-		    var nonzero_right = is_nonzero_ast(operands[1], assume,
+		    let nonzero_right = is_nonzero_ast(operands[1], assume,
 						       original_assumptions);
 
 		    // if one is known to be zero, return result from other
@@ -71713,9 +71773,9 @@
 
 		    // if one of both aren't real
 		    // decide now
-		    var real_left = is_real_ast(operands[0], assume,
+		    let real_left = is_real_ast(operands[0], assume,
 						original_assumptions);
-		    var real_right = is_real_ast(operands[1], assume,
+		    let real_right = is_real_ast(operands[1], assume,
 						 original_assumptions);
 
 		    if(!real_left || !real_right) {
@@ -71734,14 +71794,14 @@
 
 		    // if reach here, both are real
 
-		    var nonneg_left = is_positive_ast(operands[0], assume, false,
+		    let nonneg_left = is_positive_ast(operands[0], assume, false,
 						      original_assumptions);
-		    var nonneg_right = is_positive_ast(operands[1], assume, false,
+		    let nonneg_right = is_positive_ast(operands[1], assume, false,
 						       original_assumptions);
 
-		    var positive_left = is_positive_ast(operands[0], assume, true,
+		    let positive_left = is_positive_ast(operands[0], assume, true,
 							original_assumptions);
-		    var positive_right = is_positive_ast(operands[1], assume, true,
+		    let positive_right = is_positive_ast(operands[1], assume, true,
 							 original_assumptions);
 
 		    // positive + nonnegative is nonzero
@@ -71761,10 +71821,10 @@
 		}
 
 		if(operator === '*') {
-		    var all_nonzero = true;
-		    for(var i=0; i < operands.length; i++) {
+		    let all_nonzero = true;
+		    for(let i=0; i < operands.length; i++) {
 
-			var result = is_nonzero_ast(operands[i], assume,
+			let result = is_nonzero_ast(operands[i], assume,
 						    original_assumptions);
 
 			if(result===false)
@@ -71781,7 +71841,7 @@
 
 		if(operator === '/') {
 
-		    var result = is_nonzero_ast(operands[0], assume,
+		    let result = is_nonzero_ast(operands[0], assume,
 						original_assumptions);
 
 		    if(is_nonzero_ast(operands[1], assume, original_assumptions))
@@ -71792,11 +71852,11 @@
 
 		if(operator === '^') {
 
-		    var base_nonzero = is_nonzero_ast(operands[0], assume,
+		    let base_nonzero = is_nonzero_ast(operands[0], assume,
 						      original_assumptions);
 
 		    if(!base_nonzero) {
-			var pow_positive = is_positive_ast(operands[1], assume, true,
+			let pow_positive = is_positive_ast(operands[1], assume, true,
 							   original_assumptions);
 
 			if(pow_positive && (base_nonzero === false))
@@ -71807,7 +71867,7 @@
 		    else { // nonzero base
 			// infinity^0 is undefined
 			if(operands[0] === Infinity || operands[0] === -Infinity) {
-			    var pow_nonzero = is_nonzero_ast(operands[1], assume,
+			    let pow_nonzero = is_nonzero_ast(operands[1], assume,
 							     original_assumptions);
 			    if(pow_nonzero === false)
 				return undefined;
@@ -71850,7 +71910,7 @@
 	function is_positive_ast(tree, assumptions, strict, original_assumptions) {
 	    // see description of is_nonnegative
 
-	    if(typeof assumptions != 'object')
+	    if(typeof assumptions !== 'object')
 		assumptions = [];
 
 	    if(original_assumptions===undefined)
@@ -71883,7 +71943,7 @@
 
 	    if(typeof tree === 'string') {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
@@ -71892,12 +71952,12 @@
 		if(!Array.isArray(assume))
 		    return undefined;
 
-		var assume_with_negations = assume;
+		let assume_with_negations = assume;
 
-		var assume_operator = assume[0];
-		var assume_operands = assume.slice(1);
+		let assume_operator = assume[0];
+		let assume_operands = assume.slice(1);
 
-		var negate_assumptions = false;
+		let negate_assumptions = false;
 		while(assume_operator === 'not') {
 		    negate_assumptions = !negate_assumptions;
 		    assume = assume_operands[0];
@@ -71907,7 +71967,7 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var new_assumptions = narrow_assumptions(assume_with_negations,
+		let new_assumptions = narrow_assumptions(assume_with_negations,
 							 original_assumptions);
 
 		// assume that equality has been expanded so that
@@ -72001,9 +72061,9 @@
 		    assume_operands = assume.slice(1);
 		}
 
-		var result_left = is_positive_ast(tree, assume_operands[0], strict,
+		let result_left = is_positive_ast(tree, assume_operands[0], strict,
 						  original_assumptions);
-		var result_right = is_positive_ast(tree, assume_operands[1], strict,
+		let result_right = is_positive_ast(tree, assume_operands[1], strict,
 						   original_assumptions);
 		return simple_assumption_combination(assume_operator, result_left,
 						     result_right)
@@ -72011,14 +72071,14 @@
 
 	    if(Array.isArray(tree)) {
 
-		var assume;
+		let assume;
 		if(Array.isArray(assumptions))
 		    assume = assumptions;
 		else
 		    assume = assumptions.get_assumptions([variables(tree)]);
 
-		var operator = tree[0];
-		var operands = tree.slice(1);
+		let operator = tree[0];
+		let operands = tree.slice(1);
 
 		if(operator === '-')
 		    return is_negative_ast(operands[0], assume, strict,
@@ -72033,14 +72093,14 @@
 		    }
 
 
-		    var nonneg_left = is_positive_ast(operands[0], assume, false,
+		    let nonneg_left = is_positive_ast(operands[0], assume, false,
 						      original_assumptions);
-		    var nonneg_right = is_positive_ast(operands[1], assume, false,
+		    let nonneg_right = is_positive_ast(operands[1], assume, false,
 						       original_assumptions);
 
-		    var positive_left = is_positive_ast(operands[0], assume, true,
+		    let positive_left = is_positive_ast(operands[0], assume, true,
 							original_assumptions);
-		    var positive_right = is_positive_ast(operands[1], assume, true,
+		    let positive_right = is_positive_ast(operands[1], assume, true,
 							 original_assumptions);
 
 
@@ -72084,9 +72144,9 @@
 			operands = tree.slice(1);
 		    }
 
-		    var real_left = is_real_ast(operands[0], assume,
+		    let real_left = is_real_ast(operands[0], assume,
 						original_assumptions);
-		    var real_right = is_real_ast(operands[1], assume,
+		    let real_right = is_real_ast(operands[1], assume,
 						 original_assumptions);
 
 		    // if can't determine if real, can't determine positivity
@@ -72106,37 +72166,37 @@
 
 		    // if reach here, both factors are real
 
-		    var nonneg_left = is_positive_ast(operands[0], assume, false,
+		    let nonneg_left = is_positive_ast(operands[0], assume, false,
 						      original_assumptions);
-		    var nonneg_right = is_positive_ast(operands[1], assume, false,
+		    let nonneg_right = is_positive_ast(operands[1], assume, false,
 						       original_assumptions);
 
-		    var positive_left = is_positive_ast(operands[0], assume, true,
+		    let positive_left = is_positive_ast(operands[0], assume, true,
 							original_assumptions);
-		    var positive_right = is_positive_ast(operands[1], assume, true,
+		    let positive_right = is_positive_ast(operands[1], assume, true,
 							 original_assumptions);
 
 		    if(strict) {
 			// product of two positives or two negatives is positive
 			if((positive_left && positive_right)
-			   || (nonneg_left===false && nonneg_right===false))
+			   || (nonneg_left === false && nonneg_right === false))
 			    return true;
 
 			// product of nonnegative and nonpositive is nonpositive
-			if((positive_left==false && nonneg_right)
-			   || (nonneg_left && positive_right==false))
+			if((positive_left === false && nonneg_right)
+			   || (nonneg_left && positive_right === false))
 			    return false;
 		    }
 		    else {
 			// product of two nonnegatives or two nonpositives
 			// is nonnegative
 			if((nonneg_left && nonneg_right)
-			   || (positive_left===false && positive_right===false))
+			   || (positive_left === false && positive_right === false))
 			    return true;
 
 			// product of positive and negative is negative
-			if((positive_left && nonneg_right===false)
-			   || (nonneg_left===false && positive_right))
+			if((positive_left && nonneg_right === false)
+			   || (nonneg_left === false && positive_right))
 			    return false;
 		    }
 
@@ -72156,15 +72216,15 @@
 				      original_assumptions) === false)
 			return !strict;
 
-		    var denom_pos = is_positive_ast(operands[1], assume, true,
+		    let denom_pos = is_positive_ast(operands[1], assume, true,
 						    original_assumptions);
 		    if(denom_pos === undefined)
 			return undefined;
 
 		    // if denominator is negative, sign is swapped
 		    // so need opposite strictness for numerator
-		    var numer_strict = denom_pos ? strict : !strict;
-		    var numer_pos = is_positive_ast(operands[0], assume,
+		    let numer_strict = denom_pos ? strict : !strict;
+		    let numer_pos = is_positive_ast(operands[0], assume,
 						    numer_strict,
 						    original_assumptions);
 
@@ -72172,7 +72232,7 @@
 			return undefined;
 
 		    if(numer_pos === true) {
-			if(denom_pos == true)
+			if(denom_pos === true)
 			    return true;
 			else
 			    return false;
@@ -72186,11 +72246,11 @@
 		}
 		if(operator === '^') {
 
-		    var base_nonzero = is_nonzero_ast(operands[0], assume,
+		    let base_nonzero = is_nonzero_ast(operands[0], assume,
 						      original_assumptions);
 
 		    if(!base_nonzero) {
-			var pow_positive = is_positive_ast(operands[1], assume, true,
+			let pow_positive = is_positive_ast(operands[1], assume, true,
 							   original_assumptions);
 
 			if(pow_positive) {
@@ -72205,7 +72265,7 @@
 
 		    }
 		    else { // nonzero base
-			var pow_nonzero = is_nonzero_ast(operands[1], assume,
+			let pow_nonzero = is_nonzero_ast(operands[1], assume,
 							 original_assumptions);
 			if(pow_nonzero === false) {
 			    // infinity^0 is undefined
@@ -72217,14 +72277,14 @@
 
 		    }
 
-		    var base_real = is_real_ast(operands[0], assume,
+		    let base_real = is_real_ast(operands[0], assume,
 						original_assumptions);
 
 		    if(base_real !== true) {
 			return undefined;
 		    }
 
-		    var base_positive = is_positive_ast(operands[0], assume, strict,
+		    let base_positive = is_positive_ast(operands[0], assume, strict,
 							original_assumptions);
 
 		    if(!base_positive) {
@@ -72236,7 +72296,7 @@
 
 			// since haven't implemented is_even, only check
 			// if have a constant that is an even integer
-			var pow_over_two = simplify$2(['/', operands[1], 2],
+			let pow_over_two = simplify$2(['/', operands[1], 2],
 							     original_assumptions);
 			if(is_integer_ast(pow_over_two, assume, original_assumptions))
 			    return true;
@@ -72245,7 +72305,7 @@
 		    }
 
 		    // base must be nonnegative
-		    var pow_real = is_real_ast(operands[1], assume,
+		    let pow_real = is_real_ast(operands[1], assume,
 					       original_assumptions);
 
 		    if(pow_real)
@@ -72304,7 +72364,7 @@
 	    var real = is_real_ast(tree, assumptions, original_assumptions);
 
 	    if(real === true) {
-		var nonneg = is_positive_ast(tree, assumptions, !strict,
+		let nonneg = is_positive_ast(tree, assumptions, !strict,
 					     original_assumptions);
 		if(nonneg === false)
 		    return true;
@@ -72403,7 +72463,7 @@
 	    }
 	      
 	    // check for EOF
-	    if(this.input.length == 0) {
+	    if(this.input.length === 0) {
 	      return { 
 		token_type: "EOF",
 		token_text: "",
@@ -72635,7 +72695,7 @@
 
 
 	const text_rules = [
-	  ['[0-9]+(\\.[0-9]+)?(E[+\\-]?[0-9]+)?', 'NUMBER'],
+	  ['[0-9]+(\\.[0-9]*)?(E[+\\-]?[0-9]+)?', 'NUMBER'],
 	  ['\\.[0-9]+(E[+\\-]?[0-9]+)?', 'NUMBER'],
 	  ['\\*\\*', '^'],
 	  ['\\*', '*'], // there is some variety in multiplication symbols
@@ -72644,7 +72704,7 @@
 	  ['\u2022', '*'], // '•'
 	  ['\u22C5', '*'], // '⋅'
 	  ['\u00D7', '*'], // '×'
-	  ['\/', '/'],
+	  ['/', '/'],
 	  ['-', '-'], // there is quite some variety with unicode hyphens
 	  ['\u058A', '-'], // '֊'
 	  ['\u05BE', '-'], // '־'
@@ -72721,7 +72781,7 @@
 	  ['\u03A9', 'VARMULTICHAR', 'Omega'], // 'Ω'
 	  ['\u03C9', 'VARMULTICHAR', 'omega'], // 'ω'
 
-	  
+
 	  ['oo\\b', 'INFINITY'],
 	  ['OO\\b', 'INFINITY'],
 	  ['infty\\b', 'INFINITY'],
@@ -72858,7 +72918,7 @@
 
 	  advance(params) {
 	    this.token = this.lexer.advance(params);
-	    if (this.token.token_type == 'INVALID') {
+	    if (this.token.token_type === 'INVALID') {
 	      throw new ParseError("Invalid symbol '" + this.token.original_text + "'",
 	        this.lexer.location);
 	    }
@@ -72882,7 +72942,7 @@
 
 	    var result = this.statement_list();
 
-	    if (this.token.token_type != 'EOF') {
+	    if (this.token.token_type !== 'EOF') {
 	      throw new ParseError("Invalid location of '" + this.token.original_text + "'",
 	        this.lexer.location);
 	    }
@@ -72896,7 +72956,7 @@
 
 	    var list = [this.statement()];
 
-	    while (this.token.token_type == ",") {
+	    while (this.token.token_type === ",") {
 	      this.advance();
 	      list.push(this.statement());
 	    }
@@ -72916,11 +72976,11 @@
 	      this.advance();
 	      return ['ldots'];
 	    }
-	    
+
 	    var original_state;
-	    
+
 	    try {
-	      
+
 	      original_state = this.return_state();
 
 	      let lhs=this.statement_a({inside_absolute_value: inside_absolute_value});
@@ -72933,7 +72993,7 @@
 	      let rhs=this.statement_a();
 
 	      return [':', lhs, rhs];
-	      
+
 	    }
 	    catch (e) {
 	      try {
@@ -72947,40 +73007,40 @@
 
 		let lhs = this.statement_a({ parse_absolute_value: false });
 
-		if(this.token.token_type != '|') {
+		if(this.token.token_type !== '|') {
 		  throw(e);
 		}
-		
+
 		this.advance();
-		
+
 		let rhs = this.statement_a({ parse_absolute_value: false });
 
 		return ['|', lhs, rhs];
-		
+
 	      }
 	      catch(e2) {
 		throw(e);  // throw original error
 	      }
 	    }
 	  }
-	  
+
 	  statement_a({ inside_absolute_value = 0, parse_absolute_value = true } = {}) {
-	    
+
 	    var lhs = this.statement_b({ inside_absolute_value: inside_absolute_value,
 					parse_absolute_value: parse_absolute_value });
-	    
-	    while (this.token.token_type == 'OR') {
-	      
-	      var operation = this.token.token_type.toLowerCase();
-	      
+
+	    while (this.token.token_type === 'OR') {
+
+	      let operation = this.token.token_type.toLowerCase();
+
 	      this.advance();
-	      
-	      var rhs = this.statement_b({ inside_absolute_value: inside_absolute_value,
+
+	      let rhs = this.statement_b({ inside_absolute_value: inside_absolute_value,
 					  parse_absolute_value: parse_absolute_value });
-	      
+
 	      lhs = [operation, lhs, rhs];
 	    }
-	    
+
 	    return lhs;
 	  }
 
@@ -72989,13 +73049,13 @@
 
 	    var lhs = this.relation(params);
 
-	    while (this.token.token_type == 'AND') {
+	    while (this.token.token_type === 'AND') {
 
-	      var operation = this.token.token_type.toLowerCase();
+	      let operation = this.token.token_type.toLowerCase();
 
 	      this.advance();
 
-	      var rhs = this.relation(params);
+	      let rhs = this.relation(params);
 
 	      lhs = [operation, lhs, rhs];
 	    }
@@ -73006,46 +73066,46 @@
 
 	  relation(params) {
 
-	    if (this.token.token_type == 'NOT' || this.token.token_type == '!') {
+	    if (this.token.token_type === 'NOT' || this.token.token_type === '!') {
 	      this.advance();
 	      return ['not', this.relation(params)];
 	    }
 
 	    var lhs = this.expression(params);
 
-	    while ((this.token.token_type == '=') || (this.token.token_type == 'NE') ||
-	      (this.token.token_type == '<') || (this.token.token_type == '>') ||
-	      (this.token.token_type == 'LE') || (this.token.token_type == 'GE') ||
-	      (this.token.token_type == 'IN') || (this.token.token_type == 'NOTIN') ||
-	      (this.token.token_type == 'NI') || (this.token.token_type == 'NOTNI') ||
-	      (this.token.token_type == 'SUBSET') || (this.token.token_type == 'NOTSUBSET') ||
-	      (this.token.token_type == 'SUPERSET') || (this.token.token_type == 'NOTSUPERSET')) {
+	    while ((this.token.token_type === '=') || (this.token.token_type === 'NE') ||
+	      (this.token.token_type === '<') || (this.token.token_type === '>') ||
+	      (this.token.token_type === 'LE') || (this.token.token_type === 'GE') ||
+	      (this.token.token_type === 'IN') || (this.token.token_type === 'NOTIN') ||
+	      (this.token.token_type === 'NI') || (this.token.token_type === 'NOTNI') ||
+	      (this.token.token_type === 'SUBSET') || (this.token.token_type === 'NOTSUBSET') ||
+	      (this.token.token_type === 'SUPERSET') || (this.token.token_type === 'NOTSUPERSET')) {
 
-	      var operation = this.token.token_type.toLowerCase();
+	      let operation = this.token.token_type.toLowerCase();
 
-	      var inequality_sequence = 0;
+	      let inequality_sequence = 0;
 
-	      if ((this.token.token_type == '<') || (this.token.token_type == 'LE')) {
+	      if ((this.token.token_type === '<') || (this.token.token_type === 'LE')) {
 	        inequality_sequence = -1;
-	      } else if ((this.token.token_type == '>') || (this.token.token_type == 'GE')) {
+	      } else if ((this.token.token_type === '>') || (this.token.token_type === 'GE')) {
 	        inequality_sequence = 1;
 	      }
 
 	      this.advance();
-	      var rhs = this.expression(params);
+	      let rhs = this.expression(params);
 
-	      if (inequality_sequence == -1) {
-	        if ((this.token.token_type == '<') || this.token.token_type == 'LE') {
+	      if (inequality_sequence === -1) {
+	        if ((this.token.token_type === '<') || this.token.token_type === 'LE') {
 	          // sequence of multiple < or <=
-	          var strict = ['tuple'];
-	          if (operation == '<')
+	          let strict = ['tuple'];
+	          if (operation === '<')
 	            strict.push(true);
 	          else
 	            strict.push(false);
 
-	          var args = ['tuple', lhs, rhs];
-	          while ((this.token.token_type == '<') || this.token.token_type == 'LE') {
-	            if (this.token.token_type == '<')
+	          let args = ['tuple', lhs, rhs];
+	          while ((this.token.token_type === '<') || this.token.token_type === 'LE') {
+	            if (this.token.token_type === '<')
 	              strict.push(true);
 	            else
 	              strict.push(false);
@@ -73058,18 +73118,18 @@
 	          lhs = [operation, lhs, rhs];
 	        }
 
-	      } else if (inequality_sequence == 1) {
-	        if ((this.token.token_type == '>') || this.token.token_type == 'GE') {
+	      } else if (inequality_sequence === 1) {
+	        if ((this.token.token_type === '>') || this.token.token_type === 'GE') {
 	          // sequence of multiple > or >=
-	          var strict = ['tuple'];
-	          if (operation == '>')
+	          let strict = ['tuple'];
+	          if (operation === '>')
 	            strict.push(true);
 	          else
 	            strict.push(false);
 
-	          var args = ['tuple', lhs, rhs];
-	          while ((this.token.token_type == '>') || this.token.token_type == 'GE') {
-	            if (this.token.token_type == '>')
+	          let args = ['tuple', lhs, rhs];
+	          while ((this.token.token_type === '>') || this.token.token_type === 'GE') {
+	            if (this.token.token_type === '>')
 	              strict.push(true);
 	            else
 	              strict.push(false);
@@ -73102,26 +73162,26 @@
 
 
 	  expression(params) {
-	    if (this.token.token_type == '+')
+	    if (this.token.token_type === '+')
 	      this.advance();
 
 	    var lhs = this.term(params);
-	    
-	    while ((this.token.token_type == '+') || (this.token.token_type == '-')
-		   || (this.token.token_type == 'UNION') ||
-	      (this.token.token_type == 'INTERSECT')) {
 
-	      var operation = this.token.token_type.toLowerCase();
-	      var negative = false;
+	    while ((this.token.token_type === '+') || (this.token.token_type === '-')
+		   || (this.token.token_type === 'UNION') ||
+	      (this.token.token_type === 'INTERSECT')) {
 
-	      if (this.token.token_type == '-') {
+	      let operation = this.token.token_type.toLowerCase();
+	      let negative = false;
+
+	      if (this.token.token_type === '-') {
 	        operation = '+';
 	        negative = true;
 	        this.advance();
 	      } else {
 	        this.advance();
 	      }
-	      var rhs = this.term(params);
+	      let rhs = this.term(params);
 	      if (negative) {
 	        rhs = ['-', rhs];
 	      }
@@ -73141,11 +73201,11 @@
 	    do {
 	      keepGoing = false;
 
-	      if (this.token.token_type == '*') {
+	      if (this.token.token_type === '*') {
 	        this.advance();
 	        lhs = ['*', lhs, this.factor(params)];
 	        keepGoing = true;
-	      } else if (this.token.token_type == '/') {
+	      } else if (this.token.token_type === '/') {
 	        this.advance();
 	        lhs = ['/', lhs, this.factor(params)];
 	        keepGoing = true;
@@ -73153,7 +73213,7 @@
 		// this is the one case where a | could indicate a closing absolute value
 		let params2 = Object.assign({}, params);
 		params2.allow_absolute_value_closing = true;
-		var rhs = this.nonMinusFactor(params2);
+		let rhs = this.nonMinusFactor(params2);
 	        if (rhs !== false) {
 	          lhs = ['*', lhs, rhs];
 	          keepGoing = true;
@@ -73167,7 +73227,7 @@
 
 	  factor(params) {
 
-	    if (this.token.token_type == '-') {
+	    if (this.token.token_type === '-') {
 	      this.advance();
 	      return ['-', this.factor(params)];
 	    }
@@ -73175,7 +73235,7 @@
 	    var result = this.nonMinusFactor(params);
 
 	    if (result === false) {
-	      if (this.token.token_type == "EOF") {
+	      if (this.token.token_type === "EOF") {
 	        throw new ParseError("Unexpected end of input", this.lexer.location);
 	      } else {
 	        throw new ParseError("Invalid location of '" + this.token.original_text + "'",
@@ -73192,12 +73252,12 @@
 	    var result = this.baseFactor(params);
 
 	    // allow arbitrary sequence of factorials
-	    if (this.token.token_type == '!' || this.token.token_type == "'") {
+	    if (this.token.token_type === '!' || this.token.token_type === "'") {
 	      if (result === false)
 	        throw new ParseError("Invalid location of " + this.token.token_type,
 	          this.lexer.location);
-	      while (this.token.token_type == '!' || this.token.token_type == "'") {
-	        if (this.token.token_type == '!')
+	      while (this.token.token_type === '!' || this.token.token_type === "'") {
+	        if (this.token.token_type === '!')
 	          result = ['apply', 'factorial', result];
 	        else
 	          result = ['prime', result];
@@ -73205,7 +73265,7 @@
 	      }
 	    }
 
-	    if (this.token.token_type == '^') {
+	    if (this.token.token_type === '^') {
 	      if (result === false) {
 	        throw new ParseError("Invalid location of ^", this.lexer.location);
 	      }
@@ -73230,30 +73290,30 @@
 
 	    var result = false;
 
-	    if (this.token.token_type == 'NUMBER') {
+	    if (this.token.token_type === 'NUMBER') {
 	      result = parseFloat(this.token.token_text);
 	      this.advance();
-	    } else if (this.token.token_type == 'INFINITY') {
-	      result = 'infinity';
+	    } else if (this.token.token_type === 'INFINITY') {
+	      result = Infinity;
 	      this.advance();
-	    } else if (this.token.token_type == 'VAR' || this.token.token_type == 'VARMULTICHAR') {
+	    } else if (this.token.token_type === 'VAR' || this.token.token_type === 'VARMULTICHAR') {
 	      result = this.token.token_text;
 
 	      if (this.appliedFunctionSymbols.includes(result) ||
 	        this.functionSymbols.includes(result)) {
-	        var must_apply = false;
+	        let must_apply = false;
 	        if (this.appliedFunctionSymbols.includes(result))
 	          must_apply = true;
 
 	        this.advance();
 
-	        if (this.token.token_type == '_') {
+	        if (this.token.token_type === '_') {
 	          this.advance();
-	          var subresult = this.baseFactor({ parse_absolute_value: parse_absolute_value });
+	          let subresult = this.baseFactor({ parse_absolute_value: parse_absolute_value });
 
 	          // since baseFactor could return false, must check
 	          if (subresult === false) {
-	            if (this.token.token_type == "EOF") {
+	            if (this.token.token_type === "EOF") {
 	              throw new ParseError("Unexpected end of input",
 	                this.lexer.location);
 	            } else {
@@ -73263,26 +73323,27 @@
 	          }
 	          result = ['_', result, subresult];
 	        }
-	        while (this.token.token_type == "'") {
+
+	        while (this.token.token_type === "'") {
 	          result = ['prime', result];
 	          this.advance();
 	        }
 
-	        if (this.token.token_type == '^') {
+	        if (this.token.token_type === '^') {
 	          this.advance();
 	          result = ['^', result, this.factor({ parse_absolute_value: parse_absolute_value })];
 	        }
 
-	        if (this.token.token_type == '(') {
+	        if (this.token.token_type === '(') {
 	          this.advance();
-	          var parameters = this.statement_list();
+	          let parameters = this.statement_list();
 
-	          if (this.token.token_type != ')') {
+	          if (this.token.token_type !== ')') {
 	            throw new ParseError('Expected )', this.lexer.location);
 	          }
 	          this.advance();
 
-	          if (parameters[0] == 'list') {
+	          if (parameters[0] === 'list') {
 	            // rename from list to tuple
 	            parameters[0] = 'tuple';
 	          }
@@ -73309,7 +73370,7 @@
 		  let original_state = this.return_state();
 
 		  let r = this.leibniz_notation();
-		  
+
 		  if(r) {
 		    // successfully parsed derivative in Leibniz notation, so return
 		    return r;
@@ -73320,14 +73381,14 @@
 		    this.set_state(original_state);
 		  }
 		}
-	      	
+
 	        // determine if should split text into single letter factors
-	        var split = this.splitSymbols;
+	        let split = this.splitSymbols;
 
 	        if (split) {
-	          if (this.token.token_type == 'VARMULTICHAR' ||
+	          if (this.token.token_type === 'VARMULTICHAR' ||
 	            this.unsplitSymbols.includes(result) ||
-	            result.length == 1) {
+	            result.length === 1) {
 	            split = false;
 	          } else if (result.match(/[\d]/g)) {
 	            // don't split if has a number in it
@@ -73341,7 +73402,7 @@
 	          // but with spaces
 	          // then process again
 
-	          for (var i = result.length - 1; i >= 0; i--) {
+	          for (let i = result.length - 1; i >= 0; i--) {
 	            this.lexer.unput(" ");
 	            this.lexer.unput(result[i]);
 	          }
@@ -73355,14 +73416,14 @@
 	          this.advance();
 	        }
 	      }
-	    } else if (this.token.token_type == '(' || this.token.token_type == '[' ||
-	      this.token.token_type == '{') {
-	      var token_left = this.token.token_type;
-	      var expected_right, other_right;
-	      if (this.token.token_type == '(') {
+	    } else if (this.token.token_type === '(' || this.token.token_type === '[' ||
+	      this.token.token_type === '{') {
+	      let token_left = this.token.token_type;
+	      let expected_right, other_right;
+	      if (this.token.token_type === '(') {
 	        expected_right = ')';
 	        other_right = ']';
-	      } else if (this.token.token_type == '[') {
+	      } else if (this.token.token_type === '[') {
 	        expected_right = ']';
 	        other_right = ')';
 	      } else {
@@ -73373,39 +73434,39 @@
 	      this.advance();
 	      result = this.statement_list();
 
-	      var n_elements = 1;
-	      if (result[0] == "list") {
+	      let n_elements = 1;
+	      if (result[0] === "list") {
 	        n_elements = result.length - 1;
 	      }
 
-	      if (this.token.token_type != expected_right) {
-	        if (n_elements != 2 || other_right === null) {
+	      if (this.token.token_type !== expected_right) {
+	        if (n_elements !== 2 || other_right === null) {
 	          throw new ParseError('Expected ' + expected_right,
 	            this.lexer.location);
-	        } else if (this.token.token_type != other_right) {
+	        } else if (this.token.token_type !== other_right) {
 	          throw new ParseError('Expected ) or ]', this.lexer.location);
 	        }
 
 	        // half-open interval
 	        result[0] = 'tuple';
 	        result = ['interval', result];
-	        var closed;
-	        if (token_left == '(')
+	        let closed;
+	        if (token_left === '(')
 	          closed = ['tuple', false, true];
 	        else
 	          closed = ['tuple', true, false];
 	        result.push(closed);
 
 	      } else if (n_elements >= 2) {
-	        if (token_left == '(') {
+	        if (token_left === '(') {
 	          result[0] = 'tuple';
-	        } else if (token_left == '[') {
+	        } else if (token_left === '[') {
 	          result[0] = 'array';
 	        } else {
 	          result[0] = 'set';
 	        }
 	      } else if (token_left === '{') {
-		if(result[0] == '|' || result[0] == ':') {
+		if(result[0] === '|' || result[0] === ':') {
 		  result = ['set', result];  // set builder notation
 		}
 		else {
@@ -73414,9 +73475,9 @@
 	      }
 
 	      this.advance();
-	      
-	    } else if (this.token.token_type == '|' && parse_absolute_value &&
-		       (inside_absolute_value==0 || !allow_absolute_value_closing)) {
+
+	    } else if (this.token.token_type === '|' && parse_absolute_value &&
+		       (inside_absolute_value === 0 || !allow_absolute_value_closing)) {
 
 	      // allow the opening of an absolute value here if either
 	      // - we aren't already inside an absolute value (inside_absolute_value==0), or
@@ -73425,28 +73486,28 @@
 	      // to where the absolute value will close
 
 	      inside_absolute_value += 1;
-	      
+
 	      this.advance();
 
-	      var result = this.statement({ inside_absolute_value: inside_absolute_value });
+	      result = this.statement({ inside_absolute_value: inside_absolute_value });
 	      result = ['apply', 'abs', result];
 
-	      if (this.token.token_type != '|') {
+	      if (this.token.token_type !== '|') {
 	        throw new ParseError('Expected |', this.lexer.location);
 	      }
 
 	      this.advance();
 	    }
 
-	    if (this.token.token_type == '_') {
+	    if (this.token.token_type === '_') {
 	      if (result === false) {
 	        throw new ParseError("Invalid location of _", this.lexer.location);
 	      }
 	      this.advance();
-	      var subresult = this.baseFactor({ parse_absolute_value: parse_absolute_value });
+	      let subresult = this.baseFactor({ parse_absolute_value: parse_absolute_value });
 
 	      if (subresult === false) {
-	        if (this.token.token_type == "EOF") {
+	        if (this.token.token_type === "EOF") {
 	          throw new ParseError("Unexpected end of input", this.lexer.location);
 	        } else {
 	          throw new ParseError("Invalid location of '" + this.token.original_text + "'",
@@ -73465,62 +73526,62 @@
 	    // if unsuccessful, return false
 
 	    var result = this.token.token_text;
-	    
-	    if(!(this.token.token_type == 'VAR' && (result[0]=="d" || result[0] == "∂")
-		 && (result.length==1 || (result.length==2 && /[a-zA-Z]/.exec(result[1]))))) {
+
+	    if(!(this.token.token_type === 'VAR' && (result[0] === "d" || result[0] === "∂")
+		 && (result.length === 1 || (result.length === 2 && /[a-zA-Z]/.exec(result[1]))))) {
 	      return false;
 	    }
-	    
+
 	    // found one of these two possibilities for start of derivative are
 	    // - dx or ∂x (no space, x is a single letter)
-	    // - d or ∂ 
-	    
+	    // - d or ∂
+
 	    let deriv_symbol = result[0];
-	    
+
 	    let n_deriv = 1;
-	    
+
 	    let var1 = "";
 	    let var2s = [];
 	    let var2_exponents = [];
 
-	    if(result.length == 2) 
+	    if(result.length === 2)
 	      var1 = result[1];
 	    else { // result is length 1
-	      
+
 	      // since have just a d or ∂
 	      // must be followed by a ^ or a VARMULTICHAR
 	      this.advance({remove_initial_space: false});
 
-	      if(this.token.token_type == 'VARMULTICHAR') {
+	      if(this.token.token_type === 'VARMULTICHAR') {
 		var1 = this.token.token_text;
 	      }
-	      
+
 	      else {
 		// since not VARMULTICHAR, must be a ^ next
-		if(this.token.token_type != '^') {
+		if(this.token.token_type !== '^') {
 		  return false;
 		}
 
 		// so far have d or ∂ followed by ^
 		// must be followed by an integer
 		this.advance({remove_initial_space: false});
-		
-		if(this.token.token_type != 'NUMBER') {
+
+		if(this.token.token_type !== 'NUMBER') {
 		  return false;
 		}
-		
+
 		n_deriv = parseFloat(this.token.token_text);
 		if(!Number.isInteger(n_deriv)) {
 		  return false;
 		}
-		
+
 		// see if next character is single character
 		this.advance({remove_initial_space: false});
-		
+
 		// either a single letter from VAR
-		// or a VARMULTICHAR 
-		if((this.token.token_type=='VAR' && (/^[a-zA-Z]$/.exec(this.token.token_text)))
-		   || this.token.token_type == 'VARMULTICHAR') {
+		// or a VARMULTICHAR
+		if((this.token.token_type === 'VAR' && (/^[a-zA-Z]$/.exec(this.token.token_text)))
+		   || this.token.token_type === 'VARMULTICHAR') {
 		  var1 = this.token.token_text;
 		}
 		else {
@@ -73528,33 +73589,33 @@
 		}
 	      }
 	    }
-	    
+
 	    // next character must be a /
 
 	    this.advance(); // allow a space this time
 
-	    if(this.token.token_type != '/')
+	    if(this.token.token_type !== '/')
 	      return false;
-	    
+
 	    // find sequence of
 	    // derivative symbol followed by a single character or VARMULTICHAR (with no space)
 	    // optionally followed by a ^ and an integer (with no spaces)
 	    // (with spaces allowed between elements of sequence)
 	    // End when sum of exponents meets or exceeds n_deriv
-	    
+
 	    let exponent_sum = 0;
-	    
+
 	    this.advance(); // allow space just after the /
 
 	    while(true) {
-	      
+
 	      // next must either be
 	      // - a VAR whose first character matches derivative symbol
 	      //   and whose second character is a letter, or
 	      // - a single character VAR that matches derivative symbol
 	      //   which must be followed by a VARMULTICHAR (with no space)
-	      
-	      if(this.token.token_type != 'VAR'|| this.token.token_text[0] !== deriv_symbol) {
+
+	      if(this.token.token_type !== 'VAR'|| this.token.token_text[0] !== deriv_symbol) {
 		return false;
 	      }
 
@@ -73570,8 +73631,8 @@
 	      let token_text = this.token.token_text;
 
 	      // derivative symbol and variable together
-	      if(token_text.length == 2) {
-		if(/[a-zA-Z]/.exec(token_text[1])) 
+	      if(token_text.length === 2) {
+		if(/[a-zA-Z]/.exec(token_text[1]))
 		  var2s.push(token_text[1]);
 		else {
 		  return false;
@@ -73585,80 +73646,76 @@
 		}
 		var2s.push(this.token.token_text);
 	      }
-	      
+
 	      // have derivative and variable, now check for optional ^ followed by number
-	      
+
 	      let this_exponent = 1;
-	      
+
 	      this.advance({remove_initial_space: false});
-	      
+
 	      if(this.token.token_type === '^') {
-		
+
 		this.advance({remove_initial_space: false});
-		
-		if(this.token.token_type != 'NUMBER') {
+
+		if(this.token.token_type !== 'NUMBER') {
 		  return false;
 		}
-		  
+
 		this_exponent = parseFloat(this.token.token_text);
 		if(!Number.isInteger(this_exponent)) {
 		  return false;
 		}
-		
+
 		this.advance({remove_initial_space: false});
-		
-	      }	  
+
+	      }
 	      var2_exponents.push(this_exponent);
 	      exponent_sum += this_exponent;
-	      
+
 	      if(exponent_sum > n_deriv) {
 		return false;
 	      }
-	      
+
 	      // possibly found derivative
-	      if(exponent_sum == n_deriv) {
+	      if(exponent_sum === n_deriv) {
 
 		// check to make sure next token isn't another VAR or VARMULTICHAR
 		// in this case, the derivative isn't separated from what follows
-		if(this.token.token_type == "VAR" || this.token.token_type == "VARMULTICHAR") {
+		if(this.token.token_type === "VAR" || this.token.token_type === "VARMULTICHAR") {
 		  return false;
 		}
 
 		// found derivative!
-		
+
 		// if last token was a space advance to next non-space token
-		if(this.token.token_type=="SPACE")
+		if(this.token.token_type === "SPACE")
 		  this.advance();
 
 		let result_name = "derivative_leibniz";
-		if(deriv_symbol == "∂")
+		if(deriv_symbol === "∂")
 		  result_name = "partial_" + result_name;
 
 		result = [result_name];
-		
-		if(n_deriv == 1)
+
+		if(n_deriv === 1)
 		  result.push(var1);
 		else
 		  result.push(["tuple", var1, n_deriv]);
-		
+
 		let r2 = [];
 		for(let i=0; i<var2s.length; i+=1) {
-		  if(var2_exponents[i] == 1)
+		  if(var2_exponents[i] === 1)
 		    r2.push(var2s[i]);
 		  else
 		    r2.push(["tuple", var2s[i], var2_exponents[i]]);
 		}
 		r2 = ["tuple"].concat(r2);
-		
+
 		result.push(r2);
-		
+
 		return result;
 	      }
 	    }
-	  
-	    // failed to get derivative, push back extra tokens on lexer
-	    return false;
-	    
 	  }
 	}
 
@@ -73683,7 +73740,7 @@
 	    var operands = tree.slice(1);
 	    operands = operands.map( v => collapse_unary_minus(v));
 
-	    if (operator == "-") {
+	    if (operator === "-") {
 		if (typeof operands[0] === 'number')
 		    return -operands[0];
 		// check if operand is a multiplication with that begins with
@@ -73721,6 +73778,10 @@
 		    [expr_or_tree.variables()]);
 
 	    tree = evaluate_numbers(tree, assumptions, max_digits);
+	    // if already have it down to a number of variable, no need for more simplification
+	    if(!Array.isArray(tree)) {
+	      return tree;
+	    }
 	    tree = simplify_logical(tree, assumptions);
 	    tree = collect_like_terms_factors(tree, assumptions, max_digits);
 
@@ -73758,306 +73819,324 @@
 	}
 
 	function evaluate_numbers_sub(tree, assumptions, max_digits) {
-	    // assume that tree has been sorted to default order (while flattened)
-	    // and then unflattened_right
-	    // returns unflattened tree
+	  // assume that tree has been sorted to default order (while flattened)
+	  // and then unflattened_right
+	  // returns unflattened tree
 
-	    if(tree===undefined)
-		return tree;
+	  if(tree===undefined)
+	    return tree;
 
-	    if(typeof tree === 'number')
-		return tree;
+	  if(typeof tree === 'number')
+	    return tree;
 
 	  var c = evaluate_to_constant(tree);
 
-	    if(c !== null) {
-		if(typeof c === 'number') {
-		    if(Number.isFinite(c)) {
-			if(max_digits == Infinity)
-			    return c;
-			let c_minround = evalf(c, 14);
-			let c_round = evalf(c, max_digits);
-			if(c_round==c_minround)
-			    return c;
-			let c_frac = math$21.fraction(c);
-			if(c_frac.n < 1E6 || c_frac.d < 1E6) {
-			    let c_reconstruct = evalf(c_frac.s*c_frac.n/c_frac.d, 14);
-			    if(c_reconstruct == c_minround)
-				return ['/', c_frac.s*c_frac.n, c_frac.d];
-			}
-		    }
-		    else if(!Number.isNaN(c))
-			return c;
-		}
+	  if(c !== null) {
+	    if(typeof c === 'number') {
+	      if(Number.isFinite(c)) {
+	        if(max_digits === Infinity)
+	          return c;
+	        if(Number.isInteger(c)) {
+	          return c;
+	        }
+	        let c_minround = evalf(c, 14);
+	        let c_round = evalf(c, max_digits);
+	        if(c_round === c_minround)
+	          return c;
+
+	        // // if expression already contained a decimal,
+	        // // return the number
+	        // if(contains_decimal_number(tree)) {
+	        //   return c;
+	        // }
+
+	        let c_frac = math$19.fraction(c);
+	        let c_frac_d_round = evalf(c_frac.d, 3);
+
+	        if(c_frac.n < 1E4 || (c_frac_d_round === c_frac.d)) {
+	          let c_reconstruct = evalf(c_frac.s*c_frac.n/c_frac.d, 14);
+	          if(c_reconstruct === c_minround) {
+	            if(c_frac.d === 1) {
+	              return c_frac.s*c_frac.n;
+	            } else {
+	              return ['/', c_frac.s*c_frac.n, c_frac.d];
+	            }
+	          }
+	        }
+	      }
+	      else if(!Number.isNaN(c)) {
+	        return c;
+	      }
 	    }
+	  }
 
-	    if(!Array.isArray(tree))
-		return tree;
+	  if(!Array.isArray(tree))
+	    return tree;
 
-	    var operator = tree[0];
-	    var operands = tree.slice(1).map(v => evaluate_numbers_sub(
-		v, assumptions, max_digits));
+	  var operator = tree[0];
+	  var operands = tree.slice(1).map(v => evaluate_numbers_sub(
+	    v, assumptions, max_digits));
 
-	    if(operator === '+') {
-		var left = operands[0];
-		var right = operands[1];
+	  if(operator === '+') {
+	    let left = operands[0];
+	    let right = operands[1];
 
-		if(right === undefined)
-		    return left;
+	    if(right === undefined)
+	      return left;
 
-		if(typeof left === 'number') {
-		    if(left==0)
-			return right;
-		    if(typeof right === 'number')
-			return left + right;
-		    // check if right is an addition with that begins with
-		    // a constant.  If so combine with left
-		    if(Array.isArray(right) && right[0] === '+'
-		       && (typeof right[1] === 'number')) {
-			return ['+', left+right[1], right[2]];
-		    }
-		    // check if right is an addition with that begins with
-		    // a constant.  If so combine with left
-		    if(Array.isArray(right) && right[0] === '+'
-		       && (typeof right[2] === 'number')) {
-			return ['+', left+right[2], right[1]];
-		    }
-
-		}
-		if(typeof right === 'number')
-		    if(right == 0)
-			return left;
-
-		return [operator].concat(operands);
-	    }
-	    if(operator === '-') {
-		if(typeof operands[0] === 'number')
-		    return -operands[0];
-		// check if operand is a multiplication with that begins with
-		// a constant.  If so combine with constant
-		if(Array.isArray(operands[0]) && operands[0][0] === '*'
-		   && (typeof operands[0][1] === 'number')) {
-		    return ['*', -operands[0][1]].concat(operands[0].slice(2));
-		}
-		// check if operand is a division with that begins with
-		// either
-		/// (A) a constant or
-		//  (B) a multiplication that begins with a constant.
-		// If so. combine with constant
-		if(Array.isArray(operands[0]) && operands[0][0] === '/') {
-		    if(typeof operands[0][1] === 'number')
-			return ['/', -operands[0][1], operands[0][2]];
-		    if(Array.isArray(operands[0][1]) && operands[0][1][0] === '*'
-		       && (typeof operands[0][1][1] === 'number')) {
-			return ['/', [
-			    '*', -operands[0][1][1]].concat(operands[0][1].slice(2)),
-				operands[0][2]];
-
-		    }
-
-		}
-
-		return [operator].concat(operands);
-	    }
-	    if(operator === '*') {
-		var left = operands[0];
-		var right = operands[1];
-
-		if(right === undefined)
-		    return left;
-
-		if(typeof left === 'number') {
-		    if(isNaN(left))
-			return NaN;
-
-		    if(typeof right === 'number')
-		    	return left * right;
-
-		    if(!isFinite(left)) {
-			if(left==Infinity && is_negative_ast(right)
-			   || left==-Infinity && is_positive_ast(right))
-			    return -Infinity
-			if(is_nonzero_ast(right) === false)
-			    return NaN;
-			return Infinity;
-		    }
-		    if(left == 0) {
-			return 0;
-		    }
-		    if(left == 1)
-			return right;
-
-		    if(left == -1) {
-			return ['-', right];
-		    }
-		    // check if right is a multiplication with that begins with
-		    // a constant.  If so combine with left
-		    if(Array.isArray(right) && right[0] === '*'
-		       && (typeof right[1] === 'number')) {
-			left = left*right[1];
-			right = right[2];
-			if(left == 1)
-			    return right;
-			if(left == -1)
-			    return ['-', right];
-			return ['*', left, right];
-		    }
-
-		}
-		if(typeof right === 'number') {
-		    if(isNaN(right))
-			return NaN;
-		    if(!isFinite(right)) {
-			if(right==Infinity && is_negative_ast(left)
-			   || right==-Infinity && is_positive_ast(left))
-			    return -Infinity
-			if(is_nonzero_ast(left) === false)
-			    return NaN;
-			return Infinity;
-		    }
-		    if(right == 0) {
-			return 0;
-		    }
-		    if(right == 1)
-			return left;
-		    if(right == -1) {
-			return ['-', left];
-		    }
-		    // check if left is a multiplication with that begins with
-		    // a constant.  If so combine with right
-		    if(Array.isArray(left) && left[0] === '*'
-		       && (typeof left[1] === 'number')) {
-			right = right*left[1];
-			left = left[2];
-			if(right == 1)
-			    return left;
-			if(right == -1)
-			    return ['-', left];
-			return ['*', left, right];
-		    }
-		}
-
-		return [operator].concat(operands);
-	    }
-
-	    if(operator === '/') {
-
-		var numer = operands[0];
-		var denom = operands[1];
-
-		if(typeof numer === 'number') {
-		    if(numer == 0) {
-			var denom_nonzero = is_nonzero_ast(denom, assumptions);
-			if(denom_nonzero)
-			    return 0;
-			if(denom_nonzero === false)
-			    return NaN;  // 0/0
-		    }
-
-		    if(typeof denom === 'number') {
-			var quotient = numer/denom;
-			if(max_digits == Infinity
-			   || math$21.round(quotient, max_digits) == quotient)
-			    return quotient;
-			else if (denom < 0)
-			    return ['/', -numer, -denom];
-		    }
-
-		    // check if denom is a multiplication with that begins with
-		    // a constant.  If so combine with numerator
-		    if(Array.isArray(denom) && denom[0] === '*'
-		       && (typeof denom[1] === 'number')) {
-			var quotient = numer/denom[1];
-
-			if(max_digits == Infinity
-			   || math$21.round(quotient, max_digits) == quotient) {
-			    return ['/', quotient, denom[2]];
-			}
-		    }
-		}
-		else if(typeof denom === 'number') {
-		    // check if numer is a multiplication with that begins with
-		    // a constant.  If so combine with denominator
-		    if(Array.isArray(numer) && numer[0] === '*'
-		       && (typeof numer[1] === 'number')) {
-			var quotient = numer[1]/denom;
-			if(max_digits == Infinity
-			   || math$21.round(quotient, max_digits) == quotient) {
-			    if(quotient == 1)
-				return numer[2];
-			    else
-				return ['*', quotient, numer[2]];
-			}
-			// if denom is negative move negative to number
-			if(denom < 0)
-			    return ['/', ['*', -numer[1], numer[2]], -denom];
-		    }
-		    // if denonimator is negative, negate whole fraction
-		    if(denom < 0) {
-			if(Array.isArray(numer) && numer[0] === '-')
-			    return ['/', numer[1], -denom];
-			else
-			    return ['-', ['/', numer, -denom]];
-
-		    }
-		}
-		return [operator].concat(operands);
+	    if(typeof left === 'number') {
+	      if(left === 0)
+	        return right;
+	      if(typeof right === 'number')
+	        return left + right;
+	      // check if right is an addition with that begins with
+	      // a constant.  If so combine with left
+	      if(Array.isArray(right) && right[0] === '+'
+	          && (typeof right[1] === 'number')) {
+	        return ['+', left+right[1], right[2]];
+	      }
+	      // check if right is an addition with that begins with
+	      // a constant.  If so combine with left
+	      if(Array.isArray(right) && right[0] === '+'
+	          && (typeof right[2] === 'number')) {
+	        return ['+', left+right[2], right[1]];
+	      }
 
 	    }
+	    if(typeof right === 'number')
+	      if(right === 0)
+	        return left;
 
-	    if(operator === '^') {
+	    return [operator].concat(operands);
+	  }
+	  if(operator === '-') {
+	    if(typeof operands[0] === 'number')
+	      return -operands[0];
+	    // check if operand is a multiplication with that begins with
+	    // a constant.  If so combine with constant
+	    if(Array.isArray(operands[0]) && operands[0][0] === '*'
+	        && (typeof operands[0][1] === 'number')) {
+	      return ['*', -operands[0][1]].concat(operands[0].slice(2));
+	    }
+	    // check if operand is a division with that begins with
+	    // either
+	    /// (A) a constant or
+	    //  (B) a multiplication that begins with a constant.
+	    // If so. combine with constant
+	    if(Array.isArray(operands[0]) && operands[0][0] === '/') {
+	      if(typeof operands[0][1] === 'number')
+	        return ['/', -operands[0][1], operands[0][2]];
+	      if(Array.isArray(operands[0][1]) && operands[0][1][0] === '*'
+	          && (typeof operands[0][1][1] === 'number')) {
+	        return ['/', [
+	          '*', -operands[0][1][1]].concat(operands[0][1].slice(2)),
+	        operands[0][2]];
 
-		var base = operands[0];
-		var pow = operands[1];
+	      }
 
-		if(typeof pow === 'number') {
-		    if(pow == 0) {
-			if(!math$21.pow_strict)
-			    return 1;
-			var base_nonzero = is_nonzero_ast(base, assumptions);
-			if(base_nonzero && (base !== Infinity) && (base !== -Infinity))
-			    return 1;
-			if(base_nonzero === false)
-			    return NaN;   // 0^0
-		    }
-		    else if(pow == 1) {
-			return base;
-		    }
-		    else if(typeof base === 'number') {
-			var result = math$21.pow(base, pow);
-			if(max_digits == Infinity
-			   || math$21.round(result, max_digits) == result)
-			    return result;
-
-		    }
-		}
-		return [operator].concat(operands);
 	    }
 
 	    return [operator].concat(operands);
+	  }
+	  if(operator === '*') {
+	    let left = operands[0];
+	    let right = operands[1];
+
+	    if(right === undefined)
+	      return left;
+
+	    if(typeof left === 'number') {
+	      if(isNaN(left))
+	        return NaN;
+
+	      if(typeof right === 'number')
+	        return left * right;
+
+	      if(!isFinite(left)) {
+	        if((left === Infinity && is_negative_ast(right))
+	            || (left === -Infinity && is_positive_ast(right)))
+	          return -Infinity
+	        if(is_nonzero_ast(right) === false)
+	          return NaN;
+	        return Infinity;
+	      }
+	      if(left === 0) {
+	        return 0;
+	      }
+	      if(left === 1)
+	        return right;
+
+	      if(left === -1) {
+	        return ['-', right];
+	      }
+	      // check if right is a multiplication with that begins with
+	      // a constant.  If so combine with left
+	      if(Array.isArray(right) && right[0] === '*'
+	          && (typeof right[1] === 'number')) {
+	        left = left*right[1];
+	        right = right[2];
+	        if(left === 1)
+	          return right;
+	        if(left === -1)
+	          return ['-', right];
+	        return ['*', left, right];
+	      }
+
+	    }
+	    if(typeof right === 'number') {
+	      if(isNaN(right))
+	        return NaN;
+	      if(!isFinite(right)) {
+	        if((right === Infinity && is_negative_ast(left))
+	            || (right === -Infinity && is_positive_ast(left)))
+	          return -Infinity
+	        if(is_nonzero_ast(left) === false)
+	          return NaN;
+	        return Infinity;
+	      }
+	      if(right === 0) {
+	        return 0;
+	      }
+	      if(right === 1)
+	        return left;
+	      if(right === -1) {
+	        return ['-', left];
+	      }
+	      // check if left is a multiplication with that begins with
+	      // a constant.  If so combine with right
+	      if(Array.isArray(left) && left[0] === '*'
+	          && (typeof left[1] === 'number')) {
+	        right = right*left[1];
+	        left = left[2];
+	        if(right === 1)
+	          return left;
+	        if(right === -1)
+	          return ['-', left];
+	        return ['*', left, right];
+	      }
+	    }
+
+	    return [operator].concat(operands);
+	  }
+
+	  if(operator === '/') {
+
+	    let numer = operands[0];
+	    let denom = operands[1];
+
+	    if(typeof numer === 'number') {
+	      if(numer === 0) {
+	        let denom_nonzero = is_nonzero_ast(denom, assumptions);
+	        if(denom_nonzero)
+	          return 0;
+	        if(denom_nonzero === false)
+	          return NaN;  // 0/0
+	      }
+
+	      if(typeof denom === 'number') {
+	        let quotient = numer/denom;
+	        if(max_digits === Infinity
+	            || math$19.round(quotient, max_digits) === quotient)
+	          return quotient;
+	        else if (denom < 0)
+	          return ['/', -numer, -denom];
+	      }
+
+	      // check if denom is a multiplication with that begins with
+	      // a constant.  If so combine with numerator
+	      if(Array.isArray(denom) && denom[0] === '*'
+	          && (typeof denom[1] === 'number')) {
+	        let quotient = numer/denom[1];
+
+	        if(max_digits === Infinity
+	            || math$19.round(quotient, max_digits) === quotient) {
+	          return ['/', quotient, denom[2]];
+	        }
+	      }
+	    }
+	    else if(typeof denom === 'number') {
+	      // check if numer is a multiplication with that begins with
+	      // a constant.  If so combine with denominator
+	      if(Array.isArray(numer) && numer[0] === '*'
+	          && (typeof numer[1] === 'number')) {
+	        let quotient = numer[1]/denom;
+	        if(max_digits === Infinity
+	            || math$19.round(quotient, max_digits) === quotient) {
+	          if(quotient === 1)
+	            return numer[2];
+	          else
+	            return ['*', quotient, numer[2]];
+	        }
+	        // if denom is negative move negative to number
+	        if(denom < 0)
+	          return ['/', ['*', -numer[1], numer[2]], -denom];
+	      }
+	      // if denonimator is negative, negate whole fraction
+	      if(denom < 0) {
+	      if(Array.isArray(numer) && numer[0] === '-')
+	        return ['/', numer[1], -denom];
+	      else
+	        return ['-', ['/', numer, -denom]];
+
+	      }
+	    }
+	    return [operator].concat(operands);
+
+	  }
+
+	  if(operator === '^') {
+
+	    let base = operands[0];
+	    let pow = operands[1];
+
+	    if(typeof pow === 'number') {
+	      if(pow === 0) {
+	        if(!math$19.pow_strict)
+	          return 1;
+	        let base_nonzero = is_nonzero_ast(base, assumptions);
+	        if(base_nonzero && (base !== Infinity) && (base !== -Infinity))
+	          return 1;
+	        if(base_nonzero === false)
+	          return NaN;   // 0^0
+	      }
+	      else if(pow === 1) {
+	        return base;
+	      }
+	      else if(typeof base === 'number') {
+	        let result = math$19.pow(base, pow);
+	        if(max_digits === Infinity
+	            || math$19.round(result, max_digits) === result)
+	          return result;
+
+	      }
+	    }
+	    return [operator].concat(operands);
+	  }
+
+	  return [operator].concat(operands);
 	}
 
 
 	function evaluate_numbers(expr_or_tree, assumptions, max_digits) {
 
-	    if(max_digits === undefined ||
-	       !(Number.isInteger(max_digits) || max_digits == Infinity))
-		max_digits = 4;
+	  if(max_digits === undefined ||
+	      !(Number.isInteger(max_digits) || max_digits === Infinity))
+	    max_digits = 4;
 
-	    var tree=get_tree(expr_or_tree);
+	  var tree=get_tree(expr_or_tree);
 
 
-	    if(assumptions===undefined && expr_or_tree.context !== undefined
-	       && expr_or_tree.context.get_assumptions !== undefined)
-		assumptions = expr_or_tree.context.get_assumptions(
-		    [expr_or_tree.variables()]);
-	  
-	    tree = unflattenRight(default_order(flatten(tree)));
+	  if(assumptions===undefined && expr_or_tree.context !== undefined
+	      && expr_or_tree.context.get_assumptions !== undefined)
+	    assumptions = expr_or_tree.context.get_assumptions(
+	      [expr_or_tree.variables()]);
 
-	    var result = default_order(evaluate_numbers_sub(
-		tree, assumptions, max_digits));
+	  tree = unflattenRight(default_order(flatten(tree)));
 
-	    return flatten(result);
+	  var result = default_order(evaluate_numbers_sub(
+	    tree, assumptions, max_digits));
+
+	  return flatten(result);
 	}
 
 	function collect_like_terms_factors(expr_or_tree, assumptions, max_digits) {
@@ -74329,11 +74408,11 @@
 		if(result_n["sign_change"]*result_d["sign_change"] < 0)
 		    numer_factors[0] = ['-', numer_factors[0]];
 
-		if(numer_factors.length == 1)
+		if(numer_factors.length === 1)
 		    numer = numer_factors[0];
 		else
 		    numer = ['*'].concat(numer_factors);
-		if(denom_factors.length == 1)
+		if(denom_factors.length === 1)
 		    denom = denom_factors[0];
 		else
 		    denom = ['*'].concat(denom_factors);
@@ -74361,7 +74440,8 @@
 	    evaluate_numbers: evaluate_numbers,
 	    collect_like_terms_factors: collect_like_terms_factors,
 	    collapse_unary_minus: collapse_unary_minus,
-	    simplify_ratios: simplify_ratios
+	    simplify_ratios: simplify_ratios,
+	    default_order: default_order
 	});
 
 	function tuples_to_vectors(expr_or_tree) {
@@ -74386,7 +74466,7 @@
 	    var operands = tree.slice(1);
 
 	    if(operator === 'tuple') {
-		var result = ['vector'].concat( operands.map( function(v,i) { return tuples_to_vectors(v); } ) );
+		let result = ['vector'].concat( operands.map( function(v,i) { return tuples_to_vectors(v); } ) );
 		return result;
 	    }
 
@@ -74394,23 +74474,23 @@
 		if(operands[1][0] === 'tuple') {
 		    // special case for function applied to tuple.
 		    // preserve tuple
-		    var f = tuples_to_vectors(operands[0]);
-		    var f_operands = operands[1].slice(1);
-		    var f_tuple = ['tuple'].concat( f_operands.map( function(v,i) { return tuples_to_vectors(v); } ) );
+		    let f = tuples_to_vectors(operands[0]);
+		    let f_operands = operands[1].slice(1);
+		    let f_tuple = ['tuple'].concat( f_operands.map( function(v,i) { return tuples_to_vectors(v); } ) );
 		    return ['apply', f, f_tuple];
 		}
 		// no special case for function applied to single argument
 	    }
 	    else if(operator === 'gts' || operator === 'lts' || operator === 'interval') {
 		// don't change tuples of gts, lts, or interval
-		var args = operands[0];
-		var booleans = operands[1];
+		let args = operands[0];
+		let booleans = operands[1];
 
-		if(args[0] != 'tuple' || booleans[0] != 'tuple')
+		if(args[0] !== 'tuple' || booleans[0] !== 'tuple')
 		    // something wrong if args or strict are not tuples
 		    throw new Error("Badly formed ast");
 
-		var args2= ['tuple'].concat( args.slice(1).map( function(v,i) { return tuples_to_vectors(v); } ) );
+		let args2= ['tuple'].concat( args.slice(1).map( function(v,i) { return tuples_to_vectors(v); } ) );
 
 		return [operator, args2, booleans];
 	    }
@@ -74440,15 +74520,15 @@
 	    var operator = tree[0];
 	    var operands = tree.slice(1);
 
-	    if(operator === 'tuple' && operands.length==2) {
+	    if(operator === 'tuple' && operands.length === 2) {
 		// open interval
-		var result = ['tuple'].concat( operands.map( function(v,i) { return to_intervals(v); } ) );
+		let result = ['tuple'].concat( operands.map( function(v,i) { return to_intervals(v); } ) );
 		result = ['interval', result, ['tuple', false, false]];
 		return result;
 	    }
-	    if(operator === 'array' && operands.length==2) {
+	    if(operator === 'array' && operands.length === 2) {
 		// closed interval
-		var result = ['tuple'].concat( operands.map( function(v,i) { return to_intervals(v); } ) );
+		let result = ['tuple'].concat( operands.map( function(v,i) { return to_intervals(v); } ) );
 		result = ['interval', result, ['tuple', true, true]];
 		return result;
 	    }
@@ -74457,23 +74537,23 @@
 		if(operands[1][0] === 'tuple') {
 		    // special case for function applied to tuple.
 		    // preserve tuple
-		    var f = to_intervals(operands[0]);
-		    var f_operands = operands[1].slice(1);
-		    var f_tuple = ['tuple'].concat( f_operands.map( function(v,i) { return to_intervals(v); } ) );
+		    let f = to_intervals(operands[0]);
+		    let f_operands = operands[1].slice(1);
+		    let f_tuple = ['tuple'].concat( f_operands.map( function(v,i) { return to_intervals(v); } ) );
 		    return ['apply', f, f_tuple];
 		}
 		// no special case for function applied to single argument
 	    }
 	    else if(operator === 'gts' || operator === 'lts' || operator === 'interval') {
 		// don't change tuples of gts, lts, or interval
-		var args = operands[0];
-		var booleans = operands[1];
+		let args = operands[0];
+		let booleans = operands[1];
 
-		if(args[0] != 'tuple' || booleans[0] != 'tuple')
+		if(args[0] !== 'tuple' || booleans[0] !== 'tuple')
 		    // something wrong if args or strict are not tuples
 		    throw new Error("Badly formed ast");
 
-		var args2= ['tuple'].concat( args.slice(1).map( function(v,i) { return to_intervals(v); } ) );
+		let args2= ['tuple'].concat( args.slice(1).map( function(v,i) { return to_intervals(v); } ) );
 
 		return [operator, args2, booleans];
 	    }
@@ -74486,228 +74566,346 @@
 
 
 	function expand(expr_or_tree, no_division) {
-	    var tree = get_tree(expr_or_tree);
+	  // Initial implementation of expand
+	  // Expands polynomials only up to degree 4
 
-	    var transformations = [];
-	    transformations.push([textToAst$2.convert("a*(b+c)"), textToAst$2.convert("a*b+a*c")]);
-	    transformations.push([textToAst$2.convert("(a+b)*c"), textToAst$2.convert("a*c+b*c")]);
-	    if(!no_division)
-		transformations.push([textToAst$2.convert("(a+b)/c"), textToAst$2.convert("a/c+b/c")]);
-	    transformations.push([textToAst$2.convert("-(a+b)"), textToAst$2.convert("-a-b")]);
-	    transformations.push([textToAst$2.convert("a(-b)"), textToAst$2.convert("-ab")]);
+	  var tree = get_tree(expr_or_tree);
 
-	    tree = applyAllTransformations(tree, transformations, 20);
+	  var transformations = [];
+	  transformations.push([textToAst$2.convert("a*(b+c)"), textToAst$2.convert("a*b+a*c")]);
+	  transformations.push([textToAst$2.convert("(a+b)*c"), textToAst$2.convert("a*c+b*c")]);
+	  if(!no_division)
+	    transformations.push([textToAst$2.convert("(a+b)/c"), textToAst$2.convert("a/c+b/c")]);
+	  transformations.push([textToAst$2.convert("-(a+b)"), textToAst$2.convert("-a-b")]);
+	  transformations.push([textToAst$2.convert("a(-b)"), textToAst$2.convert("-ab")]);
+	  transformations.push([textToAst$2.convert("(a+b)^2"), textToAst$2.convert("a^2+2ab+b^2")]);
+	  transformations.push([textToAst$2.convert("(a+b)^3"), textToAst$2.convert("a^3+3a^2b+3ab^2+b^3")]);
+	  transformations.push([textToAst$2.convert("(a+b)^4"), textToAst$2.convert("a^4+4a^3b+6a^2b^2+4ab^3+b^4")]);
+	  transformations.push([textToAst$2.convert("(-a)^2"), textToAst$2.convert("a^2")]);
+	  transformations.push([textToAst$2.convert("(-a)^3"), textToAst$2.convert("-a^3")]);
+	  transformations.push([textToAst$2.convert("(-a)^4"), textToAst$2.convert("a^4")]);
 
-	    tree = flatten(tree);
+	  tree = applyAllTransformations(tree, transformations, 20);
 
-	    tree = normalize_negatives(tree);
+	  tree = flatten(tree);
 
-	    return tree;
+	  tree = evaluate_numbers(tree);
+
+	  tree = collect_like_terms_factors(tree);
+
+	  tree = normalize_negatives(tree);
+
+	  return tree;
 	}
 
 	function expand_relations(expr_or_tree) {
-	    var tree = get_tree(expr_or_tree);
-	    return transform$2(tree, expand_relations_transform);
+	  var tree = get_tree(expr_or_tree);
+	  return transform$2(tree, expand_relations_transform);
 	}
 
 	function expand_relations_transform (ast) {
-	    if(!Array.isArray(ast)) {
-		return ast;
-	    }
-
-	    var operator = ast[0];
-	    var operands = ast.slice(1);
-	    // since transforms in bottom up fashion,
-	    // operands have already been expanded
-
-	    if(operator === '=') {
-		if(operands.length <= 2)
-		    return ast;
-		var result = ['and'];
-		for(var i=0; i < operands.length-1; i++) {
-		    result.push(['=', operands[i], operands[i+1]]);
-		}
-		return result;
-	    }
-	    if(operator === 'gts' || operator === 'lts') {
-		var args = operands[0];
-		var strict = operands[1];
-
-		if(args[0] != 'tuple' || strict[0] != 'tuple')
-		    // something wrong if args or strict are not tuples
-		    throw new Error("Badly formed ast");
-
-
-		var comparisons = [];
-		for(var i=1; i< args.length-1; i++) {
-		    var new_operator;
-		    if(strict[i]) {
-			if(operator == 'lts')
-			    new_operator = '<';
-			else
-			    new_operator = '>';
-		    }
-		    else {
-			if(operator == 'lts')
-			    new_operator = 'le';
-			else
-			    new_operator = 'ge';
-		    }
-		    comparisons.push([new_operator, args[i], args[i+1]]);
-		}
-
-		var result = ['and', comparisons[0], comparisons[1]];
-		for(var i=2; i<comparisons.length; i++)
-		    result = ['and', result, comparisons[i]];
-		return result;
-	    }
-
-	    // convert interval containment to inequalities
-	    if(operator === 'in' || operator === 'notin' ||
-	       operator === 'ni' || operator === 'notni') {
-
-		var negate=false;
-		if(operator === 'notin' || operator === 'notni')
-		    negate=true;
-
-		if(operator === 'in' || operator === 'notin') {
-		    var x = operands[0];
-		    var interval = operands[1];
-		}
-		else {
-		    var x = operands[1];
-		    var interval = operands[0];
-		}
-
-		// convert any tuples/arrays of length two to intervals
-		interval = to_intervals(interval);
-
-		// if not interval, don't transform
-		if(interval[0] !== 'interval')
-		    return ast;
-
-		var args = interval[1];
-		var closed = interval[2];
-		if(args[0] !== 'tuple' || closed[0] !== 'tuple')
-		    throw new Error("Badly formed ast");
-
-		var a = args[1];
-		var b = args[2];
-
-		var comparisons = [];
-		if(closed[1]) {
-		    if(negate)
-			comparisons.push(['<', x, a]);
-		    else
-			comparisons.push(['ge', x, a]);
-		}
-		else {
-		    if(negate)
-			comparisons.push(['le', x, a]);
-		    else
-			comparisons.push(['>', x, a]);
-		}
-		if(closed[2]) {
-		    if(negate)
-			comparisons.push(['>', x, b]);
-		    else
-			comparisons.push(['le', x, b]);
-		}
-		else {
-		    if(negate)
-			comparisons.push(['ge', x, b]);
-		    else
-			comparisons.push(['<', x, b]);
-		}
-
-		var result;
-		if(negate)
-		    result =  ['or'].concat(comparisons);
-		else
-		    result =  ['and'].concat(comparisons);
-
-		return result;
-	    }
-
-	    // convert interval containment to inequalities
-	    if(operator === 'subset' || operator === 'notsubset' ||
-	       operator === 'superset' || operator === 'notsuperset') {
-
-		var negate=false;
-		if(operator === 'notsubset' || operator === 'notsuperset')
-		    negate=true;
-
-		if(operator === 'subset' || operator === 'notsubset') {
-		    var small = operands[0];
-		    var big = operands[1];
-		}
-		else {
-		    var small = operands[1];
-		    var big = operands[0];
-		}
-
-		// convert any tuples/arrays of length two to intervals
-		small = to_intervals(small);
-		big = to_intervals(big);
-
-		// if not interval, don't transform
-		if(small[0] !== 'interval' || big[0] !== 'interval')
-		    return ast;
-
-		var small_args = small[1];
-		var small_closed = small[2];
-		var big_args = big[1];
-		var big_closed = big[2];
-		if(small_args[0] !== 'tuple' || small_closed[0] !== 'tuple' ||
-		   big_args[0] !== 'tuple' || big_closed[0] !== 'tuple')
-		    throw new Error("Badly formed ast");
-
-		var small_a = small_args[1];
-		var small_b = small_args[2];
-		var big_a = big_args[1];
-		var big_b = big_args[2];
-
-		var comparisons = [];
-		if(small_closed[1] && !big_closed[1]) {
-		    if(negate)
-			comparisons.push(['le', small_a,big_a]);
-		    else
-			comparisons.push(['>', small_a,big_a]);
-		}
-		else {
-		    if(negate)
-			comparisons.push(['<', small_a,big_a]);
-		    else
-			comparisons.push(['ge', small_a,big_a]);
-		}
-		if(small_closed[2] && !big_closed[2]) {
-		    if(negate)
-			comparisons.push(['ge', small_b,big_b]);
-		    else
-			comparisons.push(['<', small_b,big_b]);
-		}
-		else {
-		    if(negate)
-			comparisons.push(['>',small_b,big_b]);
-		    else
-			comparisons.push(['le',small_b,big_b]);
-		}
-		var result;
-		if(negate)
-		    result =  ['or'].concat(comparisons);
-		else
-		    result =  ['and'].concat(comparisons);
-
-		return result;
-
-	    }
-
+	  if(!Array.isArray(ast)) {
 	    return ast;
+	  }
+
+	  var operator = ast[0];
+	  var operands = ast.slice(1);
+	  // since transforms in bottom up fashion,
+	  // operands have already been expanded
+
+	  if(operator === '=') {
+	    if(operands.length <= 2)
+	      return ast;
+	    let result = ['and'];
+	    for(let i=0; i < operands.length-1; i++) {
+	      result.push(['=', operands[i], operands[i+1]]);
+	    }
+	    return result;
+	  }
+	  if(operator === 'gts' || operator === 'lts') {
+	    let args = operands[0];
+	    let strict = operands[1];
+
+	    if(args[0] !== 'tuple' || strict[0] !== 'tuple')
+	      // something wrong if args or strict are not tuples
+	      throw new Error("Badly formed ast");
+
+
+	    let comparisons = [];
+	    for(let i=1; i< args.length-1; i++) {
+	      let new_operator;
+	      if(strict[i]) {
+		if(operator === 'lts')
+		  new_operator = '<';
+		else
+		  new_operator = '>';
+	      }
+	      else {
+		if(operator === 'lts')
+		  new_operator = 'le';
+		else
+		  new_operator = 'ge';
+	      }
+	      comparisons.push([new_operator, args[i], args[i+1]]);
+	    }
+
+	    let result = ['and', comparisons[0], comparisons[1]];
+	    for(let i=2; i<comparisons.length; i++)
+	      result = ['and', result, comparisons[i]];
+	    return result;
+	  }
+
+	  // convert interval containment to inequalities
+	  if(operator === 'in' || operator === 'notin' ||
+	     operator === 'ni' || operator === 'notni') {
+
+	    let negate=false;
+	    if(operator === 'notin' || operator === 'notni')
+	      negate=true;
+
+	    let x, interval;
+	    if(operator === 'in' || operator === 'notin') {
+	      x = operands[0];
+	      interval = operands[1];
+	    }
+	    else {
+	      x = operands[1];
+	      interval = operands[0];
+	    }
+
+	    // convert any tuples/arrays of length two to intervals
+	    interval = to_intervals(interval);
+
+	    // if not interval, don't transform
+	    if(interval[0] !== 'interval')
+	      return ast;
+
+	    let args = interval[1];
+	    let closed = interval[2];
+	    if(args[0] !== 'tuple' || closed[0] !== 'tuple')
+	      throw new Error("Badly formed ast");
+
+	    let a = args[1];
+	    let b = args[2];
+
+	    let comparisons = [];
+	    if(closed[1]) {
+	      if(negate)
+		comparisons.push(['<', x, a]);
+	      else
+		comparisons.push(['ge', x, a]);
+	    }
+	    else {
+	      if(negate)
+		comparisons.push(['le', x, a]);
+	      else
+		comparisons.push(['>', x, a]);
+	    }
+	    if(closed[2]) {
+	      if(negate)
+		comparisons.push(['>', x, b]);
+	      else
+		comparisons.push(['le', x, b]);
+	    }
+	    else {
+	      if(negate)
+		comparisons.push(['ge', x, b]);
+	      else
+		comparisons.push(['<', x, b]);
+	    }
+
+	    let result;
+	    if(negate)
+	      result =  ['or'].concat(comparisons);
+	    else
+	      result =  ['and'].concat(comparisons);
+
+	    return result;
+	  }
+
+	  // convert interval containment to inequalities
+	  if(operator === 'subset' || operator === 'notsubset' ||
+	     operator === 'superset' || operator === 'notsuperset') {
+
+	    let negate=false;
+	    if(operator === 'notsubset' || operator === 'notsuperset')
+	      negate=true;
+
+	    let small, big;
+	    if(operator === 'subset' || operator === 'notsubset') {
+	      small = operands[0];
+	      big = operands[1];
+	    }
+	    else {
+	      small = operands[1];
+	      big = operands[0];
+	    }
+
+	    // convert any tuples/arrays of length two to intervals
+	    small = to_intervals(small);
+	    big = to_intervals(big);
+
+	    // if not interval, don't transform
+	    if(small[0] !== 'interval' || big[0] !== 'interval')
+	      return ast;
+
+	    let small_args = small[1];
+	    let small_closed = small[2];
+	    let big_args = big[1];
+	    let big_closed = big[2];
+	    if(small_args[0] !== 'tuple' || small_closed[0] !== 'tuple' ||
+	       big_args[0] !== 'tuple' || big_closed[0] !== 'tuple')
+	      throw new Error("Badly formed ast");
+
+	    let small_a = small_args[1];
+	    let small_b = small_args[2];
+	    let big_a = big_args[1];
+	    let big_b = big_args[2];
+
+	    let comparisons = [];
+	    if(small_closed[1] && !big_closed[1]) {
+	      if(negate)
+		comparisons.push(['le', small_a,big_a]);
+	      else
+		comparisons.push(['>', small_a,big_a]);
+	    }
+	    else {
+	      if(negate)
+		comparisons.push(['<', small_a,big_a]);
+	      else
+		comparisons.push(['ge', small_a,big_a]);
+	    }
+	    if(small_closed[2] && !big_closed[2]) {
+	      if(negate)
+		comparisons.push(['ge', small_b,big_b]);
+	      else
+		comparisons.push(['<', small_b,big_b]);
+	    }
+	    else {
+	      if(negate)
+		comparisons.push(['>',small_b,big_b]);
+	      else
+		comparisons.push(['le',small_b,big_b]);
+	    }
+	    let result;
+	    if(negate)
+	      result =  ['or'].concat(comparisons);
+	    else
+	      result =  ['and'].concat(comparisons);
+
+	    return result;
+
+	  }
+
+	  return ast;
+	}
+
+	function substitute$1(pattern, bindings) {
+	  var pattern_tree = get_tree(pattern);
+
+	  var bindings_tree = {};
+	  for(let b in bindings) {
+	    bindings_tree[b] = get_tree(bindings[b]);
+	  }
+
+	  return substitute(pattern_tree, bindings_tree);
+
+	}
+
+	function substitute_component(pattern, component, value) {
+	  let pattern_tree = get_tree(pattern);
+	  let value_tree = get_tree(value);
+
+	  if(typeof component === "number") {
+	    component = [component];
+	  }
+	  else if(!Array.isArray(component)) {
+	    throw Error("Invalid substitute_component: " + component);
+	  }
+
+
+	  let container_operators = ["list", "tuple", "vector", "array"];
+
+	  return substitute_component_sub(pattern_tree, component, value_tree);
+
+
+	  function substitute_component_sub(tree, component, value_tree) {
+
+	    if(component.length === 0) {
+	      return value;
+	    }
+	    if(!Array.isArray(tree)) {
+	      throw Error("Invalid substitute_component: expected list, tuple, vector, or array");
+	    }
+
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
+
+	    if(!container_operators.includes(operator)) {
+	      throw Error("Invalid substitute_component: expected list, tuple, vector, or array");
+	    }
+
+	    let ind = component[0];
+	    if(ind < 0 || ind > operands.length-1) {
+	      throw Error("Invalid substitute_component: component out of range");
+	    }
+	    let new_components = component.slice(1);
+	    let result = substitute_component_sub(operands[ind], new_components, value_tree);
+
+	    return [operator, ...operands.slice(0,ind), result, ...operands.slice(ind+1)];
+	  }
+
+	}
+
+	function get_component(pattern, component) {
+	  let pattern_tree = get_tree(pattern);
+
+	  if(typeof component === "number") {
+	    component = [component];
+	  }
+	  else if(!Array.isArray(component)) {
+	    throw Error("Invalid get_component: " + component);
+	  }
+
+	  let container_operators = ["list", "tuple", "vector", "array"];
+
+	  return get_component_sub(pattern_tree, component);
+
+
+	  function get_component_sub(tree, component) {
+
+	    if(component.length === 0) {
+	      return tree;
+	    }
+
+	    if(!Array.isArray(tree)) {
+	      throw Error("Invalid get_component: expected list, tuple, vector, or array");
+	    }
+
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
+
+	    if(!container_operators.includes(operator)) {
+	      throw Error("Invalid get_component: expected list, tuple, vector, or array");
+	    }
+
+	    let ind = component[0];
+	    if(ind < 0 || ind > operands.length-1) {
+	      throw Error("Invalid get_component: component out of range");
+	    }
+	    let new_components = component.slice(1);
+	    return get_component_sub(operands[ind], new_components);
+
+	  }
+
 	}
 
 	var transformation = /*#__PURE__*/Object.freeze({
 	    expand: expand,
-	    expand_relations: expand_relations
+	    expand_relations: expand_relations,
+	    substitute: substitute$1,
+	    substitute_component: substitute_component,
+	    get_component: get_component
 	});
 
 	function solve_linear(expr_or_tree, variable, assumptions) {
@@ -74731,8 +74929,8 @@
 	    var operator = tree[0];
 	    var operands = tree.slice(1);
 
-	    if(!(operator === '=' || operator == 'ne'
-		 || operator === '<' || operator == 'le'
+	    if(!(operator === '=' || operator === 'ne'
+		 || operator === '<' || operator === 'le'
 		 || operator === '>' || operator === 'ge'))
 		return undefined;
 
@@ -74780,11 +74978,9 @@
 	    if(!is_nonzero_ast(a, assumptions))
 		return undefined;  // can't confirm that there is a variable
 
-	    var result;
-
 	    // equality or inequality with positive coefficient
 	    if(operator === '=' || operator === 'ne' || is_positive_ast(a, assumptions)) {
-		var result = simplify$2(['/', ['-', b], a]);
+		let result = simplify$2(['/', ['-', b], a]);
 		return [operator, variable, result];
 	    }
 
@@ -74792,7 +74988,7 @@
 		return undefined;   // couldn't determined sign and have inequality
 
 	    // have inequality with negative coefficient
-	    result = simplify$2(['/', ['-', b], a]);
+	    var result = simplify$2(['/', ['-', b], a]);
 	    if(operator === '<')
 		operator = '>';
 	    else if(operator === 'le')
@@ -74814,10 +75010,10 @@
 	    // remove any duplicates or those in known
 	    // return ast or undefined if no assumptions found
 
-	    if(!Array.isArray(tree) || tree.length==0)
+	    if(!Array.isArray(tree) || tree.length === 0)
 		return tree;
 
-	    var tree= flatten(
+	    tree= flatten(
 		default_order(
 		    simplify_logical(
 			expand_relations(tree)
@@ -74839,7 +75035,7 @@
 
 		// if known exists, filter out those
 		if(operator === 'and' && known && Array.isArray(known)) {
-		    var known_operands;
+		    let known_operands;
 		    if(known[0] === 'and')
 			known_operands = known.slice(1);
 		    else
@@ -74851,7 +75047,7 @@
 
 		}
 
-		if(operands.length==1)
+		if(operands.length === 1)
 		    tree = operands[0];
 		else
 		    tree = [operator].concat(operands);
@@ -74859,7 +75055,7 @@
 
 	    // check if whole thing is known
 	    if(operator !== 'and' && known && Array.isArray(known)) {
-		var known_operands;
+		let known_operands;
 		if(known[0] === 'and')
 		    known_operands = known.slice(1);
 		else
@@ -74890,10 +75086,10 @@
 		    if(a.length > 0)
 			tree.push(a);
 		}
-		if(tree.length == 0)
+		if(tree.length === 0)
 		    return {};
 
-		if(tree.length == 1)
+		if(tree.length === 1)
 		    tree = tree[0];
 		else
 		    tree = ['and'].concat(tree);
@@ -74901,7 +75097,7 @@
 		tree = clean_assumptions(tree);
 	    }
 
-	    if(!Array.isArray(tree) || tree.length==0)
+	    if(!Array.isArray(tree) || tree.length === 0)
 		return {};
 
 	    var operator = tree[0];
@@ -74913,7 +75109,7 @@
 		});
 
 		// array of all vars found in at least one result
-		let allvars = [... new Set(results.reduce(
+		let allvars = [...new Set(results.reduce(
 		    (a,b) => [...a, ...Object.keys(b)], []))];
 
 		let derived = {};
@@ -74927,7 +75123,7 @@
 
 
 		    // for OR, add only if obtain result for each operand
-		    if(operator === 'and' || res.length == results.length) {
+		    if(operator === 'and' || res.length === results.length) {
 			let new_derived = derived[v];
 			if(new_derived === undefined) {
 			    if(res.length > 1)
@@ -74975,7 +75171,7 @@
 		    let v = operands[ind];
 		    let other = operands[1-ind];
 		    let other_var = variables(other);
-		    if((typeof v !== 'string') || other_var.length==0
+		    if((typeof v !== 'string') || other_var.length === 0
 		       || other_var.includes(v))
 			continue;
 
@@ -74984,7 +75180,7 @@
 		    // look for any assumptions that from other that
 		    // do not contain a v
 		    var adjusted_op = operator;
-		    if(ind == 1) {
+		    if(ind === 1) {
 			if(operator === '<')
 			    adjusted_op = '>';
 			else if(operator === 'le')
@@ -75035,10 +75231,10 @@
 		    results.push(res);
 	    }
 
-	    if(results.length==0)
+	    if(results.length === 0)
 		return {};
 
-	    if(results.length==1)
+	    if(results.length === 1)
 		results = results[0];
 	    else
 		results = ['and'].concat(results);
@@ -75065,7 +75261,7 @@
 	    // filter out any of the excluded variables
 	    variables$$1 = variables$$1.filter(v => !exclude_variables.includes(v));
 
-	    if(variables$$1.length == 0)
+	    if(variables$$1.length === 0)
 		return undefined;
 
 	    function isNumber(s) {
@@ -75107,9 +75303,9 @@
 		    if(res !== undefined)
 			results.push(res);
 		}
-		if(results.length == 0)
+		if(results.length === 0)
 		    return undefined;
-		if(results.length == 1)
+		if(results.length === 1)
 		    return results[0];
 		return ['and'].concat(results);
 	    }
@@ -75118,7 +75314,7 @@
 		coeff_mapping[v] = m[coeff_mapping[v]];
 
 	    let identity = false;
-	    if(m["_b"]==0 && m["_a0"]==1 && variables$$1.length==1)
+	    if(m["_b"] === 0 && m["_a0"] === 1 && variables$$1.length === 1)
 		identity = true;
 
 	    // find all assumptions involving variables but excluding exclude_variables
@@ -75145,7 +75341,7 @@
 			.map(process_additional_assumptions)
 			.filter(v => v !== undefined);
 
-		    if(results.length == 0)
+		    if(results.length === 0)
 			return undefined;
 		    if(operator === 'or') {
 			if(results.length === operands.length)
@@ -75153,7 +75349,7 @@
 			else
 			    return undefined;
 		    }
-		    if(results.length == 1)
+		    if(results.length === 1)
 			return results[0];
 		    else
 			return ['and'].concat(results);
@@ -75175,9 +75371,9 @@
 			if(res !== undefined)
 			    results.push(res);
 		    }
-		    if(results.length == 0)
+		    if(results.length === 0)
 			return new_as;
-		    if(results.length == 1)
+		    if(results.length === 1)
 			return ['and', new_as, results[0]];
 		    return ['and', new_as].concat(results);
 		}
@@ -75197,12 +75393,12 @@
 			// may need to flip operator if it is an inequality
 			// Two factors could induce flipping
 			// - coefficient from expr is negative
-			// - switched sides in next inequality (ind == 1)
+			// - switched sides in next inequality (ind === 1)
 			// The factors could cancel each other out
 			var flip = false;
 			var operator_eff = operator;
-			if((ind == 1 && coeff_mapping[next_var] > 0) ||
-			   (ind == 0 && coeff_mapping[next_var] < 0)) {
+			if((ind === 1 && coeff_mapping[next_var] > 0) ||
+			   (ind === 0 && coeff_mapping[next_var] < 0)) {
 			    if(operator === '<') {
 				flip = true;
 				operator_eff = '>';
@@ -75247,7 +75443,7 @@
 		    }
 		}
 
-		if(results.length == 1)
+		if(results.length === 1)
 		    return results[0];
 		else if(results.length > 1)
 		    return ['and'].concat(results);
@@ -75262,9 +75458,9 @@
 		    if(res !== undefined)
 			results.push(res);
 		}
-		if(results.length == 0)
+		if(results.length === 0)
 		    return new_as;
-		if(results.length == 1)
+		if(results.length === 1)
 		    return ['and', new_as, results[0]];
 		return ['and', new_as].concat(results);
 	    }
@@ -75293,7 +75489,7 @@
 		    v => combine_assumptions(expr1, op1, expr2, v))
 		    .filter(v => v !== undefined);
 
-		if(results.length == 0)
+		if(results.length === 0)
 		    return undefined;
 		if(op2 === 'or') {
 		    if(results.length === operands2.length)
@@ -75301,7 +75497,7 @@
 		    else
 			return undefined;
 		}
-		if(results.length == 1)
+		if(results.length === 1)
 		    return results[0];
 		else
 		    return ['and'].concat(results);
@@ -75460,7 +75656,7 @@
 	    // return an ast if found in tree assumptions without exclude_variables
 	    // otherwise return undefined
 
-	    if(!Array.isArray(tree) || tree.length == 0) {
+	    if(!Array.isArray(tree) || tree.length === 0) {
 		return undefined;
 	    }
 
@@ -75478,9 +75674,9 @@
 
 		a=a.filter(v => v !== undefined);
 
-		if(a.length==0)
+		if(a.length === 0)
 		    return undefined;
-		else if(a.length==1)
+		else if(a.length === 1)
 		    return a[0];
 		else
 		    return ['and'].concat(a);
@@ -75536,13 +75732,13 @@
 		else if(assumptions['generic'].length > 0) {
 		    // if generic contains any variables other than x
 		    // don't substitute those back into generic
-		    if(v == 'x' ||
+		    if(v === 'x' ||
 		       !variables(assumptions['generic']).includes(v))
 			a.push(substitute(assumptions['generic'], {x: v}));
 		}
 	    });
 
-	    if(a.length==1)
+	    if(a.length === 1)
 		a=a[0];
 	    else if(a.length > 1)
 		a=['and'].concat(a);
@@ -75555,6 +75751,19 @@
 	}
 
 	function get_assumptions(assumptions, variables_or_expr, params) {
+	    // return an ast if found assumptions
+	    // otherwise return undefined
+	    //
+	    // variables_or_expr
+	    // - if a string or an array of an array, find assumptions on
+	    //   each of the variables represented by those strings
+	    //   directly from byvar and derived or from generic
+	    // - if an ast, then
+	    //   - calculate assumptions of the expression itself, if possible, or
+	    //   - calculate assumptions on the variables of the expression.
+
+	    // include any additional assumptions
+	    // involving new variables found in assumptions
 
 	    if(params === undefined)
 		params = {};
@@ -75625,7 +75834,7 @@
 
 	    var variables$$1 = variables(tree);
 
-	    if(variables$$1.length == 0)
+	    if(variables$$1.length === 0)
 		return 0;
 
 	    let n_added = 0;
@@ -75639,7 +75848,7 @@
 			// no previous assumptions, so
 			// include add assumption for v corresponding to generic
 			// unless non-x v is explicitly in generic
-			if(v == 'x' ||
+			if(v === 'x' ||
 			   !variables(assumptions['generic']).includes(v)) {
 			    add_assumption_sub(
 				assumptions,
@@ -75666,7 +75875,7 @@
 
 		let current_a = assumptions['byvar'][variable];
 
-		if(current_a !== undefined && current_a.length != 0)
+		if(current_a !== undefined && current_a.length !== 0)
 		    new_a = ['and', current_a, new_a];
 
 		new_a = clean_assumptions(new_a);
@@ -75731,7 +75940,7 @@
 
 	    let current_a = assumptions['generic'];
 
-	    if(current_a.length != 0)
+	    if(current_a.length !== 0)
 		new_a = ['and', current_a, new_a];
 
 	    new_a = clean_assumptions(new_a);
@@ -75778,7 +75987,7 @@
 
 	    var variables$$1 = variables(tree);
 
-	    if(variables$$1.length == 0)
+	    if(variables$$1.length === 0)
 		return 0;
 
 	    var n_removed = 0;
@@ -75792,7 +76001,7 @@
 		let current = assumptions['byvar'][variable];
 
 		// didn't find any assumptions to remove
-		if(!current || current.length==0) {
+		if(!current || current.length === 0) {
 		    continue;
 		}
 
@@ -75809,10 +76018,10 @@
 		    operands = operands.filter(
 			v => !(equal$2(v, tree) || equal$2(v,solved)));
 
-		    if(operands.length == 0) {
+		    if(operands.length === 0) {
 			result = [];
 		    }
-		    else if(operands.length == 1) {
+		    else if(operands.length === 1) {
 			result = operands[0];
 		    }
 		    else if(operands.length < n_op) {
@@ -75880,7 +76089,7 @@
 
 	    var current = assumptions['generic'];
 
-	    if(current.length == 0)
+	    if(current.length === 0)
 		return 0;
 
 	    // solve using current state of assumptions
@@ -75899,10 +76108,10 @@
 		    operands = operands.filter(
 			v => !(equal$2(v, tree) || equal$2(v,solved)));
 
-		if(operands.length == 0) {
+		if(operands.length === 0) {
 		    result = [];
 		}
-		else if(operands.length == 1) {
+		else if(operands.length === 1) {
 		    result = operands[0];
 		}
 		else if(operands.length < n_op) {
@@ -76129,13 +76338,13 @@
 
 	    if(operator === 'ldots')
 	      return '\\ldots';
-	   
+
 	    if ((!(operator in operators$3)) && operator !== "apply")
 	      throw new Error("Badly formed ast: operator " + operator + " not recognized.");
 
 	    if (operator === 'and' || operator === 'or') {
 	      return operators$3[operator](operands.map(function(v, i) {
-	        var result = this.single_statement(v);
+	        let result = this.single_statement(v);
 	        // for clarity, add parenthesis unless result is
 	        // single quantity (with no spaces) or already has parens
 	        if (result.toString().match(/ /) &&
@@ -76156,9 +76365,9 @@
 	    var operator = tree[0];
 	    var operands = tree.slice(1);
 
-	    if (operator == 'not') {
+	    if (operator === 'not') {
 	      return operators$3[operator](operands.map(function(v, i) {
-	        var result = this.single_statement(v);
+	        let result = this.single_statement(v);
 	        // for clarity, add parenthesis unless result is
 	        // single quantity (with no spaces) or already has parens
 	        if (result.toString().match(/ /) &&
@@ -76169,36 +76378,36 @@
 	      }.bind(this)));
 	    }
 
-	    if ((operator == '=') || (operator == 'ne') ||
-	      (operator == '<') || (operator == '>') ||
-	      (operator == 'le') || (operator == 'ge') ||
-	      (operator == 'in') || (operator == 'notin') ||
-	      (operator == 'ni') || (operator == 'notni') ||
-	      (operator == 'subset') || (operator == 'notsubset') ||
-	      (operator == 'superset') || (operator == 'notsuperset')) {
+	    if ((operator === '=') || (operator === 'ne') ||
+	      (operator === '<') || (operator === '>') ||
+	      (operator === 'le') || (operator === 'ge') ||
+	      (operator === 'in') || (operator === 'notin') ||
+	      (operator === 'ni') || (operator === 'notni') ||
+	      (operator === 'subset') || (operator === 'notsubset') ||
+	      (operator === 'superset') || (operator === 'notsuperset')) {
 	      return operators$3[operator](operands.map(function(v, i) {
 	        return this.expression(v);
 	      }.bind(this)));
 	    }
 
-	    if (operator == 'lts' || operator == 'gts') {
-	      var args = operands[0];
-	      var strict = operands[1];
+	    if (operator === 'lts' || operator === 'gts') {
+	      let args = operands[0];
+	      let strict = operands[1];
 
-	      if (args[0] != 'tuple' || strict[0] != 'tuple')
+	      if (args[0] !== 'tuple' || strict[0] !== 'tuple')
 	        // something wrong if args or strict are not tuples
 	        throw new Error("Badly formed ast");
 
-	      var result = this.expression(args[1]);
-	      for (var i = 1; i < args.length - 1; i++) {
+	      let result = this.expression(args[1]);
+	      for (let i = 1; i < args.length - 1; i++) {
 	        if (strict[i]) {
-	          if (operator == 'lts')
+	          if (operator === 'lts')
 	            result += " < ";
 	          else
 	            result += " > ";
 	        }
 	        else {
-	          if (operator == 'lts') {
+	          if (operator === 'lts') {
 	            result += " \\le ";
 	          }
 	          else {
@@ -76221,7 +76430,7 @@
 	    var operator = tree[0];
 	    var operands = tree.slice(1);
 
-	    if (operator == '+') {
+	    if (operator === '+') {
 	      return operators$3[operator](operands.map(function(v, i) {
 	        if (i > 0)
 	          return this.termWithPlusIfNotNegated(v);
@@ -76230,7 +76439,7 @@
 	      }.bind(this)));
 	    }
 
-	    if ((operator == 'union') || (operator == 'intersect')) {
+	    if ((operator === 'union') || (operator === 'intersect')) {
 	      return operators$3[operator](operands.map(function(v, i) {
 	        return this.term(v);
 	      }.bind(this)));
@@ -76247,14 +76456,14 @@
 	    var operator = tree[0];
 	    var operands = tree.slice(1);
 
-	    if (operator == '-') {
+	    if (operator === '-') {
 	      return operators$3[operator](operands.map(function(v, i) {
 	        return this.term(v);
 	      }.bind(this)));
 	    }
-	    if (operator == '*') {
+	    if (operator === '*') {
 	      return operators$3[operator](operands.map(function(v, i) {
-	        var result;
+	        let result;
 	        if (i > 0) {
 	          result = this.factorWithParenthesesIfNegated(v);
 	          if (result.toString().match(/^[0-9]/))
@@ -76267,7 +76476,7 @@
 	      }.bind(this)));
 	    }
 
-	    if (operator == '/') {
+	    if (operator === '/') {
 	      return operators$3[operator](operands.map(function(v, i) {
 	        return this.expression(v);
 	      }.bind(this)));
@@ -76286,10 +76495,10 @@
 
 	    var result = this.factor(tree);
 
-	    if (result.toString().length == 1 ||
-	      (typeof tree == 'number') ||
-	      (typeof tree == 'string') ||
-	      (tree[0] == 'apply') ||
+	    if (result.toString().length === 1 ||
+	      (typeof tree === 'number') ||
+	      (typeof tree === 'string') ||
+	      (tree[0] === 'apply') ||
 	      result.toString().match(/^\\left\(.*\\right\)$/)
 	    )
 	      return true;
@@ -76298,8 +76507,6 @@
 	  }
 
 	  stringConvert(string) {
-	    if (string == "infinity")
-	      return "\\infty";
 	    if (string.length > 1) {
 	      if(this.allowedLatexSymbols.includes(string))
 		return "\\" + string;
@@ -76315,7 +76522,12 @@
 	    }
 
 	    if (typeof tree === 'number') {
-	      return tree;
+	      if(tree === Infinity)
+	        return "\\infty";
+	      else if(tree === -Infinity)
+	        return "-\\infty";
+	      else
+	        return tree.toString();
 	    }
 
 	    var operator = tree[0];
@@ -76323,46 +76535,46 @@
 
 
 	    if (operator === "^") {
-	      var operand0 = this.factor(operands[0]);
+	      let operand0 = this.factor(operands[0]);
 
 	      // so that f_(st)'^2(x) doesn't get extra parentheses
 	      // (and no longer recognized as function call)
 	      // check for simple factor after removing primes
-	      var remove_primes = operands[0];
-	      while (remove_primes[0] == 'prime') {
+	      let remove_primes = operands[0];
+	      while (remove_primes[0] === 'prime') {
 	        remove_primes = remove_primes[1];
 	      }
 
 	      if (!(this.simple_factor_or_function_or_parens(remove_primes) ||
-	          (remove_primes[0] == '_' && (typeof remove_primes[1] == 'string'))
+	          (remove_primes[0] === '_' && (typeof remove_primes[1] === 'string'))
 	        ))
 	        operand0 = '\\left(' + operand0.toString() + '\\right)';
 
 	      return operand0 + '^{' + this.statement(operands[1]) + '}';
 	    }
 	    else if (operator === "_") {
-	      var operand0 = this.factor(operands[0]);
+	      let operand0 = this.factor(operands[0]);
 	      if (!(this.simple_factor_or_function_or_parens(operands[0])))
 	        operand0 = '\\left(' + operand0.toString() + '\\right)';
 
 	      return operand0 + '_{' + this.statement(operands[1]) + '}';
 	    }
 	    else if (operator === "prime") {
-	      var op = operands[0];
+	      let op = operands[0];
 
-	      var n_primes = 1;
+	      let n_primes = 1;
 	      while (op[0] === "prime") {
 	        n_primes += 1;
 	        op = op[1];
 	      }
 
-	      var result = this.factor(op);
+	      let result = this.factor(op);
 
 	      if (!(this.simple_factor_or_function_or_parens(op) ||
-	          (op[0] == '_' && (typeof op[1] == 'string'))
+	          (op[0] === '_' && (typeof op[1] === 'string'))
 	        ))
 	        result = '\\left(' + result.toString() + '\\right)';
-	      for (var i = 0; i < n_primes; i++) {
+	      for (let i = 0; i < n_primes; i++) {
 	        result += "'";
 	      }
 	      return result;
@@ -76383,12 +76595,12 @@
 	    }
 	    else if (operator === 'interval') {
 
-	      var args = operands[0];
-	      var closed = operands[1];
+	      let args = operands[0];
+	      let closed = operands[1];
 	      if (args[0] !== 'tuple' || closed[0] !== 'tuple')
 	        throw new Error("Badly formed ast");
 
-	      var result = this.statement(args[1]) + ", " +
+	      let result = this.statement(args[1]) + ", " +
 	        this.statement(args[2]);
 
 	      if (closed[1])
@@ -76404,14 +76616,14 @@
 	      return result;
 
 	    }
-	    else if (operator == 'matrix') {
-	      var size = operands[0];
-	      var args = operands[1];
+	    else if (operator === 'matrix') {
+	      let size = operands[0];
+	      let args = operands[1];
 
 	      let result = '\\begin{' + this.matrixEnvironment + '} ';
 
-	      for(var row = 0; row < size[1]; row += 1) {
-		for(var col = 0; col < size[2]; col += 1) {
+	      for(let row = 0; row < size[1]; row += 1) {
+		for(let col = 0; col < size[2]; col += 1) {
 		  result = result + this.statement(args[row+1][col+1]);
 		  if(col < size[2]-1)
 		    result = result + ' & ';
@@ -76424,9 +76636,9 @@
 	      return result;
 
 	    }
-	    else if(operator == 'derivative_leibniz' || operator == 'partial_derivative_leibniz') {
+	    else if(operator === 'derivative_leibniz' || operator === 'partial_derivative_leibniz') {
 	      let deriv_symbol = "d";
-	      if(operator == 'partial_derivative_leibniz')
+	      if(operator === 'partial_derivative_leibniz')
 		deriv_symbol = "\\partial ";
 
 	      let num = operands[0];
@@ -76479,30 +76691,30 @@
 	      return result;
 
 	    }
-	    else if (operator == 'apply') {
+	    else if (operator === 'apply') {
 
 	      if (operands[0] === 'abs') {
 	        return '\\left|' + this.statement(operands[1]) + '\\right|';
 	      }
 
 	      if (operands[0] === "factorial") {
-	        var result = this.factor(operands[1]);
+	        let result = this.factor(operands[1]);
 	        if (this.simple_factor_or_function_or_parens(operands[1]) ||
-	          (operands[1][0] == '_' && (typeof operands[1][1] == 'string'))
+	          (operands[1][0] === '_' && (typeof operands[1][1] === 'string'))
 	        )
 	          return result + "!";
 	        else
 	          return '\\left(' + result.toString() + '\\right)!';
 	      }
 
-	      if (operands[0] == 'sqrt') {
+	      if (operands[0] === 'sqrt') {
 	        return '\\sqrt{' + this.statement(operands[1]) + '}';
 	      }
 
-	      var f = this.factor(operands[0]);
-	      var f_args = this.statement(operands[1]);
+	      let f = this.factor(operands[0]);
+	      let f_args = this.statement(operands[1]);
 
-	      if (operands[1][0] != 'tuple')
+	      if (operands[1][0] !== 'tuple')
 	        f_args = "\\left(" + f_args + "\\right)";
 
 	      return f + f_args;
@@ -76594,7 +76806,7 @@
 	    // derivative of sum is sum of derivatives
 	    if ((operator === '+') || (operator === '-') || (operator === '~')) {
 		story.push( 'Using the sum rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + (operands.map( function(v,i) { return ddx + astToLatex$1.convert(v); } )).join( ' + ' ) + '\\).' );
-		var result = [operator].concat( operands.map( function(v,i) { return derivative$2(v,x,story); } ) );
+		let result = [operator].concat( operands.map( function(v,i) { return derivative$2(v,x,story); } ) );
 		result = simplify$2(result);
 		story.push( 'So using the sum rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		return result;
@@ -76602,10 +76814,10 @@
 
 	    // product rule
 	    if (operator === '*') {
-		var non_numeric_operands = [];
-		var numeric_operands = [];
+		let non_numeric_operands = [];
+		let numeric_operands = [];
 
-		for( var i=0; i<operands.length; i++ ) {
+		for( let i=0; i<operands.length; i++ ) {
 		    if ((typeof operands[i] === 'number') || ((variables(operands[i])).indexOf(x) < 0)) {
 			numeric_operands.push( operands[i] );
 		    } else {
@@ -76614,29 +76826,29 @@
 		}
 
 		if (numeric_operands.length > 0) {
-		    if (non_numeric_operands.length == 0) {
+		    if (non_numeric_operands.length === 0) {
 			story.push( 'Since the derivative of a constant is zero, \\(' + ddx + astToLatex$1.convert( tree ) + ' = 0.\\)' );
-			var result = 0;
+			let result = 0;
 			return result;
 		    }
 
-		    var remaining = ['*'].concat( non_numeric_operands );
-		    if (non_numeric_operands.length == 1)
+		    let remaining = ['*'].concat( non_numeric_operands );
+		    if (non_numeric_operands.length === 1)
 			remaining = non_numeric_operands[0];
 
 
 
 		    if (remaining === x) {
 			story.push( 'By the constant multiple rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + (numeric_operands.map( function(v,i) { return astToLatex$1.convert(v); } )).join( ' \\cdot ' ) + '\\).' );
-			var result = ['*'].concat( numeric_operands );
+			let result = ['*'].concat( numeric_operands );
 			result = simplify$2(result);
 			return result;
 		    }
 
 		    story.push( 'By the constant multiple rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + (numeric_operands.map( function(v,i) { return astToLatex$1.convert(v); } )).join( ' \\cdot ' ) + ' \\cdot ' + ddx + '\\left(' + astToLatex$1.convert(remaining) + '\\right)\\).' );
 
-		    var d = derivative$2(remaining,x,story);
-		    var result = ['*'].concat( numeric_operands.concat( [d] ) );
+		    let d = derivative$2(remaining,x,story);
+		    let result = ['*'].concat( numeric_operands.concat( [d] ) );
 		    result = simplify$2(result);
 		    story.push( 'And so \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
@@ -76645,18 +76857,18 @@
 		story.push( 'Using the product rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' +
 			    (operands.map( function(v,i) {
 				return (operands.map( function(w,j) {
-				    if (i == j)
+				    if (i === j)
 					return ddx + '\\left(' + astToLatex$1.convert(v) + '\\right)';
 				    else
 					return astToLatex$1.convert(w);
 				})).join( ' \\cdot ' ) })).join( ' + ' ) + '\\).' );
 
-		var inner_operands = operands.slice();
+		let inner_operands = operands.slice();
 
-		var result = ['+'].concat( operands.map( function(v,i) {
+		let result = ['+'].concat( operands.map( function(v,i) {
 		    return ['*'].concat( inner_operands.map( function(w,j) {
-			if (i == j) {
-			    var d = derivative$2(w,x,story);
+			if (i === j) {
+			    let d = derivative$2(w,x,story);
 			    // remove terms that have derivative 1
 			    if (d === 1)
 				return null;
@@ -76675,15 +76887,15 @@
 
 	    // quotient rule
 	    if (operator === '/') {
-		var f = operands[0];
-		var g = operands[1];
+		let f = operands[0];
+		let g = operands[1];
 
 		if ((variables(g)).indexOf(x) < 0) {
 		    story.push( 'By the constant multiple rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(['/', 1, g]) + ' \\cdot ' + ddx + '\\left(' + astToLatex$1.convert(f) + '\\right)\\).' );
 
-		    var df = derivative$2(f,x,story);
-		    var quotient_rule = textToAst$3.convert('(1/g)*d');
-		    var result = substitute( quotient_rule, { "d": df, "g": g } );
+		    let df = derivative$2(f,x,story);
+		    let quotient_rule = textToAst$3.convert('(1/g)*d');
+		    let result = substitute( quotient_rule, { "d": df, "g": g } );
 		    result = simplify$2(result);
 		    story.push( 'So \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 
@@ -76695,12 +76907,12 @@
 			story.push( 'By the constant multiple rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(f) + ' \\cdot ' + ddx + '\\left(' + astToLatex$1.convert(['/',1,g]) + '\\right)\\).' );
 		    }
 
-		    story.push( 'Since \\(\\frac{d}{du} \\frac{1}{u}\\) is \\(\\frac{-1}{u^2}\\), the chain rule gives \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(f) + '\\cdot \\frac{-1}{ ' + astToLatex$1.convert(g) + '^2' + '} \\cdot ' + ddx + astToLatex$1.convert( g ) + "\\)." );
+		    story.push( 'Since \\(\\frac{d}{du} \\frac{1}{u}\\) is \\(\\frac{-1}{u^2}\\), the chain rule gives \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(f) + '\\cdot \\frac{-1}{ ' + astToLatex$1.convert(g) + '^2} \\cdot ' + ddx + astToLatex$1.convert( g ) + "\\)." );
 
-		    var a = derivative$2(g,x,story);
+		    let a = derivative$2(g,x,story);
 
-		    var quotient_rule = textToAst$3.convert('f * (-a/(g^2))');
-		    var result = substitute( quotient_rule, { "f": f, "a": a, "g": g } );
+		    let quotient_rule = textToAst$3.convert('f * (-a/(g^2))');
+		    let result = substitute( quotient_rule, { "f": f, "a": a, "g": g } );
 		    result = simplify$2(result);
 		    story.push( 'So since \\(\\frac{d}{du} \\frac{1}{u}\\) is \\(\\frac{-1}{u^2}\\), the chain rule gives \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 
@@ -76709,12 +76921,12 @@
 
 		story.push( 'Using the quotient rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = \\frac{' + ddx + '\\left(' + astToLatex$1.convert(f) + '\\right) \\cdot ' + astToLatex$1.convert(g) + ' - ' + astToLatex$1.convert(f) + '\\cdot ' + ddx + '\\left(' + astToLatex$1.convert(g) + '\\right)}{ \\left( ' + astToLatex$1.convert(g) + ' \\right)^2} \\).' );
 
-		var a = derivative$2(f,x,story);
-		var b = derivative$2(g,x,story);
+		let a = derivative$2(f,x,story);
+		let b = derivative$2(g,x,story);
 
-		var quotient_rule = textToAst$3.convert('(a * g - f * b)/(g^2)');
+		let quotient_rule = textToAst$3.convert('(a * g - f * b)/(g^2)');
 
-		var result = substitute( quotient_rule, { "a": a, "b": b, "f": f, "g": g } );
+		let result = substitute( quotient_rule, { "a": a, "b": b, "f": f, "g": g } );
 		result = simplify$2(result);
 		story.push( 'So using the quotient rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 
@@ -76723,55 +76935,55 @@
 
 	    // power rule
 	    if (operator === '^') {
-		var base = operands[0];
-		var exponent = operands[1];
+		let base = operands[0];
+		let exponent = operands[1];
 
 		if ((variables(exponent)).indexOf(x) < 0) {
 		    if ((typeof base === 'string') && (base === 'x')) {
 			if (typeof exponent === 'number') {
-			    var power_rule = textToAst$3.convert('n * (f^m)');
-			    var result = substitute( power_rule, { "n": exponent, "m": exponent - 1, "f": base } );
+			    let power_rule = textToAst$3.convert('n * (f^m)');
+			    let result = substitute( power_rule, { "n": exponent, "m": exponent - 1, "f": base } );
 			    result = simplify$2(result);
 			    story.push( 'By the power rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( exponent ) + ' \\cdot \\left(' + astToLatex$1.convert( base ) + '\\right)^{' + astToLatex$1.convert( ['-', exponent, 1] ) + '}\\).' );
 			    return result;
 			}
 
-			var power_rule = textToAst$3.convert('n * (f^(n-1))');
-			var result = substitute( power_rule, { "n": exponent, "f": base } );
+			let power_rule = textToAst$3.convert('n * (f^(n-1))');
+			let result = substitute( power_rule, { "n": exponent, "f": base } );
 			result = simplify$2(result);
 			story.push( 'By the power rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( exponent ) + ' \\cdot \\left(' + astToLatex$1.convert( base ) + '\\right)^{' + astToLatex$1.convert( ['-', exponent, 1] ) + '}\\).' );
 
 			return result;
 		    }
 
-		    if (exponent != 1) {
+		    if (exponent !== 1) {
 			story.push( 'By the power rule and the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( exponent ) + ' \\cdot \\left(' + astToLatex$1.convert( base ) + '\\right)^{' + astToLatex$1.convert( ['-', exponent, 1] ) + '} \\cdot ' + ddx + astToLatex$1.convert( base ) + '\\).' );
 		    }
 
-		    var a = derivative$2(base,x,story);
+		    let a = derivative$2(base,x,story);
 
 		    if (exponent === 1)
 			return a;
 
 		    if (typeof exponent === 'number') {
-			var power_rule = textToAst$3.convert('n * (f^m) * a');
-			var result = substitute( power_rule, { "n": exponent, "m": exponent - 1, "f": base, "a" : a } );
+			let power_rule = textToAst$3.convert('n * (f^m) * a');
+			let result = substitute( power_rule, { "n": exponent, "m": exponent - 1, "f": base, "a" : a } );
 			result = simplify$2(result);
 			story.push( 'So by the power rule and the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 			return result;
 		    }
 
-		    var power_rule = textToAst$3.convert('n * (f^(n-1)) * a');
-		    var result = substitute( power_rule, { "n": exponent, "f": base, "a" : a } );
+		    let power_rule = textToAst$3.convert('n * (f^(n-1)) * a');
+		    let result = substitute( power_rule, { "n": exponent, "f": base, "a" : a } );
 		    result = simplify$2(result);
 		    story.push( 'So by the power rule and the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
 		}
 
-		if (base === 'e' && math$21.define_e) {
+		if (base === 'e' && math$19.define_e) {
 		    if ((typeof exponent === 'string') && (exponent === x)) {
-			var power_rule = textToAst$3.convert('e^(f)');
-			var result = substitute( power_rule, { "f": exponent } );
+			let power_rule = textToAst$3.convert('e^(f)');
+			let result = substitute( power_rule, { "f": exponent } );
 			result = simplify$2(result);
 			story.push( 'The derivative of \\(e^' + astToLatex$1.convert( x ) + '\\) is itself, that is, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( tree ) + '\\).' );
 
@@ -76780,10 +76992,10 @@
 
 		    story.push( 'Using the rule for \\(e^x\\) and the chain rule, we know \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( tree ) + ' \\cdot ' + ddx + astToLatex$1.convert( exponent ) + '\\).' );
 
-		    var power_rule = textToAst$3.convert('e^(f)*d');
+		    let power_rule = textToAst$3.convert('e^(f)*d');
 
-		    var d = derivative$2(exponent,x,story);
-		    var result = substitute( power_rule, { "f": exponent, "d": d } );
+		    let d = derivative$2(exponent,x,story);
+		    let result = substitute( power_rule, { "f": exponent, "d": d } );
 		    result = simplify$2(result);
 		    story.push( 'So using the rule for \\(e^x\\) and the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
@@ -76791,38 +77003,38 @@
 
 		if (typeof base === 'number') {
 		    if ((typeof exponent === 'string') && (exponent === x)) {
-			var power_rule = textToAst$3.convert('a^(f) * log(a)');
-			var result = substitute( power_rule, { "a": base, "f": exponent } );
+			let power_rule = textToAst$3.convert('a^(f) * log(a)');
+			let result = substitute( power_rule, { "a": base, "f": exponent } );
 			result = simplify$2(result);
 			story.push( 'The derivative of \\(a^' + astToLatex$1.convert( x ) + '\\) is \\(a^{' + astToLatex$1.convert( x ) + '} \\, \\log a\\), that is, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( result ) + '\\).' );
 
 			return result;
 		    }
 
-		    var exp_rule = textToAst$3.convert('a^(f) * log(a)');
-		    var partial_result = substitute( exp_rule, { "a": base, "f": exponent } );
+		    let exp_rule = textToAst$3.convert('a^(f) * log(a)');
+		    let partial_result = substitute( exp_rule, { "a": base, "f": exponent } );
 
 		    story.push( 'Using the rule for \\(a^x\\) and the chain rule, we know \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert( partial_result ) + ' \\cdot ' + ddx + astToLatex$1.convert( exponent ) + '\\).' );
 
-		    var power_rule = textToAst$3.convert('a^(b)*log(a)*d');
-		    var d = derivative$2(exponent,x,story);
-		    var result = substitute( power_rule, { "a": base, "b": exponent, "d": d } );
+		    let power_rule = textToAst$3.convert('a^(b)*log(a)*d');
+		    let d = derivative$2(exponent,x,story);
+		    let result = substitute( power_rule, { "a": base, "b": exponent, "d": d } );
 		    result = simplify$2(result);
 		    story.push( 'So using the rule for \\(a^x\\) and the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
 		}
 
 		// general case of a function raised to a function
-		var f = base;
-		var g = exponent;
+		let f = base;
+		let g = exponent;
 
 		story.push( "Recall the general rule for exponents, namely that \\(\\frac{d}{dx} u(x)^{v(x)} = u(x)^{v(x)} \\cdot \\left( v'(x) \\cdot \\log u(x) + \\frac{v(x) \\cdot u'(x)}{u(x)} \\right)\\).  In this case, \\(u(x) = " +  astToLatex$1.convert( f ) + "\\) and \\(v(x) = " + astToLatex$1.convert( g ) + "\\)." );
 
-		var a = derivative$2(f,x,story);
-		var b = derivative$2(g,x,story);
+		let a = derivative$2(f,x,story);
+		let b = derivative$2(g,x,story);
 
-		var power_rule = textToAst$3.convert('(f^g)*(b * log(f) + (g * a)/f)');
-		var result = substitute( power_rule, { "a": a, "b": b, "f": f, "g": g } );
+		let power_rule = textToAst$3.convert('(f^g)*(b * log(f) + (g * a)/f)');
+		let result = substitute( power_rule, { "a": a, "b": b, "f": f, "g": g } );
 		result = simplify$2(result);
 		story.push( 'So by the general rule for exponents, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		return result;
@@ -76831,11 +77043,11 @@
 	    if (operator === "apply" && !(operands[0] in derivatives)) {
 		// derivative of function whose derivative is not given
 
-		var input = operands[1];
+		let input = operands[1];
 
 		story.push( 'By the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(substitute( ["apply",operands[0] + "'","x"], { "x": input } )) + " \\cdot " + ddx + astToLatex$1.convert(input)  + '\\).' );
 
-		var result = ['*',
+		let result = ['*',
 			      substitute( ["apply",operands[0] + "'","x"], { "x": input } ),
 			      derivative$2( input, x, story )];
 		result = simplify$2(result);
@@ -76847,31 +77059,31 @@
 	    if ((operator === "apply" && operands[0] in derivatives) ||
 		operator in derivatives) {
 
-		var used_apply = false;
+		let used_apply = false;
 		if(operator === "apply") {
 		    operator = operands[0];
 		    operands = operands.slice(1);
 		    used_apply = true;
 		}
 
-		var input = operands[0];
+		let input = operands[0];
 
-		if (typeof input == "number") {
-		    var result = 0;
+		if (typeof input === "number") {
+		    let result = 0;
 		    story.push( 'The derivative of a constant is zero so \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
-		} else if ((typeof input == "string") && (input == x)) {
-		    var result = ['*',
+		} else if ((typeof input === "string") && (input === x)) {
+		    let result = ['*',
 				  substitute( derivatives[operator], { "x": input } )];
 		    result = simplify$2(result);
 		    story.push( 'It is the case that \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
-		} else if ((typeof input == "string") && (input != x)) {
-		    var result = 0;
+		} else if ((typeof input === "string") && (input !== x)) {
+		    let result = 0;
 		    story.push( 'Since the derivative of a constant is zero, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(result) + '\\).' );
 		    return result;
 		} else {
-		    var example_ast = [operator,'u'];
+		    let example_ast = [operator,'u'];
 		    if(used_apply)
 			example_ast = ["apply"].concat(example_ast);
 		    story.push( 'Recall \\(\\frac{d}{du}' + astToLatex$1.convert( example_ast ) + ' = ' +
@@ -76879,7 +77091,7 @@
 
 		    story.push( 'By the chain rule, \\(' + ddx + astToLatex$1.convert( tree ) + ' = ' + astToLatex$1.convert(substitute( derivatives[operator], { "x": input } )) + " \\cdot " + ddx + astToLatex$1.convert(input)  + '\\).' );
 
-		    var result = ['*',
+		    let result = ['*',
 				  substitute( derivatives[operator], { "x": input } ),
 				  derivative$2( input, x, story )];
 		    result = simplify$2(result);
@@ -76905,15 +77117,15 @@
 
 	function simplify_story( story ) {
 	    // remove neighboring duplicates
-	    for (var i = story.length - 1; i >= 1; i--) {
-		if (story[i] == story[i-1])
+	    for (let i = story.length - 1; i >= 1; i--) {
+		if (story[i] === story[i-1])
 		    story.splice( i, 1 );
 	    }
 
 	    // Make it seem obvious that I know I am repeating myself
-	    for (var i = 0; i < story.length; i++ ) {
-		for( var j = i + 1; j < story.length; j++ ) {
-		    if (story[i] == story[j]) {
+	    for (let i = 0; i < story.length; i++ ) {
+		for( let j = i + 1; j < story.length; j++ ) {
+		    if (story[i] === story[j]) {
 			story[j] = 'Again, ' + lowercaseFirstLetter( story[j] );
 		    }
 		}
@@ -77021,44 +77233,53 @@
 	    return clean(result);
 	}
 
+	function copy$9(expr_or_tree) {
+	  return get_tree(expr_or_tree);
+	}
+
 	var arithmetic$1 = /*#__PURE__*/Object.freeze({
 	    add: add$2$1,
 	    subtract: subtract$2$1,
 	    multiply: multiply$2$1,
 	    divide: divide$2$1,
 	    pow: pow$2,
-	    mod: mod$2
+	    mod: mod$2,
+	    copy: copy$9
 	});
 
-	var analytic_operators = ['+', '-', '*', '/', '^'];
+	var analytic_operators = ['+', '-', '*', '/', '^', 'tuple', 'vector', 'list', 'array','matrix', 'interval'];
 	var analytic_functions = ["exp", "log", "log10", "sqrt", "factorial", "gamma", "erf", "acos", "acosh", "acot", "acoth", "acsc", "acsch", "asec", "asech", "asin", "asinh", "atan", "atanh", "cos", "cosh", "cot", "coth", "csc", "csch", "sec", "sech", "sin", "sinh", "tan", "tanh", 'arcsin', 'arccos', 'arctan', 'arccsc', 'arcsec', 'arccot', 'cosec'];
+	var relation_operators = ['=', 'le', 'ge', '<', '>'];
 
+	function isAnalytic(expr_or_tree, {allow_abs=false, allow_relation=false} ={}) {
 
-	function isAnalytic(expr_or_tree, params) {
+	  var tree = normalize_applied_functions(
+	    normalize_function_names(expr_or_tree));
 
-	    var tree = get_tree(expr_or_tree);
-
-	    var allow_abs = false;
-	    if (params !== undefined && params.hasOwnProperty('allow_abs'))
-		allow_abs = params['allow_abs'];
-
-	    var operators_found = operators$1(tree);
-	    for (var i=0; i < operators$1.length; i++ ) {
-		var oper = operators$1[i];
-		if(analytic_operators.indexOf(oper) === -1)
-		    return false;
+	  var operators_found = operators$1(tree);
+	  for (let i=0; i < operators_found.length; i++ ) {
+		  let oper = operators_found[i];
+		  if(analytic_operators.indexOf(oper) === -1) {
+	      if(allow_relation) {
+	        if(relation_operators.indexOf(oper) === -1) {
+	          return false;
+	        }
+	      }else {
+	        return false;
+	      }
 	    }
+	  }
 
-	    var functions$$1 = functions$$1(tree);
-	    for (var i=0; i < functions$$1.length; i++ ) {
-		var fun = functions$$1[i];
-		if(analytic_functions.indexOf(fun) === -1) {
+	  var functions_found = functions(tree);
+	  for (let i=0; i < functions_found.length; i++ ) {
+	    let fun = functions_found[i];
+	    if(analytic_functions.indexOf(fun) === -1) {
 		    if((!allow_abs) || fun !== "abs")
-			return false;
-		}
+	    		return false;
 	    }
+	  }
 
-	    return true;
+	  return true;
 	}
 
 	var analytic = /*#__PURE__*/Object.freeze({
@@ -77068,8 +77289,8 @@
 	function create_discrete_infinite_set({
 	  offsets,
 	  periods,
-	  min_index = ['-', 'infinity'],
-	  max_index = 'infinity',
+	  min_index = ['-', Infinity],
+	  max_index = Infinity,
 	} = {}) {
 
 	  offsets = get_tree(offsets);
@@ -77077,15 +77298,15 @@
 	  min_index = get_tree(min_index);
 	  max_index = get_tree(max_index);
 
-	  
-	  
+
+
 	  if(offsets === undefined || periods === undefined)
 	    return undefined;
 
 	  let results = [];
 	  if(offsets[0] === 'list') {
 	    if(periods[0] === 'list') {
-	      if(offsets.length != periods.length || offsets.length == 1)
+	      if(offsets.length !== periods.length || offsets.length === 1)
 		return undefined;
 	      for(let i=1; i<offsets.length; i++)
 		results.push(['tuple', offsets[i], periods[i], min_index, max_index]);
@@ -77122,7 +77343,7 @@
 	    var r = entries.length;
 	    var c = entries[0].length;
 	    for (let i = 1; i < r; i++){
-	        if (entries[i].length != c){      //check if columns are equal size
+	        if (entries[i].length !== c){      //check if columns are equal size
 	            throw new Error("Matrix dimensions mismatch");
 	        }
 	    }
@@ -77202,7 +77423,7 @@
 	    "partial_derivative_leibniz": function (operands) { return "∂" + operands[0] + "/∂" + operands[1]; },
 	    "|": function (operands) { return operands[0] + " | " + operands[1]; },
 	    ":": function (operands) { return operands[0] + " : " + operands[1]; },
-	  
+
 	};
 
 	const nonunicode_operators = {
@@ -77270,18 +77491,18 @@
 		return this.single_statement(tree);
 	    }
 
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
 
 	   if(operator === 'ldots')
 	     return '...';
-	   
+
 	    if((!(operator in this.operators)) && operator!=="apply")
 		throw new Error("Badly formed ast: operator " + operator + " not recognized.");
 
 	    if (operator === 'and' || operator === 'or')  {
 		return this.operators[operator]( operands.map( function(v,i) {
-		    var result = this.single_statement(v);
+		    let result = this.single_statement(v);
 		    // for clarity, add parenthesis unless result is
 		    // single quantity (with no spaces) or already has parens
 		    if (result.toString().match(/ /)
@@ -77299,12 +77520,12 @@
 		return this.expression(tree);
 	    }
 
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
 
-	    if (operator == 'not') {
+	    if (operator === 'not') {
 		return this.operators[operator]( operands.map( function(v,i) {
-		    var result = this.single_statement(v);
+		    let result = this.single_statement(v);
 		    // for clarity, add parenthesis unless result is
 		    // single quantity (with no spaces) or already has parens
 		    if (result.toString().match(/ /)
@@ -77315,36 +77536,36 @@
 		}.bind(this)));
 	    }
 
-	    if((operator == '=') || (operator == 'ne')
-	       || (operator == '<') || (operator == '>')
-	       || (operator == 'le') || (operator == 'ge')
-	       || (operator == 'in') || (operator == 'notin')
-	       || (operator == 'ni') || (operator == 'notni')
-	       || (operator == 'subset') || (operator == 'notsubset')
-	       || (operator == 'superset') || (operator == 'notsuperset')) {
+	    if((operator === '=') || (operator === 'ne')
+	       || (operator === '<') || (operator === '>')
+	       || (operator === 'le') || (operator === 'ge')
+	       || (operator === 'in') || (operator === 'notin')
+	       || (operator === 'ni') || (operator === 'notni')
+	       || (operator === 'subset') || (operator === 'notsubset')
+	       || (operator === 'superset') || (operator === 'notsuperset')) {
 		return this.operators[operator]( operands.map( function(v,i) {
 		    return this.expression(v);
 		}.bind(this)));
 	    }
 
-	    if(operator == 'lts' || operator == 'gts') {
-		var args = operands[0];
-		var strict = operands[1];
+	    if(operator === 'lts' || operator === 'gts') {
+		let args = operands[0];
+		let strict = operands[1];
 
-		if(args[0] != 'tuple' || strict[0] != 'tuple')
+		if(args[0] !== 'tuple' || strict[0] !== 'tuple')
 		    // something wrong if args or strict are not tuples
 		    throw new Error("Badly formed ast");
 
-		var result = this.expression(args[1]);
-		for(var i=1; i< args.length-1; i++) {
+		let result = this.expression(args[1]);
+		for(let i=1; i< args.length-1; i++) {
 		    if(strict[i]) {
-			if(operator == 'lts')
+			if(operator === 'lts')
 			    result += " < ";
 			else
 			    result += " > ";
 		    }
 		    else {
-			if(operator == 'lts') {
+			if(operator === 'lts') {
 			    if(this.output_unicode)
 				result += " ≤ ";
 			    else
@@ -77370,10 +77591,10 @@
 		return this.term(tree);
 	    }
 
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
 
-	    if (operator == '+') {
+	    if (operator === '+') {
 		return this.operators[operator]( operands.map( function(v,i) {
 		    if(i>0)
 			return this.termWithPlusIfNotNegated(v);
@@ -77382,7 +77603,7 @@
 		}.bind(this) ));
 	    }
 
-	    if ((operator == 'union') || (operator == 'intersect')) {
+	    if ((operator === 'union') || (operator === 'intersect')) {
 		return this.operators[operator]( operands.map( function(v,i) {
 		    return this.term(v);
 		}.bind(this)));
@@ -77396,17 +77617,17 @@
 		return this.factor(tree);
 	    }
 
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
 
-	    if (operator == '-') {
+	    if (operator === '-') {
 		return this.operators[operator]( operands.map( function(v,i) {
 		    return this.term(v);
 		}.bind(this)));
 	    }
-	    if (operator == '*') {
+	    if (operator === '*') {
 		return this.operators[operator]( operands.map( function(v,i) {
-		    var result;
+		    let result;
 		    if(i > 0) {
 			result = this.factorWithParenthesesIfNegated(v);
 			if (result.toString().match( /^[0-9]/ ))
@@ -77419,7 +77640,7 @@
 		}.bind(this)));
 	    }
 
-	    if (operator == '/') {
+	    if (operator === '/') {
 		return this.operators[operator]( operands.map( function(v,i) { return this.factor(v); }.bind(this) ) );
 	    }
 
@@ -77427,8 +77648,7 @@
 	}
 
 	 symbolConvert(symbol) {
-	    var symbolConversions= {
-		'infinity': '∞',
+	    let symbolConversions= {
 		'alpha': 'α',
 		'beta': 'β',
 		'Gamma': 'Γ',
@@ -77477,12 +77697,12 @@
 	    // or tree is a function call
 	    // or factor(tree) is in parens
 
-	    var result = this.factor(tree);
+	    let result = this.factor(tree);
 
-	    if (result.toString().length == 1
-		|| (typeof tree == 'number')
-		|| (typeof tree == 'string')
-		|| (tree[0] == 'apply')
+	    if (result.toString().length === 1
+		|| (typeof tree === 'number')
+		|| (typeof tree === 'string')
+		|| (tree[0] === 'apply')
 		|| result.toString().match( /^\(.*\)$/)
 	       )
 		return true;
@@ -77496,29 +77716,46 @@
 	    }
 
 	    if (typeof tree === 'number') {
-		return tree;
+	      if(tree === Infinity) {
+	        if(this.output_unicode) {
+	          return '∞';
+	        }
+	        else {
+	          return 'infinity';
+	        }
+	      }
+	      else if(tree === -Infinity) {
+	        if(this.output_unicode) {
+	          return '-∞';
+	        }
+	        else {
+	          return '-infinity';
+	        }
+	      }
+	      else
+	        return tree.toString();
 	    }
 
-	    var operator = tree[0];
-	    var operands = tree.slice(1);
+	    let operator = tree[0];
+	    let operands = tree.slice(1);
 
 	    if (operator === "^") {
-		var operand0 = this.factor(operands[0]);
+		let operand0 = this.factor(operands[0]);
 
 		// so that f_(st)'^2(x) doesn't get extra parentheses
 		// (and no longer recognized as function call)
 		// check for simple factor after removing primes
-		var remove_primes = operands[0];
-		while(remove_primes[0] == 'prime') {
+		let remove_primes = operands[0];
+		while(remove_primes[0] === 'prime') {
 		    remove_primes=remove_primes[1];
 		}
 
 		if(!(this.simple_factor_or_function_or_parens(remove_primes) ||
-		     (remove_primes[0] == '_' &&  (typeof remove_primes[1] == 'string'))
+		     (remove_primes[0] === '_' &&  (typeof remove_primes[1] === 'string'))
 		    ))
 		    operand0 = '(' + operand0.toString() + ')';
 
-		var operand1 = this.factor(operands[1]);
+		let operand1 = this.factor(operands[1]);
 		if(!(this.simple_factor_or_function_or_parens(operands[1])))
 		    operand1 = '(' + operand1.toString() + ')';
 
@@ -77526,7 +77763,7 @@
 	    }
 	    else if (operator === "_") {
 		return this.operators[operator]( operands.map( function(v,i) {
-		    var result = this.factor(v);
+		    let result = this.factor(v);
 		    if(this.simple_factor_or_function_or_parens(v))
 			return result;
 		    else
@@ -77534,21 +77771,21 @@
 		}.bind(this)));
 	    }
 	    else if(operator === "prime") {
-		var op = operands[0];
+		let op = operands[0];
 
-		var n_primes=1;
+		let n_primes=1;
 		while(op[0] === "prime") {
 		    n_primes+=1;
 		    op=op[1];
 		}
 
-		var result = this.factor(op);
+		let result = this.factor(op);
 
 		if (!(this.simple_factor_or_function_or_parens(op) ||
-		      (op[0] == '_' &&  (typeof op[1] == 'string'))
+		      (op[0] === '_' &&  (typeof op[1] === 'string'))
 		     ))
 		    result = '(' + result.toString() + ')';
-		for(var i=0; i<n_primes; i++) {
+		for(let i=0; i<n_primes; i++) {
 		    result += "'";
 		}
 		return result;
@@ -77569,12 +77806,12 @@
 	    }
 	    else if(operator === 'interval') {
 
-		var args = operands[0];
-		var closed = operands[1];
+		let args = operands[0];
+		let closed = operands[1];
 		if(args[0] !== 'tuple' || closed[0] !== 'tuple')
 		    throw new Error("Badly formed ast");
 
-		var result = this.statement(args[1]) + ", "
+		let result = this.statement(args[1]) + ", "
 		    + this.statement(args[2]);
 
 		if(closed[1])
@@ -77590,15 +77827,15 @@
 		return result;
 
 	    }
-	   else if(operator == 'matrix') {
-	     var size = operands[0];
-	      var args = operands[1];
+	   else if(operator === 'matrix') {
+	     let size = operands[0];
+	      let args = operands[1];
 
 	     let result = '[ ';
 
-	     for(var row = 0; row < size[1]; row += 1) {
+	     for(let row = 0; row < size[1]; row += 1) {
 	       result = result + '[ ';
-		for(var col = 0; col < size[2]; col += 1) {
+		for(let col = 0; col < size[2]; col += 1) {
 		  result = result + this.statement(args[row+1][col+1]);
 		  if(col < size[2]-1)
 		    result = result + ',';
@@ -77614,9 +77851,9 @@
 	     return result;
 
 	   }
-	   else if(operator == 'derivative_leibniz' || operator == 'partial_derivative_leibniz') {
+	   else if(operator === 'derivative_leibniz' || operator === 'partial_derivative_leibniz') {
 	     let deriv_symbol = "d";
-	     if(operator == 'partial_derivative_leibniz')
+	     if(operator === 'partial_derivative_leibniz')
 	       deriv_symbol = "∂";
 
 	     let num = operands[0];
@@ -77662,16 +77899,16 @@
 	     return result;
 
 	   }
-	   else if(operator == 'apply'){
+	   else if(operator === 'apply'){
 
 		if(operands[0] === 'abs') {
 		    return '|' + this.statement(operands[1]) + '|';
 		}
 
 		if (operands[0] === "factorial") {
-		    var result = this.factor(operands[1]);
+		    let result = this.factor(operands[1]);
 		    if(this.simple_factor_or_function_or_parens(operands[1]) ||
-		       (operands[1][0] == '_' &&  (typeof operands[1][1] == 'string'))
+		       (operands[1][0] === '_' &&  (typeof operands[1][1] === 'string'))
 		      )
 			return result + "!";
 		    else
@@ -77679,10 +77916,10 @@
 
 		}
 
-		var f = this.factor(operands[0]);
-		var f_args = this.statement(operands[1]);
+		let f = this.factor(operands[0]);
+		let f_args = this.statement(operands[1]);
 
-		if(operands[1][0] != 'tuple')
+		if(operands[1][0] !== 'tuple')
 		    f_args = "(" + f_args + ")";
 
 		return f+f_args;
@@ -77693,7 +77930,7 @@
 	}
 
 	 factorWithParenthesesIfNegated(tree){
-	    var result = this.factor(tree);
+	    let result = this.factor(tree);
 
 	    if (result.toString().match( /^-/ ))
 		return '(' + result.toString() + ')';
@@ -77703,7 +77940,7 @@
 	}
 
 	 termWithPlusIfNotNegated(tree){
-	    var result = this.term(tree);
+	    let result = this.term(tree);
 
 	    if (!result.toString().match( /^-/ ))
 		return '+ ' + result.toString();
@@ -77792,12 +78029,12 @@
 
 	  static isFunctionSymbol( symbol ){
 	      var functionSymbols = ['sin', 'cos', 'tan', 'csc', 'sec', 'cot', 'arcsin', 'arccos', 'arctan', 'arccsc', 'arcsec', 'arccot', 'log', 'ln', 'exp', 'sqrt', 'abs', 'this.factorial'];
-	      return (functionSymbols.indexOf(symbol) != -1);
+	      return (functionSymbols.indexOf(symbol) !== -1);
 	  }
 
 	  static isGreekLetterSymbol( symbol ){
 	      var greekSymbols = ['pi', 'theta', 'theta', 'Theta', 'alpha', 'nu', 'beta', 'xi', 'Xi', 'gamma', 'Gamma', 'delta', 'Delta', 'pi', 'Pi', 'epsilon', 'epsilon', 'rho', 'rho', 'zeta', 'sigma', 'Sigma', 'eta', 'tau', 'upsilon', 'Upsilon', 'iota', 'phi', 'phi', 'Phi', 'kappa', 'chi', 'lambda', 'Lambda', 'psi', 'Psi', 'omega', 'Omega'];
-	      return (greekSymbols.indexOf(symbol) != -1);
+	      return (greekSymbols.indexOf(symbol) !== -1);
 	  }
 
 	  factorWithParenthesesIfNegated(tree){
@@ -77850,7 +78087,7 @@
 	      if (operator === "abs") {
 	  	return this.operators[operator]( operands.map( function(v,i) { return this.expression(v); }.bind(this) ));
 	  } else if (astToGuppy.isFunctionSymbol(operator)) {
-	  	if ((operator == 'this.factorial') && ((operands[0].toString().length == 1) || (operands[0].toString().match( /^[0-9]*$/ ))))
+	  	if ((operator === 'this.factorial') && ((operands[0].toString().length === 1) || (operands[0].toString().match( /^[0-9]*$/ ))))
 	  	    return this.operators[operator]( operands );
 
 	  	return this.operators[operator]( operands.map( function(v,i) {
@@ -77863,7 +78100,7 @@
 	  	return this.operators[operator]( operands.map( function(v,i) { return this.factor(v); }.bind(this) ) );
 	      }
 
-	      if (operator == '~') {
+	      if (operator === '~') {
 	  	return this.operators[operator]( operands.map( function(v,i) { return this.factor(v); }.bind(this) ) );
 	      }
 
@@ -77887,7 +78124,7 @@
 	      var operator = tree[0];
 	      var operands = tree.slice(1);
 
-	      if (operator == '*') {
+	      if (operator === '*') {
 	  	return this.operators[operator]( operands.map( function(v,i) {
 	  	    var result = this.factorWithParenthesesIfNegated(v);
 
@@ -77898,7 +78135,7 @@
 	  	}.bind(this)));
 	      }
 
-	      if (operator == '/') {
+	      if (operator === '/') {
 	  	return this.operators[operator]( operands.map( function(v,i) { return this.factor(v); }.bind(this) ) );
 	      }
 
@@ -77920,7 +78157,7 @@
 	      var operator = tree[0];
 	      var operands = tree.slice(1);
 
-	      if ((operator == '+') || (operator == '-')) {
+	      if ((operator === '+') || (operator === '-')) {
 	  	return this.operators[operator]( operands.map( function(v,i) { return this.factorWithParenthesesIfNegated(v); }.bind(this) ));
 	      }
 
@@ -77958,7 +78195,7 @@
 
 	const glslOperators = {
 	    "+": function(operands) { var result = operands[0]; operands.slice(1).forEach(function(rhs) { result = result + "+" + rhs; }); return result; },
-	    "-": function(operands) { var result = operands[0]; operands.slice(1).forEach(function(rhs) { result = result + "-" + rhs; }); return result; },
+	  "-": function(operands) { var result = "-" + operands[0]; operands.slice(1).forEach(function(rhs) { result = result + "-" + rhs; }); return result; },
 	    "~": function(operands) { var result = "vec2(0.0,0.0)"; operands.forEach(function(rhs) { result = result + "-" + rhs; }); return result; },
 	    "*": function(operands) { var result = operands[0]; operands.slice(1).forEach(function(rhs) { result = "cmul(" + result + "," + rhs + ")"; }); return result; },
 	    "/": function(operands) { var result = operands[0]; operands.slice(1).forEach(function(rhs) { result = "cdiv(" + result + "," + rhs + ")"; }); return result; },
@@ -78079,9 +78316,9 @@
 	// check for equality by randomly sampling
 
 	function generate_random_integer(minvalue, maxvalue) {
-	  minvalue = math$21.ceil(minvalue);
-	  maxvalue = math$21.floor(maxvalue);
-	  return math$21.floor(math$21.random()*(maxvalue-minvalue+1)) + minvalue;
+	  minvalue = math$19.ceil(minvalue);
+	  maxvalue = math$19.floor(maxvalue);
+	  return math$19.floor(math$19.random()*(maxvalue-minvalue+1)) + minvalue;
 	}
 
 
@@ -78098,36 +78335,83 @@
 
 	    if(expr_operator === 'tuple' || expr_operator === 'vector'
 	       || expr_operator === 'list' || expr_operator === 'array'
-	       || expr_operator === 'matrix'
+	       || expr_operator === 'matrix' || expr_operator === 'interval'
 	      ) {
 
 	      if(other_operator !== expr_operator)
-		return false;
+	        return false;
 
 	      if(other_operands.length !== expr_operands.length)
-		return false;
+	        return false;
 
 	      for(let i=0; i<expr_operands.length; i++) {
-		if(!equals$a(expr_context.fromAst(expr_operands[i]),
-			   other_context.fromAst(other_operands[i]),
-			   randomBindings,
-			   expr_context, other_context))
-		  return false;
+	        if(!equals$a(expr_context.fromAst(expr_operands[i]),
+	          other_context.fromAst(other_operands[i]),
+	          randomBindings,
+	          expr_context, other_context))
+	            return false;
 	      }
 
 	      return true;  // each component is equal
 	    }
+
+	    // check if a relation with two operands
+	    if(expr_operands.length === 2 && ["=", '>', '<', 'ge', 'le'].includes(expr_operator)) {
+	      if(other_operands.length !== 2) {
+	        return false;
+	      }
+	      //normalize operator
+	      if(expr_operator === ">") {
+	        expr_operator = "<";
+	        expr_operands = [expr_operands[1], expr_operands[0]];
+	      }else if(expr_operator === "ge") {
+	        expr_operator = "le";
+	        expr_operands = [expr_operands[1], expr_operands[0]];
+	      }
+	      if(other_operator === ">") {
+	        other_operator = "<";
+	        other_operands = [other_operands[1], other_operands[0]];
+	      }else if(other_operator === "ge") {
+	        other_operator = "le";
+	        other_operands = [other_operands[1], other_operands[0]];
+	      }
+
+	      if(expr_operator !== other_operator) {
+	        return false;
+	      }
+	    
+	      // put in standard form
+	      let expr_rhs = ['+', expr_operands[0], ['-', expr_operands[1]]];
+	      let other_rhs = ['+', other_operands[0], ['-', other_operands[1]]];
+	      let require_positive_proportion = (expr_operator !== "=");
+
+	      return component_equals({
+	        expr: expr_context.fromAst(expr_rhs),
+	        other: other_context.fromAst(other_rhs),
+	        randomBindings: randomBindings,
+	        expr_context: expr_context,
+	        other_context: other_context,
+	        allow_proportional: true,
+	        require_positive_proportion: require_positive_proportion});
+
+	    }
+
 	  }
 
 	  // if not special case, use standard numerical equality
-	  return component_equals(expr, other, randomBindings,
-				  expr_context, other_context);
+	  return component_equals({
+	    expr: expr,
+	    other: other,
+	    randomBindings: randomBindings,
+	    expr_context: expr_context,
+	    other_context: other_context});
 
 	};
 
 
-	const component_equals = function(expr, other, randomBindings,
-				       expr_context, other_context) {
+	const component_equals = function({expr, other, randomBindings,
+	             expr_context, other_context,
+	             allow_proportional=false, require_positive_proportion=false}) {
 
 	  var max_value = Number.MAX_VALUE*1E-20;
 
@@ -78141,17 +78425,29 @@
 	    if (p.indexOf(c) < 0) p.push(c);
 	    return p;
 	  }, []);
-	    
-	  // pi shouldn't be treated as a variable for the purposes of complex
-	  // equality; for now, e is also special
-	  variables = variables.filter( function(a) {
-	      return (a !== "pi") && (a != "e");
-	  });
+
+	  // pi, e, and i shouldn't be treated as a variable
+	  // for the purposes of equality if they are defined as having values
+	  if(math$19.define_pi) {
+	    variables = variables.filter( function(a) {
+	      return (a !== "pi");
+	    });
+	  }
+	  if(math$19.define_i) {
+	    variables = variables.filter( function(a) {
+	      return (a !== "i");
+	    });
+	  }
+	  if(math$19.define_e) {
+	    variables = variables.filter( function(a) {
+	      return (a !== "e");
+	    });
+	  }
 
 	  // determine if any of the variables are integers
 	  // consider integer if is integer in either expressions' assumptions
 	  var integer_variables = [];
-	  for(var i=0; i < variables.length; i++)
+	  for(let i=0; i < variables.length; i++)
 	    if(is_integer_ast(variables[i], expr_context.assumptions)
 	       || is_integer_ast(variables[i], other_context.assumptions))
 	      integer_variables.push(variables[i]);
@@ -78173,6 +78469,8 @@
 	  }
 	  catch (e) {
 	    // Can't convert to mathjs to create function
+	    // just check if equal via syntax
+	    return expr.equalsViaSyntax(other)
 	    return false;
 	  }
 	  
@@ -78192,28 +78490,28 @@
 	  // conclusion that expression are unequal. Instead, to be consider unequal
 	  // the functions must be unequal around many different points.
 
-	  for(var i=0; i<100; i++) {
+	  for(let i=0; i<100; i++) {
 	    
 	    // Look for a location where the magnitudes of both expressions
 	    // are below max_value;
 	    try {
-		var result = find_equality_region(binding_scales[scale_num]);
+		    var result = find_equality_region(binding_scales[scale_num]);
 	    }
 	    catch(e) {
 	      continue;
 	    }
 	    if(result.equal) {
 	      if(result.always_zero) {
-		// functions equal but zero
-		// try changing the scale and repeating
-		scale_num +=1;
-		if(scale_num >= binding_scales.length)
-		  return true;  // were equal and zero at all scales
-		else
-		  continue
+	        // functions equal but zero
+	        // try changing the scale and repeating
+	        scale_num +=1;
+	        if(scale_num >= binding_scales.length)
+	          return true;  // were equal and zero at all scales
+	        else
+	          continue
 	      }
 	      else
-		return true;
+	        return true;
 	    }
 	  }
 
@@ -78253,16 +78551,16 @@
 	      var a = generate_random_integer(-10,10);
 	      var b = generate_random_integer(-10,10);
 	      var c = generate_random_integer(-10,10);	
-		bindings[functions[i]] = function(x) {
-		    return math$21.add(math$21.multiply(math$21.add(math$21.multiply(a,x),b),x),c);
+		    bindings[functions[i]] = function(x) {
+		      return math$19.add(math$19.multiply(math$19.add(math$19.multiply(a,x),b),x),c);
 	      };
 	    }
 
 	    var expr_evaluated = expr_f(bindings);
 	    var other_evaluated = other_f(bindings);
 
-	    var expr_abs = math$21.abs(expr_evaluated);
-	    var other_abs = math$21.abs(other_evaluated);
+	    var expr_abs = math$19.abs(expr_evaluated);
+	    var other_abs = math$19.abs(other_evaluated);
 
 	    if(expr_abs >= max_value || other_abs > max_value)
 	      return { out_of_bounds: true };
@@ -78270,60 +78568,74 @@
 	    // now that found a finite point,
 	    // check to see if expressions are nearly equal.
 
-	    var min_mag = math$21.min(expr_abs, other_abs);
-	    if(math$21.abs(math$21.subtract(expr_evaluated, other_evaluated))
-	       > min_mag * epsilon)
-	      return { equal_at_start: false };
+	    var min_mag = math$19.min(expr_abs, other_abs);
+	    var proportion = 1;
+	    if(math$19.abs(math$19.subtract(expr_evaluated, other_evaluated))
+	        > min_mag * epsilon) {
+	      if(!allow_proportional) {
+	        return { equal_at_start: false };
+	      }
+	      // at this point, know both are not zero
+	      if(expr_abs === 0 || other_abs === 0) {
+	        return { equal_at_start: false };
+	      }
 
-	    var always_zero = (min_mag == 0);
+	      proportion = math$19.divide(expr_evaluated,other_evaluated);
+	      if(require_positive_proportion && !(proportion > 0)) {
+	        return { equal_at_start: false };
+	      }
+	    }
 
+
+	    var always_zero = (min_mag === 0);
+	    
 	    // Look for a region around point
 	    var finite_tries = 0;
 	    for(let j=0; j<100; j++) {
 	      var bindings2 = randomBindings(
-		variables, noninteger_binding_scale/100, bindings);
+		      variables, noninteger_binding_scale/100, bindings);
 
 	      // replace any integer variables with integer
 	      for(let k=0; k<integer_variables.length; k++) {
-		bindings2[integer_variables[k]]
-		  = generate_random_integer(-10,10);
+	      	bindings2[integer_variables[k]]
+		        = generate_random_integer(-10,10);
 	      }
 
-	    // replace any function variables with a function
-	    for(let i=0; i<functions.length; i++) {
-	      var a = generate_random_integer(-10,10);
-	      var b = generate_random_integer(-10,10);
-	      var c = generate_random_integer(-10,10);	
-		bindings2[functions[i]] = function(x) {
-		    return math$21.add(math$21.multiply(math$21.add(math$21.multiply(a,x),b),x),c);
-	      };
-	    }
+	      // replace any function variables with a function
+	      for(let i=0; i<functions.length; i++) {
+	        var a = generate_random_integer(-10,10);
+	        var b = generate_random_integer(-10,10);
+	        var c = generate_random_integer(-10,10);	
+	        bindings2[functions[i]] = function(x) {
+	          return math$19.add(math$19.multiply(math$19.add(math$19.multiply(a,x),b),x),c);
+	        };
+	      }
 
 	      try {
-		expr_evaluated = expr_f(bindings2);
-		other_evaluated = other_f(bindings2);
+	        expr_evaluated = expr_f(bindings2);
+	        other_evaluated = math$19.multiply(other_f(bindings2), proportion);
 	      }
 	      catch (e) {
-		continue;
+		      continue;
 	      }
-	      expr_abs = math$21.abs(expr_evaluated);
-	      other_abs = math$21.abs(other_evaluated);
+	      expr_abs = math$19.abs(expr_evaluated);
+	      other_abs = math$19.abs(other_evaluated);
 
 	      if(expr_abs < max_value && other_abs < max_value) {
-		min_mag = math$21.min(expr_abs, other_abs);
+	        min_mag = math$19.min(expr_abs, other_abs);
 
-		finite_tries++;
+	        finite_tries++;
 
-		if(math$21.abs(math$21.subtract(expr_evaluated, other_evaluated))
-		   > min_mag * epsilon) {
-		  return { equality_in_middle: false };
-		}
+	        if(math$19.abs(math$19.subtract(expr_evaluated, other_evaluated))
+	          > min_mag * epsilon) {
+	          return { equality_in_middle: false };
+	        }
 
-		always_zero = always_zero && (min_mag == 0);
+	        always_zero = always_zero && (min_mag === 0);
 
-		if(finite_tries >=minimum_matches) {
-		  return { equal: true, always_zero: always_zero }
-		}
+	        if(finite_tries >=minimum_matches) {
+	          return { equal: true, always_zero: always_zero }
+	        }
 	      }
 	    }
 	    return { sufficient_finite_values: false };
@@ -78331,24 +78643,26 @@
 
 	};
 
+	//import { substitute_abs } from '../normalization/standard_form';
+
 	function randomComplexBindings(variables, radius, centers) {
-	    var result = {};
+	  var result = {};
 
-	    if(centers === undefined) {
-		variables.forEach( function(v) {
-		    result[v] = math$21.complex( math$21.random()*2*radius - radius,
-					      math$21.random()*2*radius - radius );
-		});
-	    }
-	    else {
-		variables.forEach( function(v) {
-		    result[v] = math$21.complex(
-			centers[v].re + math$21.random()*2*radius - radius,
-			centers[v].im + math$21.random()*2*radius - radius );
-		});
-	    }
+	  if(centers === undefined) {
+	    variables.forEach( function(v) {
+	    result[v] = math$19.complex( math$19.random()*2*radius - radius,
+	                    math$19.random()*2*radius - radius );
+	    });
+	  }
+	  else {
+	    variables.forEach( function(v) {
+	      result[v] = math$19.complex(
+	      centers[v].re + math$19.random()*2*radius - radius,
+	      centers[v].im + math$19.random()*2*radius - radius );
+	    });
+	  }
 
-	    return result;
+	  return result;
 	}
 
 	const equals$1$1 = function(expr, other) {
@@ -78358,13 +78672,13 @@
 	  
 	  // don't use complex equality if not analytic expression
 	  // except abs is OK
-	  if((!expr.isAnalytic({allow_abs: true})) ||
-	     (!other.isAnalytic({allow_abs: true})) )
-	    return true;
+	  if((!expr.isAnalytic({allow_abs: true, allow_relation: true})) ||
+	      (!other.isAnalytic({allow_abs: true, allow_relation: true})) )
+	    return false;
 	  
 	  return equals$a(expr, other,
-				  randomComplexBindings,
-				  expr.context, other.context);
+	    randomComplexBindings,
+	    expr.context, other.context);
 	};
 
 	function randomRealBindings(variables, radius, centers) {
@@ -78372,12 +78686,12 @@
 
 	    if(centers === undefined) {
 		variables.forEach( function(v) {
-		    result[v] = math$21.random()*2*radius - radius;
+		    result[v] = math$19.random()*2*radius - radius;
 		});
 	    }
 	    else {
 		variables.forEach( function(v) {
-		    result[v] =centers[v] + math$21.random()*2*radius - radius;
+		    result[v] =centers[v] + math$19.random()*2*radius - radius;
 		});
 	    }
 
@@ -78400,12 +78714,12 @@
 	};
 
 	const equals$4$1 = function(expr, other, { min_elements_match=3 } = {} ) {
-	  
+
 	  // expr must be a discrete infinite set
 	  if(!is_discrete_infinite_set(expr))
 	    return false;
-	  
-	  // other must be a discrete infinite set or a list 
+
+	  // other must be a discrete infinite set or a list
 	  if(is_discrete_infinite_set(other)) {
 	    var assumptions = [];
 	    let a = expr.context.get_assumptions(expr);
@@ -78414,22 +78728,22 @@
 	    a = other.context.get_assumptions(other);
 	    if(a !== undefined)
 	      assumptions.push(a);
-	    if(assumptions.length == 0)
+	    if(assumptions.length === 0)
 	      assumptions = undefined;
-	    else if(assumptions.length == 1)
+	    else if(assumptions.length === 1)
 	      assumptions=assumptions[0];
 	    else
 	      assumptions = clean_assumptions(['and'].concat(assumptions));
-	    
+
 	    return contained_in(expr.tree, other.tree, assumptions) &&
 	      contained_in(other.tree, expr.tree, assumptions);
-	    
+
 	  }
 	  else {
 	    // check if other is a list than ends in 'ldots'
 	    let other_tree = other.tree;
 
-	    if(other_tree[0] != 'list')
+	    if(other_tree[0] !== 'list')
 	      return false;
 
 	    let n_in_list = other_tree.length-2;
@@ -78439,7 +78753,7 @@
 
 	    if(n_in_list < min_elements_match)
 	      return false;
-	    
+
 	    let the_list = other_tree.slice(0,n_in_list+1);
 
 	    // get list of same size from
@@ -78451,9 +78765,9 @@
 	    generated_list = ['list'].concat(generated_list);
 
 	    return equals$5$1(expr.context.from(generated_list), other.context.from(the_list));
-	    
+
 	  }
-	  
+
 	};
 
 
@@ -78471,7 +78785,7 @@
 	      return false;
 	    if(v[0] !== 'tuple')
 	      return false;
-	    if(v.length != 5)
+	    if(v.length !== 5)
 	      return false;
 	  }
 
@@ -78483,10 +78797,10 @@
 	  // true if tree is contained in the discrete infinite set i_set
 	  // tree is either a discrete infinite set
 	  // or a tuple of form [offset, period, min_index, max_index]
-	  
+
 	  if(tree[0] === 'discrete_infinite_set')
 	    return tree.slice(1).every(v => contained_in(v, i_set, assumptions));
-	  
+
 	  // tree is a tuple of the form [offset, period, min_index, max_index]
 
 	  var offset0 = tree[1];
@@ -78494,57 +78808,57 @@
 	  var min_index = tree[3];
 	  var max_index = tree[4];
 
-	  // implemented only if min_index == -infinity and max_index == infinity
-	  if(!Array.isArray(min_index) || min_index[0] !== '-' || min_index[1] !== 'infinity'
-	     || max_index !== 'infinity')
+	  // implemented only if min_index === -infinity and max_index === infinity
+	  if(!Array.isArray(min_index) || min_index[0] !== '-' || min_index[1] !== Infinity
+	     || max_index !== Infinity)
 	    return false;
 
 	  // normalize to period 1
 	  offset0 = simplify$2(
 	    ['/', offset0, period0], assumptions, Infinity);
-	  
+
 	  // if(!(typeof offset0 === 'number'))
 	  // 	return false;
-	  
+
 	  var tuples = i_set.slice(1);
-	  
+
 	  // data will be array of form [p, q, offset, period]
 	  // where offset are period are normalized by period0
 	  // and p/q is fraction form of period
-	  
+
 	  var data = [];
 	  for(let i=0; i<tuples.length; i++) {
 
-	    // implemented only if min_index == -infinity and max_index == infinity
+	    // implemented only if min_index === -infinity and max_index === infinity
 	    let this_min_index = tuples[i][3];
 	    let this_max_index = tuples[i][4];
 	    if(!Array.isArray(this_min_index) || this_min_index[0] !== '-'
-	       || this_min_index[1] !== 'infinity'
-	       || this_max_index !== 'infinity')
+	       || this_min_index[1] !== Infinity
+	       || this_max_index !== Infinity)
 	      return false;
-	    
-	    
+
+
 	    let offset = simplify$2(
 	      ['/', tuples[i][1], period0], assumptions, Infinity);
 	    let period = simplify$2(
 	      ['/', tuples[i][2], period0], assumptions, Infinity);
-	    
+
 	    if(typeof period !== 'number')
 	      return false;
-	    
-	    let frac = math$21.fraction(period);
+
+	    let frac = math$19.fraction(period);
 	    let p = frac.n;
 	    let q = frac.d;
 	    data.push([p,q,offset,period]);
 	  }
-	  
+
 	  // sort by p
 	  data.sort();
-	  
+
 	  // check any with period for which original period is a multiple
 	  while(true) {
 	    let p = data[0][0];
-	    if(p != 1)
+	    if(p !== 1)
 	      break;
 
 	    let offset = data[0][2];
@@ -78557,17 +78871,17 @@
 	      assumptions, Infinity);
 	    offset_diff = offset_diff % period;
 
-	    if(math$21.abs(offset_diff) < 1E-10*period)
+	    if(math$19.abs(offset_diff) < 1E-10*period)
 	      return true;
 	    else {
 	      data.splice(0,1);  // remove first entry from data
-	      if(data.length == 0)
+	      if(data.length === 0)
 		return false;
 	    }
 
 	  }
 
-	  var all_ps = [... new Set(data.map(v => v[0]))];
+	  var all_ps = [...new Set(data.map(v => v[0]))];
 
 	  for(let base_p of all_ps) {
 	    // find all ps where base_p is a multiple
@@ -78575,6 +78889,8 @@
 	      let m = base_p/v[0];
 	      if(Number.isInteger(m))
 		return [v[0], m, i];
+	      else
+		return undefined;
 	    }).filter(v=>v);
 
 	    let covered = [];
@@ -78595,7 +78911,7 @@
 		  assumptions, Infinity);
 		offset_diff = offset_diff % period;
 
-		if(math$21.abs(offset_diff) < 1E-10*period) {
+		if(math$19.abs(offset_diff) < 1E-10*period) {
 
 		  for(let k=0; k<m; k++) {
 		    covered[j+k*p] = true;
@@ -78627,7 +78943,7 @@
 	function sequence_from_discrete_infinite(expr, n_elements) {
 
 	  // assuming without checking that expr is discrete infinite set
-	  
+
 	  var tree = expr.tree;
 	  var operands = tree.slice(1);
 
@@ -78641,7 +78957,7 @@
 	  let max_index = operands[0][4];
 
 	  // implemented only if min_index is defined and an integer and max_index is infinity
-	  if(!Number.isInteger(min_index) || max_index !== 'infinity')
+	  if(!Number.isInteger(min_index) || max_index !== Infinity)
 	    return;
 
 	  let result = [];
@@ -78679,7 +78995,7 @@
 	const integrateNumerically = function(expr, x,a,b) {
 	    var intervals = 100;
 	    var total = 0.0;
-	    var bindings = new Object();
+	    var bindings = {};
 
 	    for( var i=0; i < intervals; i++ ) {
 		var sample_point = a + ((b - a) * (i + 0.5) / intervals);
@@ -78699,9 +79015,9 @@
 	    var tree = get_tree(expr_or_tree);
 
 	    if(typeof tree === 'string') {
-		if((tree == 'pi' && math$21.define_pi)
-		   || (tree == 'i' && math$21.define_i)
-		   || (tree == 'e' && math$21.define_e))
+		if((tree === 'pi' && math$19.define_pi)
+		   || (tree === 'i' && math$19.define_i)
+		   || (tree === 'e' && math$19.define_e))
 		    return tree; // treat as number
 		else
 		    return ['polynomial', tree, [[1, 1]]];  // treat a polynomial variable
@@ -78770,7 +79086,7 @@
 
 		    // check if pow is a rational number with a small base
 		    if(pow_num !== null || Number.isFinite(pow_num)) {
-			let pow_fraction = math$21.fraction(pow_num);
+			let pow_fraction = math$19.fraction(pow_num);
 			if(pow_fraction.d <= 100) {
 			    if(pow_fraction.s < 0)
 				base = ['^', base, ['/', -1, pow_fraction.d]];
@@ -78790,10 +79106,10 @@
 		    return ["polynomial", tree, [[1,1]]];
 		}
 
-		if(pow==0) {
+		if(pow===0) {
 		    return 1;
 		}
-		if(pow==1) {
+		if(pow===1) {
 		    return subresult;
 		}
 
@@ -78884,17 +79200,17 @@
 	    let j = 0;
 
 	    while (i < len_p || j < len_q){
-	        if (i == len_p){
+	        if (i === len_p){
 	            if (q_terms[j][1])
 	                sum_terms.push(q_terms[j]);
 	            j = j+1;
 	        }
-	        else if (j == len_q){
+	        else if (j === len_q){
 	            if (p_terms[i][1])
 	                sum_terms.push(p_terms[i]);
 	            i = i+1;
 	        }
-	        else if (p_terms[i][0] == q_terms[j][0]){
+	        else if (p_terms[i][0] === q_terms[j][0]){
 	            let temp = polynomial_add(p_terms[i][1], q_terms[j][1]);
 	            if(temp)
 	                sum_terms.push([p_terms[i][0], temp]);
@@ -78914,11 +79230,11 @@
 	    }
 
 	    // all terms canceled
-	    if(sum_terms.length == 0)
+	    if(sum_terms.length === 0)
 		return 0;
 
 	    // only a term that is constant in leading variable is left
-	    if(sum_terms.length == 1 && (sum_terms[0][0] == 0))
+	    if(sum_terms.length === 1 && (sum_terms[0][0] === 0))
 		return sum_terms[0][1];
 
 	    return sum;
@@ -78953,7 +79269,7 @@
 	}
 
 
-	function polynomial_mul(p,q) {          //this is being called on empty polynomials
+	function polynomial_mul(p,q) {
 
 	    if(p[0] !== "polynomial") {
 		if(q[0] !== "polynomial") {
@@ -79004,7 +79320,7 @@
 	            let found = false;
 	            let current_deg = term_p[0] + term_q[0];
 	            for (let deg of degrees){
-	                if (current_deg == deg){
+	                if (current_deg === deg){
 	                    found = true;
 	                    break;
 	                }
@@ -79013,7 +79329,8 @@
 	                degrees.push(current_deg);
 	        }
 	    }
-	    degrees.sort();
+
+	    degrees.sort(function(a, b){return a - b});
 
 	    //this is where the product is computed
 	    for(let deg of degrees){
@@ -79022,7 +79339,7 @@
 	        while (i < p_len && p_terms[i][0] <= deg){
 	            let j = 0;
 	            while (j < q_len && q_terms[j][0] <= deg){
-	                if ((p_terms[i][0] + q_terms[j][0]) == deg){
+	                if ((p_terms[i][0] + q_terms[j][0]) === deg){
 	                    sum = polynomial_add(sum, polynomial_mul(p_terms[i][1], q_terms[j][1]));
 	                    break;
 	                }
@@ -79075,9 +79392,9 @@
 	    let len_terms = terms.length;
 	    for(var i = 0; i < len_terms; i = i+1) {
 		if(terms[i][1]) {
-		    if(terms[i][0]==0)
+		    if(terms[i][0]===0)
 			result.push(polynomial_to_expression(terms[i][1]));
-		    else if(terms[i][0]==1)
+		    else if(terms[i][0]===1)
 			result.push(['*', polynomial_to_expression(terms[i][1]), x]);
 		    else
 			result.push(['*', polynomial_to_expression(terms[i][1]),
@@ -79086,9 +79403,9 @@
 		}
 	    }
 
-	    if(result.length == 0)
+	    if(result.length === 0)
 		return 0;
-	    else if(result.length == 1)
+	    else if(result.length === 1)
 		result = result[0];
 	    else
 		result.unshift('+');
@@ -79101,11 +79418,11 @@
 	    //takes a polynomial ["polynomial", "var"...] and returns the initial term according to lexicographic order, in form ["monomial", coefficient, [[variable1, power1], ...]]
 
 	    if (!Array.isArray(p) || p[0] !== "polynomial")
-	        return p;               //or error?
+	        return p;
 
 	    let var_powers = [];
 
-	    while( Array.isArray(p) && p[0] == "polynomial"){
+	    while( Array.isArray(p) && p[0] === "polynomial"){
 	        let x = p[1];
 	        let terms = p[2];
 	        let exp = (terms[terms.length-1])[0];
@@ -79114,6 +79431,56 @@
 	    }
 
 	    return ["monomial", p, var_powers];
+	}
+
+	function mono_less_than(left,right) {
+	    //takes two monomials ["monomial", coeff, terms array] and returns true if left is less than right in lexicographic order.
+	    //stringify vars before calling this
+
+	    if (!Array.isArray(right) || right[0] !== "monomial")
+	        return false;           //if right is constant, always false
+
+	    if (!Array.isArray(left) || left[0] !== "monomial")
+	        return true;        //if left is constant and right is not, always true
+
+	    let left_vars = left[2];
+	    let right_vars = right[2];
+	    let left_length = left_vars.length;
+	    let right_length = right_vars.length;
+	    var shorter;
+	    if (left_length < right_length)
+	        shorter = left_length;
+	    else
+	        shorter = right_length;
+
+	    for ( var i = 0; i < shorter; i++ ){
+	        if(left_vars[i][0] !== right_vars[i][0]) {
+	            if(compare_function(left_vars[i][0], right_vars[i][0]) < 0) {
+	                // left variable is earlier in default order
+	                return false;
+	            }
+	            else {
+	                // right variable is earlier in default order
+	                return true;
+	            }
+	        }
+	        if(left_vars[i][1] < right_vars[i][1]) {
+	            // left power is lower
+	            return true;
+	        }
+	        if(left_vars[i][1] > right_vars[i][1]) {
+	            // right power is lower
+	            return false;
+	        }
+	    }
+	    if ( left_length === right_length || shorter === right_length ){
+	        // same monomial, except possibly coefficient, or same until left is longer
+	        return false;
+	        }
+	    else {
+	        // same until right is longer
+	        return true;
+	    }
 	}
 
 
@@ -79133,7 +79500,7 @@
 	    let i = 0;
 	    let j = 0;
 	    while (i < left_length && j < right_length){
-	        if (left_vars[i][0] == right_vars[j][0]){
+	        if (left_vars[i][0] === right_vars[j][0]){
 	            if (left_vars[i][1] < right_vars[j][1]){
 	                gcd_vars.push(left_vars[i]);
 	            }
@@ -79151,7 +79518,7 @@
 	        }
 	    }
 
-	    if (gcd_vars.length == 0)
+	    if (gcd_vars.length === 0)
 	        return 1;           //if they have no common variables, gcd is 1
 
 	    return ["monomial", 1, gcd_vars];
@@ -79164,7 +79531,7 @@
 
 	    if ( !Array.isArray(bottom) || bottom[0] !== "monomial"){
 	        //if bottom is constant
-	        if (bottom == 1)
+	        if (bottom === 1)
 	            return top;
 	        if ( !Array.isArray(top) || top[0] !== "monomial")      //if top is constant
 	            return evaluate_numbers(['/', top, bottom]);
@@ -79184,7 +79551,7 @@
 	    let i = 0;
 	    let j = 0;
 	    while (i < top_length && j < bottom_length){
-	        if (top_vars[i][0] == bottom_vars[j][0]){
+	        if (top_vars[i][0] === bottom_vars[j][0]){
 	            if (top_vars[i][1] < bottom_vars[j][1]){
 	                return undefined;       //does not divide
 	            }
@@ -79213,14 +79580,14 @@
 	        i=i+1;
 	    }
 
-	    if (div_vars.length == 0){
-	        if (bottom[1] == 1)
+	    if (div_vars.length === 0){
+	        if (bottom[1] === 1)
 	            return top[1];           //everything canceled, return coefficient of the top
 	        else
 	            return evaluate_numbers(['/', top[1], bottom[1]]);
 	    }
 
-	    if (bottom[1] == 1)
+	    if (bottom[1] === 1)
 	        return ["monomial", top[1], div_vars];
 	    else
 	        return ["monomial", evaluate_numbers(['/', top[1], bottom[1]]), div_vars];
@@ -79230,7 +79597,10 @@
 	    //takes two monomials ["monomial", coeff, terms array] and returns true if bottom divides top, otherwise returns false
 	    //stringify vars before calling this
 
-	    if ( !Array.isArray(bottom) || bottom[0] !== "monomial"){   //if bottom is constant
+	    if (bottom === 0)
+	        return false;
+
+	    if ( !Array.isArray(bottom) || bottom[0] !== "monomial"){   //if bottom is nonzero constant
 	        return true;
 	    }
 
@@ -79246,7 +79616,7 @@
 	    let i = 0;
 	    let j = 0;
 	    while (i < top_length && j < bottom_length){
-	        if (top_vars[i][0] == bottom_vars[j][0]){
+	        if (top_vars[i][0] === bottom_vars[j][0]){
 	            if (top_vars[i][1] < bottom_vars[j][1]){
 	                return false;       //does not divide
 	            }
@@ -79298,13 +79668,13 @@
 	    //in monos, and the index of the divisor.
 	    //stringify vars before calling this
 
-	    if ( f$$1 == 0){
+	    if ( f$$1 === 0){
 	        return 0;
 	    }
 	    let focus = f$$1;
 	    let var_powers = [];
 
-	    while( Array.isArray(focus) && focus[0] == "polynomial"){
+	    while( Array.isArray(focus) && focus[0] === "polynomial"){
 	        let x = focus[1];
 	        let terms = focus[2];
 	        let exp = terms[terms.length-1][0];
@@ -79315,7 +79685,7 @@
 	    let current_term = ["monomial", focus, var_powers];
 
 	    let monos_size = monos.length;
-	    for ( var i = 0; i < monos_size; i++ ){
+	    for ( var i = 0; i < monos_size; i = i+1 ){
 	        if (mono_is_div(current_term, monos[i])){
 	            return [current_term, i];
 	        }
@@ -79335,8 +79705,6 @@
 	    let f_prime = f$$1;
 
 	    for (var g of divs){
-	        if (g == 0)
-	            return undefined;           //don't divide by 0
 	        inits.push(initial_term(g));
 	    }
 
@@ -79369,7 +79737,7 @@
 	        }
 	    }
 
-	    if (new_polys.length == 0)
+	    if (new_polys.length === 0)
 	        return [0];
 
 	    return new_polys;
@@ -79379,7 +79747,33 @@
 	    //takes an index i and an array polys of polynomials, and reduces the ith polynomial wrt the rest (i.e., finds a std expression and replaces with f'). Returns the reduced polynomial.
 	    //stringify vars before calling this
 
-	    if (!Array.isArray(polys) || i >= polys.length){
+	    let inits = [];
+	    let sp = [];
+	    let mp = [];
+	    let f_prime = polys[i];
+	    let len = polys.length;
+
+	    for (var j = 0; j < len; j = j+1){
+	        if (j === i)                         //don't want to cancel out with itself, so put 0 for this initial term instead to avoid it being used
+	            inits.push(0);
+	        else
+	            inits.push(initial_term(polys[j]));
+	    }
+
+	    let m = max_div_init(f_prime, inits);
+
+	    while (m !== 0){
+	        sp = m[1];
+	        mp = mono_div(m[0], inits[sp]);
+	        f_prime = polynomial_sub(f_prime, polynomial_mul(mono_to_poly(mp), polys[sp]));
+	        m = max_div_init(f_prime, inits);
+	    }
+
+	    return f_prime;
+
+	    /*  OLD CODE:
+
+	     if (!Array.isArray(polys) || i >= polys.length){
 	        return undefined;
 	    }
 
@@ -79398,10 +79792,10 @@
 
 	    len = new_polys.length;
 
-	    if (len == 0)
+	    if (len === 0)
 	        return 0;         //if there were no nonzero polys, return [0]
 
-	    if (len == 1)
+	    if (len === 1)
 	        return new_polys[0];           //if there's only one poly, don't need to reduce
 
 	    let others = [];
@@ -79410,7 +79804,7 @@
 	            others.push(new_polys[j]);
 	    }
 
-	    return poly_div(new_polys[i], others)[1];
+	    return poly_div(new_polys[i], others)[1];*/
 	}
 
 	function reduce$1(polys){
@@ -79418,21 +79812,17 @@
 	    //this could be made more efficient with better bookkeeping if necessary - currently copying sub-arrays a lot, whenever call reduce_ith. Would need to track changes in sub-arrays.
 	    //stringify vars before calling this
 
-	    if (!Array.isArray(polys)){
-	        return undefined;
-	    }
-
 	    let i = 0;
 	    let h=[];
 	    let new_polys = prereduce(polys);
 	    let len = new_polys.length;
 
-	    if (len == 1)
+	    if (len === 1)
 	        return new_polys;           //if there's only one poly, don't need to reduce
-
+	    /*prereduce more frequently:
 	    while (i < len){
 	        h = reduce_ith(i, new_polys);
-	        if ( underscore.isEqual( h, new_polys[i] )){      //from underscore lib to compare arrays with objects
+	        if ( _.isEqual( h, new_polys[i] )){      //from underscore lib to compare arrays with objects
 	            i=i+1;
 	        }
 	        else{
@@ -79440,6 +79830,23 @@
 	            i = 0;
 	            new_polys = prereduce(new_polys);
 	            len = new_polys.length;
+	        }
+	    }*/
+
+	    /*      This code prereduces less frequently, maybe slightly faster?*/
+	    let trigger = true;
+	    while (trigger){
+	        trigger = false;
+	        new_polys = prereduce(new_polys);
+	        len = new_polys.length;
+	        i = 0;
+	        while (i < len){
+	            h = reduce_ith(i, new_polys);
+	            if ( !underscore.isEqual( h, new_polys[i] )){      //from underscore lib to compare arrays with objects
+	                new_polys[i]=h;
+	                trigger = true;
+	            }
+	            i = i+1;
 	        }
 	    }
 
@@ -79474,31 +79881,99 @@
 	    return std_exp[1];
 	}
 
+	function build_hij_table(table, polys){
+	    //takes an empty table and an array of polynomials, and fills in table where table[[i,j]]=h_ij for i < j < polys.length. (Look up h_ij based on the index in polys) returns first choice for h
+	    //stringify vars before calling this
+
+	    let len = polys.length;
+	    let i = 0;
+	    let j = 1;
+
+	    let candidates = [];
+
+	    while (j < len){
+	        while (i < j){
+	            table[[i,j]] = hij(i,j,polys);
+	            if (table[[i,j]] !== 0)
+	                candidates.push(table[[i,j]]);
+	            i = i + 1;
+	        }
+	        i = 0;
+	        j = j + 1;
+	    }
+
+	    if (candidates.length > 0)
+	        return choice_lowest_degree(candidates);           //call different choice functions here. Could avoid iterating through again if check as go.
+
+	    return 0;
+	}
+
+	function update_hij_table(table, polys, h){
+	    //takes an hij table, array of polynomials that the table was built for, and a poynomial h. Updates the hij values for the addition of the polynomial h, h is added with the highest index. return next choice of h.
+
+	    let len = polys.length;
+	    polys.push(h);
+	    let i = 0;
+	    let j = 1;
+
+	    let candidates = [];
+	    while (j < len){                //this loop updates old hij values.
+	        while (i < j){
+	            if (table[[i,j]] !== 0){
+	                table[[i,j]] = hij(i,j,polys);
+	                if (table[[i,j]] !== 0)
+	                    candidates.push(table[[i,j]]);
+	            }
+	            i = i + 1;
+	        }
+	        i = 0;
+	        j = j+1;
+	    }
+
+	    while (i < len){                //this loop adds values with h
+	        table [[i,len]] = hij(i,len,polys);
+	        if (table[[i,len]] !== 0)
+	            candidates.push(table[[i,len]]);
+	        i = i + 1;
+	    }
+
+	    if (candidates.length > 0)
+	        return choice_lowest_degree(candidates);           //call different choice functions here. Could avoid iterating through again if check as go.
+
+	    return 0;
+	}
+
+	function choice_lowest_degree(polys){
+	    //takes an array of polynomials, returns the polynomial of lowest degree.
+
+	    let inits = [];
+	    let len = polys.length;
+
+	    for (i = 0; i < len; i = i+1){
+	        inits.push(initial_term(polys[i]));
+	    }
+
+	    let min_index = 0;
+	    for (var i = 1; i < len; i = i+1){
+	        if (inits[i] === 1)
+	            return 1;
+	        if (mono_less_than(inits[i], inits[min_index]))
+	            min_index = i;
+	    }
+
+	    return polys[min_index];
+	}
+
 	function reduced_grobner(polys){
 	    //takes an array of polynomials, returns reduced grobner basis of the ideal they generate.
 	    //stringify vars before calling this
 
 	    let new_polys = reduce$1(polys);
-	    let len = new_polys.length;
-	    let i = 0;
-	    let j = 1;
-	    let h = [];
 
-	    while (j < len){
-	        while (i < j){
-	            h = hij(i, j, new_polys);
-	            if (h !== 0){
-	                new_polys.push(h);
-	                new_polys = reduce$1(new_polys);      //might be faster not to reduce this often
-	                len = new_polys.length;
-	                i = 0;
-	                j = 1;
-	            }
-	            else{
-	                i = i + 1;
-	            }
-	        }
-	        j = j + 1;
+	    let table = {};
+	    let h = build_hij_table(table, new_polys);
+	    while (h !== 0){
+	        h = update_hij_table(table, new_polys, h);
 	    }
 
 	    new_polys = reduce$1(new_polys);
@@ -79570,11 +80045,11 @@
 
 	function reduce_rational_expression(top, bottom){
 	    //input: top and bottom of a rational expression. top and bottom should be polynomials, ["polynomial", ...]. returns an array with two entries: new_top and new_bottom, which are reduced (gcd of new_top and new_bottom is 1). new_bottom will always have leading coefficient 1 (according to lexicographic order)
+
 	    let stringy_top = stringify_vars(top);
 	    let stringy_bottom = stringify_vars(bottom);
 	    top = stringy_top[0];
 	    bottom = stringy_bottom[0];
-
 
 	    let gcd = poly_gcd(top, bottom);
 	    let denom_coeff = (initial_term(bottom))[1];
@@ -79591,7 +80066,7 @@
 	        return [f$$1, {}];             //if it's not a polynomial, don't need to change anything.
 
 	    let table = {};
-	    let var_string = "x" + JSON.stringify(f$$1[1]);
+	    let var_string = "z" + JSON.stringify(f$$1[1]);
 	    table[var_string] = f$$1[1];
 	    f$$1[1] = var_string;
 
@@ -79710,7 +80185,7 @@
 
 	    tree = common_denominator(tree);
 
-	    if(tree[0] == '/')
+	    if(tree[0] === '/')
 		return [tree[1], tree[2]];
 	    else
 		return [tree, 1];
@@ -79721,7 +80196,7 @@
 
 	    var num_denom = as_num_denom(tree);
 
-	    if(num_denom[1] == 1)
+	    if(num_denom[1] === 1)
 		return tree;
 
 	    var poly_num = expression_to_polynomial(num_denom[0]);
@@ -79732,7 +80207,7 @@
 	    var num_new = polynomial_to_expression(reduced_polys[0]);
 	    var denom_new = polynomial_to_expression(reduced_polys[1]);
 
-	    if(denom_new == 1)
+	    if(denom_new === 1)
 		return num_new;
 	    else
 		return ['/', num_new, denom_new];
@@ -79752,7 +80227,6 @@
 	    normalization,
 	    sign_error,
 	    arithmetic$1,
-	    analytic,
 	    transformation,
 	    solve,
 	    sets,
@@ -79766,6 +80240,7 @@
 	    equality,
 	  integration,
 	  evaluation,
+	  analytic,
 	];
 
 	// standard functions
@@ -79886,7 +80361,7 @@
 	// UPDATETHIS: Is this grammar still correct?
 
 	/* Grammar:
-	   
+
 	   statement_list =
 	   statement_list ',' statement |
 	   statement
@@ -79899,7 +80374,7 @@
 	   **** statement_a '|' statement_a
 	        used with turning off '|' statement '|' in baseFactor
 	        tried only after parse error encountered
-	   
+
 	   statement_a =
 	   statement_a 'OR' statement_b |
 	   statement_b
@@ -80004,7 +80479,7 @@
 	const whitespace_rule = '\\s|\\\\,|\\\\!|\\\\ |\\\\>|\\\\;|\\\\:|\\\\quad\\b|\\\\qquad\\b';
 
 	const latex_rules = [
-	  ['[0-9]+(\\.[0-9]+)?(E[+\\-]?[0-9]+)?', 'NUMBER'],
+	  ['[0-9]+(\\.[0-9]*)?(E[+\\-]?[0-9]+)?', 'NUMBER'],
 	  ['\\.[0-9]+(E[+\\-]?[0-9]+)?', 'NUMBER'],
 	  ['\\*', '*'],
 	  ['\\/', '/'],
@@ -80188,7 +80663,7 @@
 
 	  advance(params) {
 	    this.token = this.lexer.advance(params);
-	    if (this.token.token_type == 'INVALID') {
+	    if (this.token.token_type === 'INVALID') {
 	      throw new ParseError("Invalid symbol '" + this.token.original_text + "'",
 				   this.lexer.location);
 	    }
@@ -80212,7 +80687,7 @@
 
 	    var result=this.statement_list();
 
-	    if (this.token.token_type != 'EOF') {
+	    if (this.token.token_type !== 'EOF') {
 	      throw new ParseError("Invalid location of '" + this.token.original_text + "'",
 				   this.lexer.location);
 	    }
@@ -80225,7 +80700,7 @@
 
 	    var list = [this.statement()];
 
-	    while(this.token.token_type == ",") {
+	    while(this.token.token_type === ",") {
 	      this.advance();
 	      list.push(this.statement());
 	    }
@@ -80245,7 +80720,7 @@
 	      this.advance();
 	      return ['ldots'];
 	    }
-	    
+
 	    var original_state;
 
 	    try {
@@ -80257,14 +80732,14 @@
 	      if(this.token.token_type !== ':' && this.token.token_type !== 'MID')
 		return lhs;
 
-	      let operator = this.token.token_type == ':' ? ':' : '|';
-	      
+	      let operator = this.token.token_type === ':' ? ':' : '|';
+
 	      this.advance();
 
 	      let rhs=this.statement_a();
 
 	      return [operator, lhs, rhs];
-	      
+
 	    }
 	    catch (e) {
 	      try {
@@ -80278,16 +80753,16 @@
 
 		let lhs = this.statement_a({ parse_absolute_value: false });
 
-		if(this.token.token_type[0] != '|') {
+		if(this.token.token_type[0] !== '|') {
 		  throw(e);
 		}
-		
+
 		this.advance();
-		
+
 		let rhs = this.statement_a({ parse_absolute_value: false });
 
 		return ['|', lhs, rhs];
-		
+
 	      }
 	      catch(e2) {
 		throw(e);  // throw original error
@@ -80296,22 +80771,22 @@
 	  }
 
 	  statement_a({ inside_absolute_value = 0, parse_absolute_value = true } = {}) {
-	    
+
 	    var lhs = this.statement_b({ inside_absolute_value: inside_absolute_value,
 					parse_absolute_value: parse_absolute_value });
-	    
-	    while (this.token.token_type == 'OR') {
-	      
-	      var operation = this.token.token_type.toLowerCase();
-	      
+
+	    while (this.token.token_type === 'OR') {
+
+	      let operation = this.token.token_type.toLowerCase();
+
 	      this.advance();
-	      
-	      var rhs = this.statement_b({ inside_absolute_value: inside_absolute_value,
+
+	      let rhs = this.statement_b({ inside_absolute_value: inside_absolute_value,
 					  parse_absolute_value: parse_absolute_value });
-	      
+
 	      lhs = [operation, lhs, rhs];
 	    }
-	    
+
 	    return lhs;
 	  }
 
@@ -80321,13 +80796,13 @@
 
 	    var lhs=this.relation(params);
 
-	    while (this.token.token_type == 'AND') {
+	    while (this.token.token_type === 'AND') {
 
-	      var operation = this.token.token_type.toLowerCase();
+	      let operation = this.token.token_type.toLowerCase();
 
 	      this.advance();
 
-	      var rhs = this.relation(params);
+	      let rhs = this.relation(params);
 
 	      lhs = [operation, lhs, rhs];
 	    }
@@ -80338,47 +80813,47 @@
 
 	  relation(params) {
 
-	    if(this.token.token_type == 'NOT' || this.token.token_type == '!') {
+	    if(this.token.token_type === 'NOT' || this.token.token_type === '!') {
 	      this.advance();
 	      return ['not', this.relation(params)];
 	    }
 
 	    var lhs = this.expression(params);
 
-	    while ((this.token.token_type == '=') || (this.token.token_type == 'NE')
-		   || (this.token.token_type == '<') || (this.token.token_type == '>')
-		   || (this.token.token_type == 'LE') || (this.token.token_type == 'GE')
-		   || (this.token.token_type == 'IN') || (this.token.token_type == 'NOTIN')
-		   || (this.token.token_type == 'NI') || (this.token.token_type == 'NOTNI')
-		   || (this.token.token_type == 'SUBSET') || (this.token.token_type == 'NOTSUBSET')
-		   || (this.token.token_type == 'SUPERSET') || (this.token.token_type == 'NOTSUPERSET')) {
+	    while ((this.token.token_type === '=') || (this.token.token_type === 'NE')
+		   || (this.token.token_type === '<') || (this.token.token_type === '>')
+		   || (this.token.token_type === 'LE') || (this.token.token_type === 'GE')
+		   || (this.token.token_type === 'IN') || (this.token.token_type === 'NOTIN')
+		   || (this.token.token_type === 'NI') || (this.token.token_type === 'NOTNI')
+		   || (this.token.token_type === 'SUBSET') || (this.token.token_type === 'NOTSUBSET')
+		   || (this.token.token_type === 'SUPERSET') || (this.token.token_type === 'NOTSUPERSET')) {
 
-	      var operation = this.token.token_type.toLowerCase();
+	      let operation = this.token.token_type.toLowerCase();
 
-	      var inequality_sequence=0;
+	      let inequality_sequence=0;
 
-	      if((this.token.token_type == '<') || (this.token.token_type == 'LE')) {
+	      if((this.token.token_type === '<') || (this.token.token_type === 'LE')) {
 		inequality_sequence = -1;
 	      }
-	      else if((this.token.token_type == '>') || (this.token.token_type == 'GE')) {
+	      else if((this.token.token_type === '>') || (this.token.token_type === 'GE')) {
 		inequality_sequence = 1;
 	      }
 
 	      this.advance();
-	      var rhs = this.expression(params);
+	      let rhs = this.expression(params);
 
-	      if(inequality_sequence == -1) {
-		if((this.token.token_type == '<') || this.token.token_type == 'LE') {
+	      if(inequality_sequence === -1) {
+		if((this.token.token_type === '<') || this.token.token_type === 'LE') {
 		  // sequence of multiple < or <=
-		  var strict = ['tuple'];
-		  if(operation == '<')
+		  let strict = ['tuple'];
+		  if(operation === '<')
 		    strict.push(true);
 		  else
 		    strict.push(false);
 
-		  var args = ['tuple', lhs, rhs];
-		  while((this.token.token_type == '<') || this.token.token_type == 'LE') {
-		    if(this.token.token_type == '<')
+		  let args = ['tuple', lhs, rhs];
+		  while((this.token.token_type === '<') || this.token.token_type === 'LE') {
+		    if(this.token.token_type === '<')
 		      strict.push(true);
 		    else
 		      strict.push(false);
@@ -80393,18 +80868,18 @@
 		}
 
 	      }
-	      else if(inequality_sequence == 1) {
-		if((this.token.token_type == '>') || this.token.token_type == 'GE') {
+	      else if(inequality_sequence === 1) {
+		if((this.token.token_type === '>') || this.token.token_type === 'GE') {
 		  // sequence of multiple > or >=
-		  var strict = ['tuple'];
-		  if(operation == '>')
+		  let strict = ['tuple'];
+		  if(operation === '>')
 		    strict.push(true);
 		  else
 		    strict.push(false);
 
-		  var args = ['tuple', lhs, rhs];
-		  while((this.token.token_type == '>') || this.token.token_type == 'GE') {
-		    if(this.token.token_type == '>')
+		  let args = ['tuple', lhs, rhs];
+		  while((this.token.token_type === '>') || this.token.token_type === 'GE') {
+		    if(this.token.token_type === '>')
 		      strict.push(true);
 		    else
 		      strict.push(false);
@@ -80440,18 +80915,18 @@
 
 
 	  expression(params) {
-	    if(this.token.token_type == '+')
+	    if(this.token.token_type === '+')
 	      this.advance();
 
 	    var lhs = this.term(params);
-	    while ((this.token.token_type == '+') || (this.token.token_type == '-')
-		   || (this.token.token_type == 'UNION')
-		   || (this.token.token_type == 'INTERSECT')) {
+	    while ((this.token.token_type === '+') || (this.token.token_type === '-')
+		   || (this.token.token_type === 'UNION')
+		   || (this.token.token_type === 'INTERSECT')) {
 
-	      var operation = this.token.token_type.toLowerCase();
-	      var negative = false;
+	      let operation = this.token.token_type.toLowerCase();
+	      let negative = false;
 
-	      if (this.token.token_type == '-') {
+	      if (this.token.token_type === '-') {
 		operation = '+';
 		negative = true;
 		this.advance();
@@ -80459,7 +80934,7 @@
 	      else  {
 		this.advance();
 	      }
-	      var rhs = this.term(params);
+	      let rhs = this.term(params);
 	      if(negative) {
 		rhs = ['-', rhs];
 	      }
@@ -80479,11 +80954,11 @@
 	    do {
 	      keepGoing = false;
 
-	      if (this.token.token_type == '*') {
+	      if (this.token.token_type === '*') {
 		this.advance();
 		lhs = ['*', lhs, this.factor(params)];
 		keepGoing = true;
-	      } else if (this.token.token_type == '/') {
+	      } else if (this.token.token_type === '/') {
 		this.advance();
 		lhs = ['/', lhs, this.factor(params)];
 		keepGoing = true;
@@ -80491,7 +80966,7 @@
 		// this is the one case where a | could indicate a closing absolute value
 		let params2 = Object.assign({}, params);
 		params2.allow_absolute_value_closing = true;
-		var rhs = this.nonMinusFactor(params2);
+		let rhs = this.nonMinusFactor(params2);
 		if (rhs !== false) {
 		  lhs = ['*', lhs, rhs];
 		  keepGoing = true;
@@ -80504,7 +80979,7 @@
 
 
 	  factor(params) {
-	    if (this.token.token_type == '-') {
+	    if (this.token.token_type === '-') {
 	      this.advance();
 	      return ['-', this.factor(params)];
 	    }
@@ -80512,7 +80987,7 @@
 	    var result = this.nonMinusFactor(params);
 
 	    if(result === false) {
-	      if (this.token.token_type == "EOF") {
+	      if (this.token.token_type === "EOF") {
 		throw new ParseError("Unexpected end of input", this.lexer.location);
 	      }
 	      else {
@@ -80531,12 +81006,12 @@
 	    var result = this.baseFactor(params);
 
 	    // allow arbitrary sequence of factorials
-	    if (this.token.token_type == '!' || this.token.token_type == "'") {
+	    if (this.token.token_type === '!' || this.token.token_type === "'") {
 	      if(result === false)
 		throw new ParseError("Invalid location of " + this.token.token_type,
 				     this.lexer.location);
-	      while(this.token.token_type == '!' || this.token.token_type == "'") {
-		if(this.token.token_type == '!')
+	      while(this.token.token_type === '!' || this.token.token_type === "'") {
+		if(this.token.token_type === '!')
 		  result = ['apply', 'factorial', result];
 		else
 		  result = ['prime', result];
@@ -80544,7 +81019,7 @@
 	      }
 	    }
 
-	    if (this.token.token_type == '^') {
+	    if (this.token.token_type === '^') {
 	      if(result === false) {
 		throw new ParseError("Invalid location of ^", this.lexer.location);
 	      }
@@ -80566,24 +81041,24 @@
 		      parse_absolute_value = true,
 		      allow_absolute_value_closing = false
 		     } = {}) {
-	    
+
 	    var result = false;
 
-	    if (this.token.token_type == 'FRAC') {
+	    if (this.token.token_type === 'FRAC') {
 	      this.advance();
 
-	      if (this.token.token_type != '{') {
+	      if (this.token.token_type !== '{') {
 		throw new ParseError("Expected {", this.lexer.location);
 	      }
 	      this.advance();
 
 	      // determine if may be a derivative in Leibniz notation
 	      if(this.parseLeibnizNotation) {
-		
+
 		let original_state = this.return_state();
 
 		let r = this.leibniz_notation();
-		
+
 		if(r) {
 		  // successfully parsed derivative in Leibniz notation, so return
 		  return r;
@@ -80594,22 +81069,22 @@
 		  this.set_state(original_state);
 		}
 	      }
-		
-	      var numerator = this.statement({ parse_absolute_value: parse_absolute_value });
 
-	      if (this.token.token_type != '}') {
+	      let numerator = this.statement({ parse_absolute_value: parse_absolute_value });
+
+	      if (this.token.token_type !== '}') {
 		throw new ParseError("Expected }", this.lexer.location);
 	      }
 	      this.advance();
 
-	      if (this.token.token_type != '{') {
+	      if (this.token.token_type !== '{') {
 		throw new ParseError("Expected {", this.lexer.location);
 	      }
 	      this.advance();
 
-	      var denominator = this.statement({ parse_absolute_value: parse_absolute_value });
+	      let denominator = this.statement({ parse_absolute_value: parse_absolute_value });
 
-	      if (this.token.token_type != '}') {
+	      if (this.token.token_type !== '}') {
 		throw new ParseError("Expected }", this.lexer.location);
 	      }
 	      this.advance();
@@ -80617,7 +81092,7 @@
 	      return ['/', numerator, denominator];
 	    }
 
-	    if(this.token.token_type == 'BEGINENVIRONMENT') {
+	    if(this.token.token_type === 'BEGINENVIRONMENT') {
 	      let environment = /\\begin\s*{\s*([a-zA-Z0-9]+)\s*}/.exec(this.token.token_text)[1];
 
 	      if(['matrix', 'pmatrix', 'bmatrix'].includes(environment)) {
@@ -80634,8 +81109,8 @@
 
 
 		while(this.token.token_type !== 'ENDENVIRONMENT') {
-		  if(this.token.token_type == '&') {
-		    if(last_token == '&' || last_token == 'LINEBREAK') {
+		  if(this.token.token_type === '&') {
+		    if(last_token === '&' || last_token === 'LINEBREAK') {
 		      // blank entry, let entry be zero
 		      row.push(0);
 		      n_this_row += 1;
@@ -80643,8 +81118,8 @@
 		    last_token = this.token.token_type;
 		    this.advance();
 		  }
-		  else if(this.token.token_type == 'LINEBREAK') {
-		    if(last_token == '&' || last_token == 'LINEBREAK') {
+		  else if(this.token.token_type === 'LINEBREAK') {
+		    if(last_token === '&' || last_token === 'LINEBREAK') {
 		      // blank entry, let entry be zero
 		      row.push(0);
 		      n_this_row += 1;
@@ -80660,7 +81135,7 @@
 		    this.advance();
 		  }
 		  else {
-		    if(last_token == '&' || last_token == 'LINEBREAK' || 'BEGINENVIRONMENT') {
+		    if(last_token === '&' || last_token === 'LINEBREAK' || 'BEGINENVIRONMENT') {
 		      row.push(this.statement({ parse_absolute_value: parse_absolute_value }));
 		      n_this_row += 1;
 		      last_token = ' ';
@@ -80679,7 +81154,7 @@
 		}
 
 		// add last row
-		if(last_token == '&') {
+		if(last_token === '&') {
 		  // blank entry, let entry be zero
 		  row.push(0);
 		  n_this_row += 1;
@@ -80689,7 +81164,7 @@
 		  n_cols = n_this_row;
 		n_rows += 1;
 
-		
+
 		this.advance();
 
 		// create matrix
@@ -80713,20 +81188,20 @@
 
 	    }
 
-	    if (this.token.token_type == 'NUMBER') {
+	    if (this.token.token_type === 'NUMBER') {
 	      result = parseFloat( this.token.token_text );
 	      this.advance();
-	    } else if (this.token.token_type == 'INFINITY') {
-	      result = 'infinity';
+	    } else if (this.token.token_type === 'INFINITY') {
+	      result = Infinity;
 	      this.advance();
-	    } else if (this.token.token_type == 'SQRT') {
+	    } else if (this.token.token_type === 'SQRT') {
 	      this.advance();
 
-	      var root = 2;
-	      if (this.token.token_type == '[') {
+	      let root = 2;
+	      if (this.token.token_type === '[') {
 		this.advance();
-		var parameter = this.statement({ parse_absolute_value: parse_absolute_value });
-		if (this.token.token_type != ']') {
+		let parameter = this.statement({ parse_absolute_value: parse_absolute_value });
+		if (this.token.token_type !== ']') {
 		  throw new ParseError("Expected ]", this.lexer.location);
 		}
 		this.advance();
@@ -80734,26 +81209,26 @@
 		root = parameter;
 	      }
 
-	      if (this.token.token_type != '{') {
+	      if (this.token.token_type !== '{') {
 		throw new ParseError("Expected {", this.lexer.location);
 	      }
 
 	      this.advance();
-	      var parameter = this.statement({ parse_absolute_value: parse_absolute_value });
-	      if (this.token.token_type != '}') {
+	      let parameter = this.statement({ parse_absolute_value: parse_absolute_value });
+	      if (this.token.token_type !== '}') {
 		throw new ParseError("Expected }", this.lexer.location);
 	      }
 	      this.advance();
 
-	      if (root == 2)
+	      if (root === 2)
 		result = ['apply', 'sqrt', parameter];
 	      else
 		result = ['^', parameter, ['/', 1, root]];
-	    } else if (this.token.token_type == 'VAR' || this.token.token_type == 'LATEXCOMMAND'
-		      || this.token.token_type == 'VARMULTICHAR') {
+	    } else if (this.token.token_type === 'VAR' || this.token.token_type === 'LATEXCOMMAND'
+		      || this.token.token_type === 'VARMULTICHAR') {
 	      result = this.token.token_text;
 
-	      if(this.token.token_type == 'LATEXCOMMAND') {
+	      if(this.token.token_type === 'LATEXCOMMAND') {
 		result=result.slice(1);
 		if(!(this.appliedFunctionSymbols.includes(result)
 		     || this.functionSymbols.includes(result)
@@ -80763,26 +81238,26 @@
 				       this.lexer.location);
 		}
 	      }
-	      else if(this.token.token_type == 'VARMULTICHAR') {
+	      else if(this.token.token_type === 'VARMULTICHAR') {
 		// strip out name of variable from \var command
 		result = /\\var\s*\{\s*([a-zA-Z0-9]+)\s*\}/.exec(result)[1];
 	      }
 
 	      if (this.appliedFunctionSymbols.includes(result)
 		  || this.functionSymbols.includes(result))  {
-		var must_apply=false;
+		let must_apply=false;
 		if(this.appliedFunctionSymbols.includes(result))
 		  must_apply = true;
 
 		this.advance();
 
-		if(this.token.token_type=='_') {
+		if(this.token.token_type === '_') {
 		  this.advance();
-		  var subresult =  this.baseFactor({ parse_absolute_value: parse_absolute_value });
+		  let subresult =  this.baseFactor({ parse_absolute_value: parse_absolute_value });
 
 		  // since baseFactor could return false, must check
 		  if(subresult === false) {
-		    if (this.token.token_type == "EOF") {
+		    if (this.token.token_type === "EOF") {
 		      throw new ParseError("Unexpected end of input",
 					   this.lexer.location);
 		    }
@@ -80793,33 +81268,34 @@
 		  }
 		  result = ['_', result, subresult];
 		}
-		while(this.token.token_type == "'") {
+
+		while(this.token.token_type === "'") {
 		  result = ['prime', result];
 		  this.advance();
 		}
 
-		if(this.token.token_type=='^') {
+		if(this.token.token_type === '^') {
 		  this.advance();
 		  result = ['^', result, this.factor({ parse_absolute_value: parse_absolute_value })];
 		}
 
-		if (this.token.token_type == '{' || this.token.token_type == '(') {
-		  var expected_right;
-		  if(this.token.token_type == '{')
+		if (this.token.token_type === '{' || this.token.token_type === '(') {
+		  let expected_right;
+		  if(this.token.token_type === '{')
 		    expected_right = '}';
 		  else
 		    expected_right = ')';
 
 		  this.advance();
-		  var parameters = this.statement_list();
+		  let parameters = this.statement_list();
 
-		  if (this.token.token_type != expected_right) {
+		  if (this.token.token_type !== expected_right) {
 		    throw new ParseError('Expected ' + expected_right,
 					 this.lexer.location);
 		  }
 		  this.advance();
 
-		  if(parameters[0] == 'list') {
+		  if(parameters[0] === 'list') {
 		    // rename from list to tuple
 		    parameters[0] = 'tuple';
 		  }
@@ -80844,20 +81320,20 @@
 	      else {
 		this.advance();
 	      }
-	    } else if (this.token.token_type == '(' || this.token.token_type == '['
-		       || this.token.token_type == '{'
-		       || this.token.token_type == 'LBRACE') {
-	      var token_left = this.token.token_type;
-	      var expected_right, other_right;
-	      if(this.token.token_type == '(') {
+	    } else if (this.token.token_type === '(' || this.token.token_type === '['
+		       || this.token.token_type === '{'
+		       || this.token.token_type === 'LBRACE') {
+	      let token_left = this.token.token_type;
+	      let expected_right, other_right;
+	      if(this.token.token_type === '(') {
 		expected_right = ')';
 		other_right = ']';
 	      }
-	      else if(this.token.token_type == '[') {
+	      else if(this.token.token_type === '[') {
 		expected_right = ']';
 		other_right = ')';
 	      }
-	      else if(this.token.token_type == '{') {
+	      else if(this.token.token_type === '{') {
 		expected_right = '}';
 		other_right = null;
 	      }
@@ -80869,25 +81345,25 @@
 	      this.advance();
 	      result = this.statement_list();
 
-	      var n_elements = 1;
-	      if(result[0] == "list") {
+	      let n_elements = 1;
+	      if(result[0] === "list") {
 		n_elements = result.length-1;
 	      }
 
-	      if (this.token.token_type != expected_right) {
-		if(n_elements != 2 || other_right === null) {
+	      if (this.token.token_type !== expected_right) {
+		if(n_elements !== 2 || other_right === null) {
 		  throw new ParseError('Expected ' + expected_right,
 				       this.lexer.location);
 		}
-		else if (this.token.token_type != other_right) {
+		else if (this.token.token_type !== other_right) {
 		  throw new ParseError('Expected ) or ]', this.lexer.location);
 		}
 
 		// half-open interval
 		result[0] = 'tuple';
 		result = ['interval', result];
-		var closed;
-		if(token_left == '(')
+		let closed;
+		if(token_left === '(')
 		  closed = ['tuple', false, true];
 		else
 		  closed = ['tuple', true, false];
@@ -80895,10 +81371,10 @@
 
 	      }
 	      else if (n_elements >= 2) {
-		if(token_left == '(' || token_left == '{') {
+		if(token_left === '(' || token_left === '{') {
 		  result[0]  = 'tuple';
 		}
-		else if(token_left == '[') {
+		else if(token_left === '[') {
 		  result[0] = 'array';
 		}
 		else {
@@ -80906,7 +81382,7 @@
 		}
 	      }
 	      else if (token_left === 'LBRACE') {
-		if(result[0] == '|' || result[0] == ':') {
+		if(result[0] === '|' || result[0] === ':') {
 		  result = ['set', result];  // set builder notation
 		}
 		else {
@@ -80916,9 +81392,9 @@
 
 	      this.advance();
 
-	    } else if (this.token.token_type[0] == '|' && parse_absolute_value &&
-		       (inside_absolute_value==0 || !allow_absolute_value_closing ||
-			this.token.token_type[1] == 'L')) {
+	    } else if (this.token.token_type[0] === '|' && parse_absolute_value &&
+		       (inside_absolute_value === 0 || !allow_absolute_value_closing ||
+			this.token.token_type[1] === 'L')) {
 
 	      // allow the opening of an absolute value here if either
 	      // - we aren't already inside an absolute value (inside_absolute_value==0),
@@ -80928,28 +81404,28 @@
 	      // to where the absolute value will close
 
 	      inside_absolute_value += 1;
-	      
+
 	      this.advance();
 
-	      var result = this.statement({ inside_absolute_value: inside_absolute_value });
+	      result = this.statement({ inside_absolute_value: inside_absolute_value });
 	      result = ['apply', 'abs', result];
 
-	      if (this.token.token_type != '|') {
+	      if (this.token.token_type !== '|') {
 		throw new ParseError('Expected |', this.lexer.location);
 	      }
 
 	      this.advance();
 	    }
 
-	    if (this.token.token_type == '_') {
+	    if (this.token.token_type === '_') {
 	      if(result === false) {
 		throw new ParseError("Invalid location of _", this.lexer.location);
 	      }
 	      this.advance();
-	      var subresult =  this.baseFactor({ parse_absolute_value: parse_absolute_value });
+	      let subresult =  this.baseFactor({ parse_absolute_value: parse_absolute_value });
 
 	      if(subresult === false) {
-		if (this.token.token_type == "EOF") {
+		if (this.token.token_type === "EOF") {
 		  throw new ParseError("Unexpected end of input", this.lexer.location);
 		}
 		else {
@@ -80963,7 +81439,7 @@
 	    return result;
 	  }
 
-	  
+
 	  leibniz_notation() {
 	    // attempt to find and return a derivative in Leibniz notation
 	    // if unsuccessful, return false
@@ -80971,23 +81447,23 @@
 	    var result = this.token.token_text;
 
 	    let deriv_symbol = "";
-		
+
 	    let n_deriv = 1;
-		
+
 	    let var1 = "";
 	    let var2s = [];
 	    let var2_exponents = [];
-	    
-	    if(this.token.token_type == "LATEXCOMMAND" && result.slice(1) == "partial")
+
+	    if(this.token.token_type === "LATEXCOMMAND" && result.slice(1) === "partial")
 	      deriv_symbol = "∂";
-	    else if(this.token.token_type == "VAR" && result=="d")
+	    else if(this.token.token_type === "VAR" && result === "d")
 	      deriv_symbol = "d";
 	    else
 	      return false;
 
 	    // since have just a d or ∂
 	    // one option is that have a ^ followed by an integer next possibly in {}
-	    
+
 	    this.advance();
 
 	    if(this.token.token_type === '^') {
@@ -80998,11 +81474,11 @@
 	      let in_braces = false;
 	      if(this.token.token_type === '{') {
 		in_braces = true;
-		
+
 		this.advance();
 	      }
-	      
-	      if(this.token.token_type != 'NUMBER') {
+
+	      if(this.token.token_type !== 'NUMBER') {
 		return false;
 	      }
 
@@ -81016,27 +81492,27 @@
 	      // if in braces, require }
 	      if(in_braces) {
 		this.advance();
-		
-		if(this.token.token_type != '}') {
+
+		if(this.token.token_type !== '}') {
 		  return false;
 		}
 	      }
-	    
+
 	      this.advance();
 	    }
 
-	    
+
 	    // since have a d or ∂, optionally followed by ^ and integer
 	    // next we must have:
 	    // a VAR, a VARMULTICHAR, or a LATEXCOMMAND that is in allowedLatexSymbols
-	    
-	    if(this.token.token_type == 'VAR')
+
+	    if(this.token.token_type === 'VAR')
 	      var1 = this.token.token_text;
-	    else if(this.token.token_type == 'VARMULTICHAR') {
+	    else if(this.token.token_type === 'VARMULTICHAR') {
 	      // strip out name of variable from \var command
 	      var1 = /\\var\s*\{\s*([a-zA-Z0-9]+)\s*\}/.exec(this.token.token_text)[1];
 	    }
-	    else if(this.token.token_type == 'LATEXCOMMAND') {
+	    else if(this.token.token_type === 'LATEXCOMMAND') {
 	      result = this.token.token_text.slice(1);
 	      if(this.allowedLatexSymbols.includes(result))
 		var1 = result;
@@ -81048,14 +81524,14 @@
 	    // Next need a } and {
 
 	    this.advance();
-	    
-	    if (this.token.token_type != '}') {
+
+	    if (this.token.token_type !== '}') {
 	      return false;
 	    }
 
 	    this.advance();
-	    
-	    if (this.token.token_type != '{') {
+
+	    if (this.token.token_type !== '{') {
 	      return false;
 	    }
 	    else {
@@ -81069,33 +81545,33 @@
 	    // - a VAR, a VARMULTICHAR, or a LATEXCOMMAND that is in allowedLatexSymbols
 	    // optionally followed by a ^ and an integer
 	    // End when sum of exponents meets or exceeds n_deriv
-	    
+
 	    let exponent_sum = 0;
 
 	    while(true) {
-	      
+
 	      // next must be
 	      // - a VAR equal to deriv_symbol="d" or \partial when deriv_symbol = "∂"
 
 
-	      if(!((deriv_symbol == "d" && this.token.token_type == "VAR" && this.token.token_text=="d")
-		   || (deriv_symbol == "∂" && this.token.token_type == "LATEXCOMMAND"
-		       && this.token.token_text.slice(1) == "partial"))) {
+	      if(!((deriv_symbol === "d" && this.token.token_type === "VAR" && this.token.token_text === "d")
+		   || (deriv_symbol === "∂" && this.token.token_type === "LATEXCOMMAND"
+		       && this.token.token_text.slice(1) === "partial"))) {
 		return false;
 	      }
-	      
+
 	      // followed by
 	      // - a VAR, a VARMULTICHAR, or a LATEXCOMMAND that is in allowedLatexSymbols
-	      
+
 	      this.advance();
 
-	      if(this.token.token_type == 'VAR')
+	      if(this.token.token_type === 'VAR')
 		var2s.push(this.token.token_text);
-	      else if(this.token.token_type == 'VARMULTICHAR') {
+	      else if(this.token.token_type === 'VARMULTICHAR') {
 		// strip out name of variable from \var command
 		var2s.push(/\\var\s*\{\s*([a-zA-Z0-9]+)\s*\}/.exec(this.token.token_text)[1]);
 	      }
-	      else if(this.token.token_type == 'LATEXCOMMAND') {
+	      else if(this.token.token_type === 'LATEXCOMMAND') {
 		let r = this.token.token_text.slice(1);
 		if(this.allowedLatexSymbols.includes(r))
 		  var2s.push(r);
@@ -81107,92 +81583,90 @@
 		return false;
 	      }
 	      // have derivative and variable, now check for optional ^ followed by number
-	      
+
 	      let this_exponent = 1;
-	      
+
 	      this.advance();
-	      
+
 	      if(this.token.token_type === '^') {
-		
+
 		this.advance();
-		
+
 		let in_braces = false;
 		if(this.token.token_type === '{') {
 		  in_braces = true;
-		  
+
 		  this.advance();
 		}
-		
-		if(this.token.token_type != 'NUMBER') {
+
+		if(this.token.token_type !== 'NUMBER') {
 		  return false;
 		}
-		
+
 		this_exponent = parseFloat(this.token.token_text);
 		if(!Number.isInteger(this_exponent)) {
 		  return false;
 		}
-		
+
 		// if in braces, require }
 		if(in_braces) {
 		  this.advance();
 
-		  if(this.token.token_type != '}') {
+		  if(this.token.token_type !== '}') {
 		    return false;
 		  }
 		}
-		
+
 		this.advance();
-		
+
 	      }
 
 	      var2_exponents.push(this_exponent);
 	      exponent_sum += this_exponent;
-		    
+
 	      if(exponent_sum > n_deriv) {
 		return false;
 	      }
 
 	      // possibly found derivative
-	      if(exponent_sum == n_deriv) {
+	      if(exponent_sum === n_deriv) {
 
 		// next token must be a }
 		if(this.token.token_type !== '}') {
 		  return false;
 
 		}
-		
+
 		// found derivative!
 
 		this.advance();
 
 		let result_name = "derivative_leibniz";
-		if(deriv_symbol == "∂")
+		if(deriv_symbol === "∂")
 		  result_name = "partial_" + result_name;
-		
+
 		result = [result_name];
-		
-		if(n_deriv == 1)
+
+		if(n_deriv === 1)
 		  result.push(var1);
 		else
 		  result.push(["tuple", var1, n_deriv]);
 
 		let r2 = [];
 		for(let i=0; i<var2s.length; i+=1) {
-		  if(var2_exponents[i] == 1)
+		  if(var2_exponents[i] === 1)
 		    r2.push(var2s[i]);
 		  else
 		    r2.push(["tuple", var2s[i], var2_exponents[i]]);
 		}
 		r2 = ["tuple"].concat(r2);
-		
+
 		result.push(r2);
-		
+
 		return result;
-		
+
 	      }
 	    }
-
-	    return false;
 	  }
 	}
 
@@ -81216,7 +81690,6 @@
 	 * See the GNU General Public License for more details.
 	 *
 	 */
-	const node$2 = mathjs.expression.node;
 
 	/**
 	 * Helpers.
@@ -82429,7 +82902,7 @@
 
 	var require$$2 = ( empty$1 && empty ) || empty$1;
 
-	var node$3 = createCommonjsModule$1(function (module, exports) {
+	var node$2 = createCommonjsModule$1(function (module, exports) {
 	/**
 	 * Module dependencies.
 	 */
@@ -82679,14 +83152,14 @@
 
 	exports.enable(load());
 	});
-	var node_1 = node$3.init;
-	var node_2 = node$3.log;
-	var node_3 = node$3.formatArgs;
-	var node_4 = node$3.save;
-	var node_5 = node$3.load;
-	var node_6 = node$3.useColors;
-	var node_7 = node$3.colors;
-	var node_8 = node$3.inspectOpts;
+	var node_1 = node$2.init;
+	var node_2 = node$2.log;
+	var node_3 = node$2.formatArgs;
+	var node_4 = node$2.save;
+	var node_5 = node$2.load;
+	var node_6 = node$2.useColors;
+	var node_7 = node$2.colors;
+	var node_8 = node$2.inspectOpts;
 
 	var src = createCommonjsModule$1(function (module) {
 	/**
@@ -82697,7 +83170,7 @@
 	if (typeof process !== 'undefined' && process.type === 'renderer') {
 	  module.exports = browser$1;
 	} else {
-	  module.exports = node$3;
+	  module.exports = node$2;
 	}
 	});
 
@@ -83086,7 +83559,7 @@
 	  // This is an awfully weak MathML parser, but it's good enough for what MathJax generates
 	 parse(mml) {
 	  // math identifier
-	  if (mml.name == 'mi') {
+	  if (mml.name === 'mi') {
 	  	if (entities[mml.content]) {
 	  	    return entities[mml.content];
 	  	}
@@ -83096,27 +83569,27 @@
 	  	} else {
 	  	    return mml.content;
 	  	}
-	  }else if (mml.name == 'mn') { // math number
+	  }else if (mml.name === 'mn') { // math number
 	  	    return mml.content;
-	  }else if (mml.name == 'msup') {   // superscript
+	  }else if (mml.name === 'msup') {   // superscript
 	  	return this.parse( mml.children[0] ) + '^{' + this.parse( mml.children[1] ) + "}";
-	  }else if (mml.name == 'mroot') {// root
+	  }else if (mml.name === 'mroot') {// root
 	  	return "\\sqrt[" + this.parse( mml.children[1] ) + ']{' + this.parse( mml.children[1] ) + "}";
-	  }else if (mml.name == 'mfrac') {
+	  }else if (mml.name === 'mfrac') {
 	  	return "\\frac{" + this.parse( mml.children[0] ) + '}{' + this.parse( mml.children[1] ) + "}";
-	  }else if (mml.name == 'msqrt') { // superscript
+	  }else if (mml.name === 'msqrt') { // superscript
 	  	return "\\sqrt{" + mml.children.map( function(v,i) { return this.parse(v); }.bind(this) ).join(' ') + "}";
-	  }else if (mml.name == 'mo') { // math operator
+	  }else if (mml.name === 'mo') { // math operator
 	  	    if (entities[mml.content]) {
 	  	    return entities[mml.content];
-	  	    } else if (mml.content == '&#x2061;') {
+	  	    } else if (mml.content === '&#x2061;') {
 	  	    return ' ';
 	  	    } else {
 	        return mml.content;
 	        }
-	  }else if ((mml.name == "mrow") && (mml.attributes.class == "MJX-TeXAtom-ORD")) {
+	  }else if ((mml.name === "mrow") && (mml.attributes.class === "MJX-TeXAtom-ORD")) {
 	  	return mml.children.map( function(v,i) { return this.parse(v); }.bind(this) ).join(' ');
-	  } else if ((mml.name == 'math') || (mml.name == 'mrow')) {
+	  } else if ((mml.name === 'math') || (mml.name === 'mrow')) {
 	  	return '(' + mml.children.map( function(v,i) { return this.parse(v); }.bind(this) ).join(' ') + ')';
 	  }
 	  }
@@ -83147,7 +83620,15 @@
 
 	function Expression (ast, context) {
 	    this.tree = flatten(ast);
-	    this.context = context;
+		this.context = context;
+		
+		this.toJSON = function () {
+			return {
+				objectType: "math-expression",
+				tree: this.tree,
+				assumptions: this.context.assumptions
+			}
+		};
 	}
 
 	function extend$4(object, tree_to_expression) {
@@ -83297,7 +83778,18 @@
 		this.assumptions = initialize_assumptions();
 	    },
 
-	    math: math$21,
+		math: math$19,
+		
+		reviver: function (key, value) {
+			if(value.objectType === "math-expression" && value.tree !== undefined) {
+				let expr = Context.fromAst(value.tree);
+				if(value.assumptions !== undefined) {
+					expr.assumptions = value.assumptions;
+				}
+				return expr;
+			}
+			return value;
+		}
 	};
 
 
@@ -86031,7 +86523,7 @@
 	    viewportScale = m/2;
 	    
 	    identity$2(viewportMatrix);
-	    scale$2(viewportMatrix, viewportMatrix, [-2.0/m, 2.0/m]);
+	    scale$2(viewportMatrix, viewportMatrix, [2.0/m, -2.0/m]);
 	    translate$1(viewportMatrix, viewportMatrix, [-width/2, -height/2]);        
 
 	    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
