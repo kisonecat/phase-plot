@@ -219,7 +219,7 @@ function drawScene() {
     viewportScale = m/2;
     
     mat3.identity(viewportMatrix);
-    mat3.scale(viewportMatrix, viewportMatrix, [-2.0/m, 2.0/m]);
+    mat3.scale(viewportMatrix, viewportMatrix, [2.0/m, -2.0/m]);
     mat3.translate(viewportMatrix, viewportMatrix, [-width/2, -height/2]);        
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
