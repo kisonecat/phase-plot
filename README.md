@@ -17,7 +17,7 @@ Note that the variable `w` represents the mouse position.
 Using variables besides `z` and `w` will introduce draggable pins.  For instance,
 
 * [(z-a)/(z-b)](https://kisonecat.github.io/phase-plot/#f=(z-a)/(z-b))
-* [a*z*z+b*z+c](https://kisonecat.github.io/phase-plot/#f=a*z*z+b*z+c)
+* [az²+bz+c](https://kisonecat.github.io/phase-plot/#f=a*z*z+b*z+c)
 
 ## Credits and acknowledgments
 
