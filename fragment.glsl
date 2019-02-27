@@ -92,6 +92,10 @@ vec2 conjugate(vec2 a){
     return vec2(a.x, -a.y);
 }
 
+vec2 cabs(vec2 a) {
+    return vec2(sqrt(a.x*a.x + a.y*a.y),0);
+}
+
 vec2 cmul (vec2 a, vec2 b) {
   return vec2(
       a.x * b.x - a.y * b.y,
