@@ -10,7 +10,7 @@ import * as dat from 'dat.gui';
 const gui = new dat.GUI();
 
 var Parameters = function() {
-    this.f = 'sin(z)*(z-w)';
+    this.f = 'sin(z)/(z-w)';
     this.rootDarkening = 0.85;
     this.rootDarkeningSharpness = 1;
     this.poleLightening = 0.85;
@@ -39,11 +39,17 @@ if(window.location.hash) {
 } 
 
 window.addEventListener("hashchange", function () {
-    processHash();
-    updateShaders();
+  processHash();
+  updateHash();  
+  updateShaders();
+  initShaders();
+  window.requestAnimationFrame(drawScene);  
 }, false);
 
-var glslFunction = Expression.fromText(parameters.f).toGLSL();
+var markers = {};
+var glslFunction;
+updateShaders();
+var currentlyDragging = undefined;
 
 function updateHash() {
     var properties = [];
@@ -60,21 +66,39 @@ function updateHash() {
 }
 
 function updateShaders() {
-    updateHash();
+  try {
+    var expression = Expression.fromText(parameters.f.toLowerCase());
+    var vars = expression.variables();
+
+    vars.forEach( function(v) {
+      if (v == 'w') return;
+      if (v == 'z') return;
+      console.log(v);
+      if (!(v in markers)) {
+        markers[v] = vec2.clone( [0.3*Math.random() - 0.15, 0.3*Math.random() - 0.15] );
+      }
+    });
     
-    try {
-	var expression = Expression.fromText(parameters.f);
-	glslFunction = expression.toGLSL();
-        console.log( glslFunction );
-	initShaders();
-    } catch (err) {
-	return;
-    }
+    Object.keys(markers).forEach( function(v) {
+      if (vars.indexOf(v) < 0) {
+        delete markers[v];
+        var el = document.getElementById(v);
+        el.parentNode.removeChild(el);
+      }
+    });
     
-    window.requestAnimationFrame(drawScene);
+    glslFunction = expression.toGLSL();
+  } catch (err) {
+    return;
+  }
 }
 
-var functionText = gui.add(parameters, 'f').onChange( updateShaders ).listen();
+var functionText = gui.add(parameters, 'f').onChange( function() {
+  updateHash();
+  updateShaders();
+  initShaders();
+  window.requestAnimationFrame(drawScene);    
+}).listen();
 
 var colorFolder = gui.addFolder('Colors');
 
@@ -158,7 +182,9 @@ function initShaders() {
 
     shaderProgram.variables = [];
     "abcdfghjklmnopqrstuvwxyz".split('').forEach(function(v) {
-	shaderProgram.variables[v] = gl.getUniformLocation(shaderProgram, v);
+      shaderProgram.variables[v] = gl.getUniformLocation(shaderProgram, v);
+      if (v in markers)
+        gl.uniform2fv(shaderProgram.variables[v], markers[v]);
     });
 }
 
@@ -195,40 +221,72 @@ function initBuffers() {
     squareVertexPositionBuffer.itemSize = 3;
     squareVertexPositionBuffer.numItems = 4;
 }
- 
+
 var viewportScale = 1.0;
 
 function drawScene() {
-    resize(gl.canvas);
+  resize(gl.canvas);
 
-    var height = gl.canvas.clientHeight * window.devicePixelRatio;
-    var width = gl.canvas.clientWidth * window.devicePixelRatio;
-    var aspectRatio = width / height;
+  var height = gl.canvas.clientHeight * window.devicePixelRatio;
+  var width = gl.canvas.clientWidth * window.devicePixelRatio;
+  var aspectRatio = width / height;
 
-    var m = width;
-    if (m < height) m = height;
+  var m = width;
+  if (m < height) m = height;
 
-    gl.viewport((width - m)/2, (height - m)/2, m, m );
+  gl.viewport((width - m)/2, (height - m)/2, m, m );
 
-    height = gl.canvas.clientHeight;
-    width = gl.canvas.clientWidth;
-
-    m = width;
-    if (m < height) m = height;
-
-    viewportScale = m/2;
-    
-    mat3.identity(viewportMatrix);
-    mat3.scale(viewportMatrix, viewportMatrix, [2.0/m, -2.0/m]);
-    mat3.translate(viewportMatrix, viewportMatrix, [-width/2, -height/2]);        
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  height = gl.canvas.clientHeight;
+  width = gl.canvas.clientWidth;
   
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  m = width;
+  if (m < height) m = height;
+  
+  viewportScale = m/2;
+  
+  mat3.identity(viewportMatrix);
+  mat3.scale(viewportMatrix, viewportMatrix, [2.0/m, -2.0/m]);
+  mat3.translate(viewportMatrix, viewportMatrix, [-width/2, -height/2]);        
+  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+  setUniforms();
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 
-    setUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+  var inversePanzoom = mat3.create();
+  mat3.invert( inversePanzoom, panzoomMatrix );
+  var inverseViewport = mat3.create();
+  mat3.invert( inverseViewport, viewportMatrix );
+
+  Object.keys(markers).forEach( function(v) {
+    var el = document.getElementById(v);
+    
+    if (!el) {
+      el = document.createElement('div');
+      var t = document.createTextNode(v);
+      el.appendChild(t);
+      document.body.appendChild(el);
+      el.id = v;
+      el.classList.add('marker');
+      el.onmousedown = function(event) {
+        currentlyDragging = event.target.id;
+      };
+      el.onmouseup = function(event) {
+        currentlyDragging = undefined;
+      };      
+    }
+    
+    var point = vec2.clone( markers[v] );
+    
+    vec2.transformMat3( point, point, inversePanzoom );
+    vec2.transformMat3( point, point, inverseViewport );
+    
+    el.style.bottom = (height - point[1].toString()) + 'px';
+    el.style.left = (point[0].toString() - 10) + 'px';
+  });
 }
 
 window.addEventListener("resize", function() {
@@ -273,15 +331,24 @@ function webGLStart() {
  
 webGLStart();
 
+document.querySelector("#glCanvas").addEventListener("mouseup", function(e) {
+  currentlyDragging = undefined;
+});
+
 document.querySelector("#glCanvas").addEventListener("mousemove", function(e) {
-    var point = vec2.clone( [e.clientX, e.clientY] );
-    console.log("client",point);
-    vec2.transformMat3( point, point, viewportMatrix );
-    console.log("viewport",point);
-    var inverse = mat3.clone(panzoomMatrix);
-    vec2.transformMat3( point, point, inverse );
+  var point = vec2.clone( [e.clientX, e.clientY] );
+  vec2.transformMat3( point, point, viewportMatrix );
+  var inverse = mat3.clone(panzoomMatrix);
+  vec2.transformMat3( point, point, inverse );
+
+  if (currentlyDragging) {
+    markers[currentlyDragging] = point;
+    gl.uniform2fv(shaderProgram.variables[currentlyDragging], point);
+  } else {
     gl.uniform2fv(shaderProgram.variables["w"], point);
-    window.requestAnimationFrame(drawScene);
+  }
+  
+  window.requestAnimationFrame(drawScene);
 });
 
 panzoom(document.querySelector("#glCanvas"), e => {
