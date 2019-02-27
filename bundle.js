@@ -1734,6 +1734,48 @@
 	}
 
 	/**
+	 * Inverts a mat3
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	function invert$2(out, a) {
+	  var a00 = a[0],
+	      a01 = a[1],
+	      a02 = a[2];
+	  var a10 = a[3],
+	      a11 = a[4],
+	      a12 = a[5];
+	  var a20 = a[6],
+	      a21 = a[7],
+	      a22 = a[8];
+
+	  var b01 = a22 * a11 - a12 * a21;
+	  var b11 = -a22 * a10 + a12 * a20;
+	  var b21 = a21 * a10 - a11 * a20;
+
+	  // Calculate the determinant
+	  var det = a00 * b01 + a01 * b11 + a02 * b21;
+
+	  if (!det) {
+	    return null;
+	  }
+	  det = 1.0 / det;
+
+	  out[0] = b01 * det;
+	  out[1] = (-a22 * a01 + a02 * a21) * det;
+	  out[2] = (a12 * a01 - a02 * a11) * det;
+	  out[3] = b11 * det;
+	  out[4] = (a22 * a00 - a02 * a20) * det;
+	  out[5] = (-a12 * a00 + a02 * a10) * det;
+	  out[6] = b21 * det;
+	  out[7] = (-a21 * a00 + a01 * a20) * det;
+	  out[8] = (a11 * a00 - a01 * a10) * det;
+	  return out;
+	}
+
+	/**
 	 * Translate a mat3 by the given vector
 	 *
 	 * @param {mat3} out the receiving matrix
@@ -86320,7 +86362,7 @@
 	const gui$1 = new GUI$1();
 
 	var Parameters = function() {
-	    this.f = 'sin(z)*(z-w)';
+	    this.f = 'sin(z)/(z-w)';
 	    this.rootDarkening = 0.85;
 	    this.rootDarkeningSharpness = 1;
 	    this.poleLightening = 0.85;
@@ -86349,11 +86391,17 @@
 	} 
 
 	window.addEventListener("hashchange", function () {
-	    processHash();
-	    updateShaders();
+	  processHash();
+	  updateHash();  
+	  updateShaders();
+	  initShaders();
+	  window.requestAnimationFrame(drawScene);  
 	}, false);
 
-	var glslFunction = Context.fromText(parameters.f).toGLSL();
+	var markers = {};
+	var glslFunction;
+	updateShaders();
+	var currentlyDragging = undefined;
 
 	function updateHash() {
 	    var properties = [];
@@ -86370,21 +86418,39 @@
 	}
 
 	function updateShaders() {
-	    updateHash();
+	  try {
+	    var expression = Context.fromText(parameters.f.toLowerCase());
+	    var vars = expression.variables();
+
+	    vars.forEach( function(v) {
+	      if (v == 'w') return;
+	      if (v == 'z') return;
+	      console.log(v);
+	      if (!(v in markers)) {
+	        markers[v] = clone$8( [0.3*Math.random() - 0.15, 0.3*Math.random() - 0.15] );
+	      }
+	    });
 	    
-	    try {
-		var expression = Context.fromText(parameters.f);
-		glslFunction = expression.toGLSL();
-	        console.log( glslFunction );
-		initShaders();
-	    } catch (err) {
-		return;
-	    }
+	    Object.keys(markers).forEach( function(v) {
+	      if (vars.indexOf(v) < 0) {
+	        delete markers[v];
+	        var el = document.getElementById(v);
+	        el.parentNode.removeChild(el);
+	      }
+	    });
 	    
-	    window.requestAnimationFrame(drawScene);
+	    glslFunction = expression.toGLSL();
+	  } catch (err) {
+	    return;
+	  }
 	}
 
-	var functionText = gui$1.add(parameters, 'f').onChange( updateShaders ).listen();
+	var functionText = gui$1.add(parameters, 'f').onChange( function() {
+	  updateHash();
+	  updateShaders();
+	  initShaders();
+	  window.requestAnimationFrame(drawScene);    
+	}).listen();
 
 	var colorFolder = gui$1.addFolder('Colors');
 
@@ -86467,7 +86533,9 @@
 
 	    shaderProgram.variables = [];
 	    "abcdfghjklmnopqrstuvwxyz".split('').forEach(function(v) {
-		shaderProgram.variables[v] = gl.getUniformLocation(shaderProgram, v);
+	      shaderProgram.variables[v] = gl.getUniformLocation(shaderProgram, v);
+	      if (v in markers)
+	        gl.uniform2fv(shaderProgram.variables[v], markers[v]);
 	    });
 	}
 
@@ -86504,39 +86572,71 @@
 	    squareVertexPositionBuffer.itemSize = 3;
 	    squareVertexPositionBuffer.numItems = 4;
 	}
-	 
+
 	var viewportScale = 1.0;
 
 	function drawScene() {
-	    resize$4(gl.canvas);
+	  resize$4(gl.canvas);
 
-	    var height = gl.canvas.clientHeight * window.devicePixelRatio;
-	    var width = gl.canvas.clientWidth * window.devicePixelRatio;
+	  var height = gl.canvas.clientHeight * window.devicePixelRatio;
+	  var width = gl.canvas.clientWidth * window.devicePixelRatio;
 
-	    var m = width;
-	    if (m < height) m = height;
+	  var m = width;
+	  if (m < height) m = height;
 
-	    gl.viewport((width - m)/2, (height - m)/2, m, m );
+	  gl.viewport((width - m)/2, (height - m)/2, m, m );
 
-	    height = gl.canvas.clientHeight;
-	    width = gl.canvas.clientWidth;
-
-	    m = width;
-	    if (m < height) m = height;
-
-	    viewportScale = m/2;
-	    
-	    identity$2(viewportMatrix);
-	    scale$2(viewportMatrix, viewportMatrix, [2.0/m, -2.0/m]);
-	    translate$1(viewportMatrix, viewportMatrix, [-width/2, -height/2]);        
-
-	    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	  height = gl.canvas.clientHeight;
+	  width = gl.canvas.clientWidth;
 	  
-	    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-	    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	  m = width;
+	  if (m < height) m = height;
+	  
+	  viewportScale = m/2;
+	  
+	  identity$2(viewportMatrix);
+	  scale$2(viewportMatrix, viewportMatrix, [2.0/m, -2.0/m]);
+	  translate$1(viewportMatrix, viewportMatrix, [-width/2, -height/2]);        
+	  
+	  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	  
+	  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+	  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	  
+	  setUniforms();
+	  gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 
-	    setUniforms();
-	    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+	  var inversePanzoom = create$2();
+	  invert$2( inversePanzoom, panzoomMatrix );
+	  var inverseViewport = create$2();
+	  invert$2( inverseViewport, viewportMatrix );
+
+	  Object.keys(markers).forEach( function(v) {
+	    var el = document.getElementById(v);
+	    
+	    if (!el) {
+	      el = document.createElement('div');
+	      var t = document.createTextNode(v);
+	      el.appendChild(t);
+	      document.body.appendChild(el);
+	      el.id = v;
+	      el.classList.add('marker');
+	      el.onmousedown = function(event) {
+	        currentlyDragging = event.target.id;
+	      };
+	      el.onmouseup = function(event) {
+	        currentlyDragging = undefined;
+	      };      
+	    }
+	    
+	    var point = clone$8( markers[v] );
+	    
+	    transformMat3$1( point, point, inversePanzoom );
+	    transformMat3$1( point, point, inverseViewport );
+	    
+	    el.style.bottom = (height - point[1].toString()) + 'px';
+	    el.style.left = (point[0].toString() - 10) + 'px';
+	  });
 	}
 
 	window.addEventListener("resize", function() {
@@ -86581,15 +86681,24 @@
 	 
 	webGLStart();
 
+	document.querySelector("#glCanvas").addEventListener("mouseup", function(e) {
+	  currentlyDragging = undefined;
+	});
+
 	document.querySelector("#glCanvas").addEventListener("mousemove", function(e) {
-	    var point = clone$8( [e.clientX, e.clientY] );
-	    console.log("client",point);
-	    transformMat3$1( point, point, viewportMatrix );
-	    console.log("viewport",point);
-	    var inverse$$1 = clone$2(panzoomMatrix);
-	    transformMat3$1( point, point, inverse$$1 );
+	  var point = clone$8( [e.clientX, e.clientY] );
+	  transformMat3$1( point, point, viewportMatrix );
+	  var inverse$$1 = clone$2(panzoomMatrix);
+	  transformMat3$1( point, point, inverse$$1 );
+
+	  if (currentlyDragging) {
+	    markers[currentlyDragging] = point;
+	    gl.uniform2fv(shaderProgram.variables[currentlyDragging], point);
+	  } else {
 	    gl.uniform2fv(shaderProgram.variables["w"], point);
-	    window.requestAnimationFrame(drawScene);
+	  }
+	  
+	  window.requestAnimationFrame(drawScene);
 	});
 
 	panZoom_1(document.querySelector("#glCanvas"), e => {
