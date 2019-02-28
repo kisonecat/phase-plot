@@ -86423,9 +86423,10 @@
 	    var vars = expression.variables();
 
 	    vars.forEach( function(v) {
+	      if (v == 'e') return;
 	      if (v == 'w') return;
 	      if (v == 'z') return;
-	      console.log(v);
+
 	      if (!(v in markers)) {
 	        markers[v] = clone$8( [0.3*Math.random() - 0.15, 0.3*Math.random() - 0.15] );
 	      }
