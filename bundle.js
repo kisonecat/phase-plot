@@ -86423,6 +86423,7 @@
 	    var vars = expression.variables();
 
 	    vars.forEach( function(v) {
+	      if (v == 'i') return;      
 	      if (v == 'e') return;
 	      if (v == 'w') return;
 	      if (v == 'z') return;
